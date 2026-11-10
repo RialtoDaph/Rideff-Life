@@ -23,9 +23,9 @@ const seed = {
   career_steps: [{id:'cs1',plan:'Studio plan',title:'Business plan',status:'done',timing:'Q1',sort:0,...own},{id:'cs2',plan:'Studio plan',title:'First clients',status:'now',timing:null,sort:1,...own}],
   member_settings: [{member_id:uid,theme:'light',palette:'noir',default_visibility:{},notif:{},warn_pct:80,ef_months:6,learn_week_min:180,gym_week_goal:3,shift_wage:15}],
   events: [
-    {id:'e1',kind:'shift',title:'Bar shift',date:iso(0),start_time:'18:00:00',end_time:'01:00:00',who:uid,remind_min:null,source:'manual',note:null,...own},
-    {id:'e2',kind:'shift',title:'Bar shift',date:iso(2),start_time:'18:00:00',end_time:'02:00:00',who:uid,remind_min:null,source:'manual',note:null,...own},
-    {id:'e3',kind:'shift',title:'Bar shift',date:iso(9),start_time:'18:00:00',end_time:'01:00:00',who:uid,remind_min:null,source:'manual',note:null,...own},
+    {id:'e1',kind:'shift',title:'Work shift',date:iso(0),start_time:'18:00:00',end_time:'01:00:00',who:uid,remind_min:null,source:'manual',note:null,...own},
+    {id:'e2',kind:'shift',title:'Work shift',date:iso(2),start_time:'18:00:00',end_time:'02:00:00',who:uid,remind_min:null,source:'manual',note:null,...own},
+    {id:'e3',kind:'shift',title:'Work shift',date:iso(9),start_time:'18:00:00',end_time:'01:00:00',who:uid,remind_min:null,source:'manual',note:null,...own},
     {id:'e4',kind:'event',title:'Tax papers',date:iso(1),start_time:'15:00:00',end_time:null,who:'22222222-2222-2222-2222-222222222222',remind_min:60,source:'manual',note:null,...own},
     {id:'e5',kind:'event',title:'Family lunch',date:iso(3),start_time:null,end_time:null,who:null,remind_min:null,source:'manual',note:null,...own},
   ],
@@ -44,11 +44,11 @@ const seed = {
   date_nights: [{id:'dn1',name:'Trattoria am Markt + castle walk',icon:'utensils',date:iso(-5),cost:64,rating:5,note:null,idea_id:null,event_id:null,...own},{id:'dn2',name:'Cinema, Ingolstadt',icon:'clapperboard',date:iso(-12),cost:32,rating:null,note:null,idea_id:null,event_id:null,...own},{id:'dn3',name:'Dinner at home',icon:'heart',date:iso(2),cost:25,rating:null,note:'Nasi timbel night',idea_id:null,event_id:null,...own}],
 
   categories: [['c1','Rent & utilities','house',1335,true],['c2','Groceries','shopping-cart',620,false],['c3','Online shopping','package',250,false],['c4','Eating out','utensils',200,false]].map(([id,name,icon,monthly_limit,is_fixed],i)=>({id,name,icon,monthly_limit,is_fixed,sort:i,...own})),
-  incomes: [{id:'i1',name:'Gasthof zur Linde · salary',member_id:uid,kind:'Salary',monthly_amount:2150,...own},{id:'i2',name:'Alex Studio',member_id:uid,kind:'Business',monthly_amount:2600,...own}],
+  incomes: [{id:'i1',name:'Müller Logistik · salary',member_id:uid,kind:'Salary',monthly_amount:2150,...own},{id:'i2',name:'Alex Studio',member_id:uid,kind:'Business',monthly_amount:2600,...own}],
   recurring: [
     {id:'r1',name:'Rent · Wohnbau München',icon:'house',amount:-1050,category_id:'c1',paid_by:null,day_of_month:1,active:true,last_posted_month:ym,is_subscription:false,last_used_at:null,cancelled_on:null,...own},
     {id:'r2',name:'Shopify · Mira Atelier',icon:'laptop',amount:-39,category_id:null,paid_by:null,day_of_month:12,active:false,last_posted_month:null,is_subscription:false,last_used_at:null,cancelled_on:null,...own},
-    {id:'r3',name:'Gasthof zur Linde · salary',icon:'banknote',amount:2150,category_id:null,paid_by:uid,day_of_month:28,active:true,last_posted_month:null,is_subscription:false,last_used_at:null,cancelled_on:null,...own},
+    {id:'r3',name:'Müller Logistik · salary',icon:'banknote',amount:2150,category_id:null,paid_by:uid,day_of_month:28,active:true,last_posted_month:null,is_subscription:false,last_used_at:null,cancelled_on:null,...own},
     {id:'s1',name:'Netflix',icon:'tv',amount:-13.99,category_id:null,paid_by:null,day_of_month:5,active:true,last_posted_month:ym,is_subscription:true,last_used_at:iso(-3),cancelled_on:null,...own},
     {id:'s2',name:'DAZN',icon:'tv',amount:-34.99,category_id:null,paid_by:uid,day_of_month:9,active:true,last_posted_month:null,is_subscription:true,last_used_at:iso(-52),cancelled_on:null,...own},
     {id:'s4',name:'FitStudio',icon:'dumbbell',amount:-59.8,category_id:null,paid_by:null,day_of_month:1,active:true,last_posted_month:ym,is_subscription:true,last_used_at:iso(0),cancelled_on:null,...own},

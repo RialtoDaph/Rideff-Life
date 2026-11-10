@@ -103,7 +103,7 @@ export function TimeForm({ kind, id, preset, onClose }: { kind: TimeFormKind; id
             note: e.note ?? "",
           }
         : {
-            title: shift ? tt("bar_shift") : "",
+            title: shift ? tt("work_shift") : "",
             date: today.iso,
             start: shift ? "18:00" : "",
             end: shift ? "01:00" : "",

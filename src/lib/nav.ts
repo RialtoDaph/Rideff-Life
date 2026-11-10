@@ -1,6 +1,6 @@
 import {
   Bell,
-  Beer,
+  BriefcaseBusiness,
   Calendar,
   CalendarDays,
   Camera,
@@ -57,8 +57,8 @@ export const MODULES: Record<ModuleKey, { name: string; key: LabelKey; icon: Luc
     key: "nav.time_goals",
     icon: CalendarDays,
     tabs: [
-      { id: "week", label: "This week", key: "nav.this_week", phase: 4, blurb: "Three priorities and a 7-day board for both of you." },
-      { id: "shifts", label: "Shifts", key: "nav.shifts", phase: 4, blurb: "Bar shifts and hours, read straight from the roster." },
+      { id: "week", label: "This week", key: "nav.this_week", phase: 4, blurb: "Three priorities and a 7-day board for your household." },
+      { id: "shifts", label: "Shifts", key: "nav.shifts", phase: 4, blurb: "Work shifts and hours, read straight from the roster." },
       { id: "ygoals", label: "Yearly goals", key: "nav.yearly_goals", phase: 4, blurb: "A 52-week strip per goal and this week's step." },
       { id: "learn", label: "Learning", key: "nav.learning", phase: 4, blurb: "Minutes per person, books and courses." },
     ],
@@ -70,7 +70,7 @@ export const MODULES: Record<ModuleKey, { name: string; key: LabelKey; icon: Luc
     tabs: [
       { id: "invest", label: "Overview", key: "nav.overview", phase: 2, blurb: "Net worth and what you own, in EUR and IDR." },
       { id: "sim", label: "10-year simulation", key: "nav.10_year_simulation", phase: 5, blurb: "Bad, middle and good scenarios for the next ten years." },
-      { id: "career", label: "Career", key: "nav.career", phase: 5, blurb: "The Studio plan and its stages." },
+      { id: "career", label: "Career", key: "nav.career", phase: 5, blurb: "Your career plan and its stages." },
     ],
   },
   life: {
@@ -79,7 +79,7 @@ export const MODULES: Record<ModuleKey, { name: string; key: LabelKey; icon: Luc
     icon: Heart,
     tabs: [
       { id: "gym", label: "Gym", key: "nav.gym", phase: 4, blurb: "Sessions per person per week." },
-      { id: "together", label: "Date nights", key: "nav.date_nights", phase: 4, blurb: "This Friday's plan and ideas around Eichstätt." },
+      { id: "together", label: "Date nights", key: "nav.date_nights", phase: 4, blurb: "This week's plan and date ideas near you." },
       { id: "journal", label: "Journal", key: "nav.journal", phase: 4, blurb: "Private by default. Only you can read it." },
     ],
   },
@@ -161,7 +161,7 @@ export const QUICK_ADD: QuickAddItem[] = [
   { key: "debt", label: "ui.debt", icon: CreditCard, phase: 2, form: "debt" },
   { key: "tx", label: "ui.transaction", icon: Receipt, phase: 1, form: "tx" },
   { key: "event", label: "ui.calendar_event", icon: Calendar, phase: 4, form: "event" },
-  { key: "shift", label: "ui.bar_shift", icon: Beer, phase: 4, form: "shift" },
+  { key: "shift", label: "ui.work_shift", icon: BriefcaseBusiness, phase: 4, form: "shift" },
   { key: "goal", label: "copy.goal", icon: Target, phase: 1, form: "goal" },
   { key: "sub", label: "ui.subscription", icon: Repeat, phase: 2, form: "sub" },
   { key: "asset", label: "ui.investment_value", icon: TrendingUp, phase: 2, form: "asset" },

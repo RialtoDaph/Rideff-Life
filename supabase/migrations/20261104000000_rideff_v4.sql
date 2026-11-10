@@ -1,12 +1,12 @@
 -- rideff Life v4 (design_handoff_rideff/DATA_MODEL.md, AI_ASSISTANT.md).
 -- From one fixed household to many: sign-up creates a household or joins one
 -- through an invite. Adds billing, assistant memory and the privacy rules the
--- handoff asks for. Safe on top of the Effendy migrations and on a fresh
+-- handoff asks for. Safe on top of the earlier migrations and on a fresh
 -- baseline, so the same file carries the live data over at cutover.
 
 create extension if not exists vector with schema extensions;
 
--- The old push job pointed at the Effendy project; phase 7 schedules a new one.
+-- The old push job pointed at the first project; phase 7 schedules a new one.
 do $$
 begin
   if exists (select 1 from cron.job where jobname = 'push-reminders') then

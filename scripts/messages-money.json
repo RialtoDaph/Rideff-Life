@@ -104,7 +104,7 @@
 "documents_empty": ["Monthly business reports you upload appear here.", "Monatsberichte, die du hochlädst, erscheinen hier.", "Laporan bulanan yang kamu unggah muncul di sini."],
 "done": ["Done", "Fertig", "Selesai"],
 "due": ["Due", "Fällig", "Jatuh tempo"],
-"e_g_bar_salary_net": ["e.g. Bar salary (net)", "z. B. Gehalt Bar (netto)", "mis. Gaji bar (bersih)"],
+"e_g_salary_net": ["e.g. Salary (net)", "z. B. Gehalt (netto)", "mis. Gaji (bersih)"],
 "e_g_can_sell_within_2_days": ["e.g. can sell within 2 days", "z. B. in 2 Tagen verkaufbar", "mis. bisa dijual dalam 2 hari"],
 "e_g_etf_savings_plan": ["e.g. ETF savings plan", "z. B. ETF-Sparplan", "mis. Rencana tabungan ETF"],
 "e_g_family_car": ["e.g. Family car", "z. B. Familienauto", "mis. Mobil keluarga"],

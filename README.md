@@ -1,9 +1,9 @@
 # rideff Life
 
-Private family app (PWA) for Rialto and Amnah: money, time, goals and life in one place.
+A household app (PWA) for money, time, goals and life in one place, for people living in Germany.
+In English, German and Indonesian.
 
-- Design source of truth: [`docs/design/`](docs/design/README.md) (prototype, data model, roadmap).
-- Current phase plan: [`docs/RENCANA-TAHAP-0.md`](docs/RENCANA-TAHAP-0.md).
+- Design source of truth: [`design_handoff_rideff/`](design_handoff_rideff/README.md) (prototype, data model, tokens, assistant).
 
 ## Stack
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · Supabase (Frankfurt, `eu-central-1`) · Vercel (`fra1`) · lucide-react · Geist.
@@ -35,8 +35,8 @@ Web Push encryption in `supabase/functions/push/webpush.test.ts`.
 Business reports live in the private Supabase Storage bucket `files`, path
 `<household_id>/<owner_id>/<name>`. An object can only be read when its `files` row is
 visible to the reader, so Private files stay private.
-- New sign-in accounts join the single household automatically (max 2 members).
-  Public sign-up must stay switched off in Supabase → Authentication → Sign In / Providers.
+- Each new account gets a household of its own (`handle_new_user()`). It joins an existing
+  household only through a valid, unused invite while the plan has a free seat.
 
 ## Offline
 `public/sw.js` caches every page and its static files on first visit. Its `PAGES`
@@ -77,20 +77,20 @@ sent when the connection is back; the header shows how many wait.
   bucket (kind `receipt`) and linked through `transactions.receipt_file_id`.
 
 ## Time & life (phase 4)
-- Calendar items and bar shifts share the `events` table (`kind` = event / shift). A shift is
+- Calendar items and work shifts share the `events` table (`kind` = event / shift). A shift is
   saved once per person, date and start time, so reading a roster twice is safe.
 - Read roster: a screenshot or PDF goes to `/api/read` (kind `roster`); every shift is shown for
   checking before it is saved.
 - Reminders: shifts 2 hours before (to the person working), events when a reminder is set.
 - Journal entries are private by default; goal progress follows its goal's visibility.
 
-## Rialna (phase 5)
+## Ask Clopar (phase 5)
 - `/api/ask` answers questions and writes the Home briefing. It reads the data with the asker's
   own login (Row Level Security), then `buildContext()` in `src/lib/ask-context.ts` keeps only
   family rows and the asker's own private rows; the partner's private items never reach the AI
   (tested in `src/lib/ask-context.test.ts`).
 - Answers are structured: text, up to 3 number cards, a next step and an app screen to open.
-  Rialna answers in the language of the question. Chat history and the daily briefing stay on the
+  Clopar answers in the language of the question. Chat history and the daily briefing stay on the
   phone and are removed on sign-out.
 - What if, the 10-year simulation (`src/lib/plan.ts`) and the monthly report are plain
   calculations without AI. The report prints on A4 (`@media print` in `globals.css`).

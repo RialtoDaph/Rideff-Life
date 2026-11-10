@@ -26,7 +26,8 @@ export async function POST(req: Request) {
   const today = String(form?.get("today") ?? "").match(/^\d{4}-\d{2}-\d{2}$/)?.[0] ?? new Date().toISOString().slice(0, 10);
 
   // 3. Claude reads it.
-  const r = await readWithAi(auth.sb, kind, new Uint8Array(await file.arrayBuffer()), file.type, today);
+  const { data: me } = kind === "roster" ? await auth.sb.from("members").select("display_name").eq("id", auth.userId).maybeSingle() : { data: null };
+  const r = await readWithAi(auth.sb, kind, new Uint8Array(await file.arrayBuffer()), file.type, today, me?.display_name ?? undefined);
   if ("error" in r) return fail(r.error, r.status);
   return Response.json({ kind, result: r.result });
 }

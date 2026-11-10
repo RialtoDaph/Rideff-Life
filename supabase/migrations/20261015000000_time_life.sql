@@ -1,4 +1,4 @@
--- Phase 4: time & life. Week board and calendar (events), bar shifts, week
+-- Phase 4: time & life. Week board and calendar (events), work shifts, week
 -- priorities, yearly goals with weekly progress, learning, gym, journal
 -- (private by default), date nights and ideas. Same Private/Family rules as
 -- the money tables. Reminders: shifts 2 hours before, events when asked.

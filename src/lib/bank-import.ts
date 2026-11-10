@@ -376,7 +376,7 @@ export async function rowHashes(bank: string, rows: ParsedRow[]) {
 
 /* Categories -------------------------------------------------------------- */
 
-/** "REWE Markt GmbH 12345 Eichstaett" → "rewe markt gmbh". */
+/** "REWE Markt GmbH 80331 Muenchen" → "rewe markt gmbh". */
 export function merchantKey(payee: string) {
   return payee
     .toLowerCase()

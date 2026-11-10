@@ -207,7 +207,7 @@ function CoreMoneyForm({ open, onClose }: { open: Open; onClose: () => void }) {
               : { member: userId, kind: "Salary", visibility: defaultVis("incomes"), ...open.preset }
           }
           fields={[
-            { kind: "text", key: "name", label: tm("name"), placeholder: tm("e_g_bar_salary_net"), required: true },
+            { kind: "text", key: "name", label: tm("name"), placeholder: tm("e_g_salary_net"), required: true },
             { kind: "chips", key: "member", label: tm("whose_income"), options: who },
             {
               kind: "chips",

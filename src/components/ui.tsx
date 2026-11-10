@@ -81,7 +81,7 @@ export function Segmented<T extends string | number>({
   );
 }
 
-/** Small owner pill: "Rialto", "Amnah", "Family". */
+/** Small owner pill: a member's name, or "Family". */
 export function OwnerPill({ member, fallback }: { member: Member | undefined; fallback?: string }) {
   const tm = useTranslations("money");
   const { bg, fg } = member ? avatarColors(member) : { bg: "var(--acc)", fg: "var(--onacc)" };

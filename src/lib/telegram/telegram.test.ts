@@ -44,7 +44,7 @@ function fakeDb(answers: Record<string, Row | null> = {}) {
 
 let admin: ReturnType<typeof fakeDb>;
 let user: ReturnType<typeof fakeDb>;
-const member = { member_id: "m1", email: "a@b.c", display_name: "Rialto", lang: "id", ai_name: null, memory_on: true };
+const member = { member_id: "m1", email: "a@b.c", display_name: "Alex", lang: "id", ai_name: null, memory_on: true };
 let linked: typeof member | null = member;
 
 vi.mock("./session", () => ({
@@ -65,7 +65,7 @@ beforeEach(() => {
   sent.length = 0;
   calls.length = 0;
   linked = member;
-  admin = fakeDb({ "rpc:telegram_claim": [{ member_id: "m1", display_name: "Amnah", lang: "de" }] as unknown as Row });
+  admin = fakeDb({ "rpc:telegram_claim": [{ member_id: "m1", display_name: "Mira", lang: "de" }] as unknown as Row });
   user = fakeDb({ "insert:ai_pending_actions": { id: "11111111-1111-1111-1111-111111111111" } });
 });
 
@@ -83,9 +83,9 @@ describe("telegram bot", () => {
   });
 
   it("links with the code from Settings and greets in the member's language", async () => {
-    await handleUpdate(msg({ text: "/start cabc123", from: { username: "amnah" } }) as never, "https://x.test");
-    expect(admin.rpc).toHaveBeenCalledWith("telegram_claim", { p_code: "cabc123", p_chat: 42, p_username: "amnah" });
-    expect(sent[0].text).toContain("Hallo Amnah");
+    await handleUpdate(msg({ text: "/start cabc123", from: { username: "mira" } }) as never, "https://x.test");
+    expect(admin.rpc).toHaveBeenCalledWith("telegram_claim", { p_code: "cabc123", p_chat: 42, p_username: "mira" });
+    expect(sent[0].text).toContain("Hallo Mira");
   });
 
   it("answers a question and keeps both turns in the app's chat", async () => {
