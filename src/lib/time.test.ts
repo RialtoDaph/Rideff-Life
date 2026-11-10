@@ -88,9 +88,9 @@ describe("shifts", () => {
     const shift = ev({ kind: "shift", start_time: "18:00", end_time: "01:00", owner_id: "r" });
     const study = ev({ title: "Study group", start_time: "19:00", end_time: "21:00", who: "r" });
     const together = ev({ title: "Dinner", start_time: "20:00" });
-    const amnah = ev({ title: "Amnah call", start_time: "19:00", who: "a" });
+    const mira = ev({ title: "Mira call", start_time: "19:00", who: "a" });
     const morning = ev({ title: "Gym", start_time: "07:30", end_time: "08:30", who: "r" });
-    expect(clashes(shift, [shift, study, together, amnah, morning]).map((e) => e.title)).toEqual(["Study group", "Dinner"]);
+    expect(clashes(shift, [shift, study, together, mira, morning]).map((e) => e.title)).toEqual(["Study group", "Dinner"]);
   });
 
   it("sums the month", () => {

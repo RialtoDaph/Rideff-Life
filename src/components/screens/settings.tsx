@@ -251,7 +251,7 @@ function AssistantSection() {
 
 /* Your data: export / import ---------------------------------------------- */
 
-const BACKUP_APP = "effendy-family";
+const BACKUP_APP = "rideff-life";
 
 type Memory = { id: string; text: string; scope: "private" | "shared"; owner_id: string; source: "voice" | "chat" | "manual"; created_at: string };
 
@@ -418,7 +418,8 @@ function DataSection() {
       setMsg(t("backup_bad"));
       return;
     }
-    if (data.app !== BACKUP_APP) {
+    // Version 1 backups were made before the app had its public name; they still import.
+    if (data.app !== BACKUP_APP && data.version !== 1) {
       setMsg(t("backup_bad"));
       return;
     }

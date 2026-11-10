@@ -1,5 +1,5 @@
 // Phase 2 money rules: remittances, debt payoff, net worth, business, taxes.
-// Pure functions (tested in finance.test.ts). Formulas: docs/design/README.md.
+// Pure functions (tested in finance.test.ts). Formulas: design_handoff_rideff/README.md.
 
 import type { Recurring, Visibility } from "./money";
 

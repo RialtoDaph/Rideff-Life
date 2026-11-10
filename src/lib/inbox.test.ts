@@ -86,13 +86,13 @@ describe("Apps Script", () => {
       },
       console: { log: () => {} },
     };
-    const code = inboxScript("https://effendyfamily.vercel.app/", "efk_" + "a".repeat(64));
+    const code = inboxScript("https://rideff-life.example.app/", "efk_" + "a".repeat(64));
     new Function(...Object.keys(env), `${code}\nsetup();`)(...Object.values(env));
 
     expect(triggers).toEqual(["sendDigest"]);
     expect(query).toContain("-category:promotions -category:social");
     expect(sent).toHaveLength(1);
-    expect(sent[0].url).toBe("https://effendyfamily.vercel.app/api/inbox");
+    expect(sent[0].url).toBe("https://rideff-life.example.app/api/inbox");
     expect(sent[0].opts.headers.Authorization).toBe("Bearer efk_" + "a".repeat(64));
     const body = JSON.parse(sent[0].opts.payload);
     expect(body.account).toBe("me@gmail.com");

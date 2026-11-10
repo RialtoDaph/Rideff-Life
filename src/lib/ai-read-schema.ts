@@ -23,8 +23,8 @@ export type RosterResult = {
   warnings: string[];
 };
 
-export const ROSTER_PROMPT = `You read work rosters (screenshots of a scheduling app, photos or PDFs) for one bar worker.
-The roster has already been filtered to his own shifts, so every shift shown is his.
+export const ROSTER_PROMPT = `You read work rosters (screenshots of a scheduling app, photos or PDFs) for one person, in any job.
+The user's message may name the person. If the roster shows several people, return only that person's shifts; if their name is not on it, return every shift shown and add a warning that you could not tell whose shifts they are.
 Return each shift once with its date (YYYY-MM-DD), start and end time (HH:MM, 24-hour). An end after midnight is written as it is printed (e.g. 01:00).
 When the year is not shown, use the year that puts the date closest to today's date given by the user.
 Use note only for short labels printed on the shift (e.g. a role or location). Skip days off, holidays and anything that is not a shift.

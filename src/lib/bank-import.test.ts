@@ -15,8 +15,8 @@ import {
 // Shapes of real exports (names and numbers made up).
 const SPARKASSE = `"Auftragskonto";"Buchungstag";"Valutadatum";"Buchungstext";"Verwendungszweck";"Glaeubiger ID";"Mandatsreferenz";"Kundenreferenz (End-to-End)";"Sammlerreferenz";"Lastschrift Ursprungsbetrag";"Auslagenersatz Ruecklastschrift";"Beguenstigter/Zahlungspflichtiger";"Kontonummer/IBAN";"BIC (SWIFT-Code)";"Betrag";"Waehrung";"Info"
 "DE00721500000000000000";"03.10.26";"03.10.26";"KARTENZAHLUNG";"REWE SAGT DANKE 1234";"";"";"";"";"";"";"REWE Markt GmbH";"DE11";"COBADEFF";"-48,17";"EUR";"Umsatz gebucht"
-"DE00721500000000000000";"01.10.26";"01.10.26";"LASTSCHRIFT";"Miete Oktober";"";"";"";"";"";"";"Wohnbau Eichstätt";"DE22";"BYLADEM1";"-1.335,00";"EUR";"Umsatz gebucht"
-"DE00721500000000000000";"30.09.26";"30.09.26";"GUTSCHRIFT";"Lohn 09/2026";"";"";"";"";"";"";"Bar Kultur GmbH";"DE33";"GENODEF1";"2.150,00";"EUR";"Umsatz gebucht"
+"DE00721500000000000000";"01.10.26";"01.10.26";"LASTSCHRIFT";"Miete Oktober";"";"";"";"";"";"";"Wohnbau München";"DE22";"BYLADEM1";"-1.335,00";"EUR";"Umsatz gebucht"
+"DE00721500000000000000";"30.09.26";"30.09.26";"GUTSCHRIFT";"Lohn 09/2026";"";"";"";"";"";"";"Cafe Kultur GmbH";"DE33";"GENODEF1";"2.150,00";"EUR";"Umsatz gebucht"
 "DE00721500000000000000";"04.10.26";"04.10.26";"LASTSCHRIFT";"Ihr Einkauf bei Zalando";"";"";"";"";"";"";"PayPal Europe S.a.r.l. et Cie S.C.A";"LU44";"PPLXLUL2";"-59,90";"EUR";"Umsatz vorgemerkt"
 "DE00721500000000000000";"03.10.26";"03.10.26";"KARTENZAHLUNG";"REWE SAGT DANKE 1234";"";"";"";"";"";"";"REWE Markt GmbH";"DE11";"COBADEFF";"-48,17";"EUR";"Umsatz gebucht"
 `;
@@ -30,12 +30,12 @@ EXCHANGE,Current,2026-10-04 10:00:00,2026-10-04 10:00:00,Exchanged to USD,-50.00
 
 const BCA = `Informasi Rekening - Mutasi Rekening
 No. rekening : 1234567890
-Nama : RIALTO EFFENDY
+Nama : ALEX MEYER
 Periode : 01/09/2026 - 30/09/2026
 Kode Mata Uang : IDR
 
 Tanggal Transaksi,Keterangan,Cabang,Jumlah,,Saldo
-'05/09,'TRSF E-BANKING DB 0509/FTSCY/WS95051 IBU SITI,'0000,"1,500,000.00",DB,"8,500,000.00"
+'05/09,'TRSF E-BANKING DB 0509/FTSCY/WS95051 IBU SARI,'0000,"1,500,000.00",DB,"8,500,000.00"
 '10/09,'SETORAN TUNAI,'0123,"2,000,000.00",CR,"10,500,000.00"
 'PEND,'BIAYA ADM,'0000,"15,000.00",DB,"10,485,000.00"
 Saldo Awal,:,"10,000,000.00"
@@ -48,8 +48,8 @@ const PAYPAL_DE = `﻿"Datum","Uhrzeit","Zeitzone","Name","Typ","Status","Währu
 `;
 
 const WISE = `"TransferWise ID",Date,Amount,Currency,Description,"Payment Reference","Running Balance","Exchange From","Exchange To","Exchange Rate","Payer Name","Payee Name","Payee Account Number",Merchant,"Card Last Four Digits","Card Holder Full Name",Attachment,Note,"Total fees"
-TRANSFER-1,01-10-2026,-200.00,EUR,"Sent money to Siti",Ibu,"300.00",EUR,IDR,17950.00,,"Siti Aminah",123,,,,,,"1.71"
-CARD-2,03-10-2026,-8.50,EUR,"Card transaction of 8.50 EUR issued by Backhaus Eichstaett",,"291.50",,,,,,,"Backhaus Eichstaett",1111,"Rialto Effendy",,,0.00
+TRANSFER-1,01-10-2026,-200.00,EUR,"Sent money to Sari",Ibu,"300.00",EUR,IDR,17950.00,,"Sari Wulandari",123,,,,,,"1.71"
+CARD-2,03-10-2026,-8.50,EUR,"Card transaction of 8.50 EUR issued by Backhaus Muenchen",,"291.50",,,,,,,"Backhaus Muenchen",1111,"Alex Meyer",,,0.00
 `;
 
 const TFBANK = `Datum;Beschreibung;Betrag
@@ -68,8 +68,8 @@ describe("bank import: reading files", () => {
     const { rows: r, skipped } = readRows(SPARKASSE, m);
     expect(r.map((x) => [x.date, x.amount, x.payee])).toEqual([
       ["2026-10-03", -48.17, "REWE Markt GmbH"],
-      ["2026-10-01", -1335, "Wohnbau Eichstätt"],
-      ["2026-09-30", 2150, "Bar Kultur GmbH"],
+      ["2026-10-01", -1335, "Wohnbau München"],
+      ["2026-09-30", 2150, "Cafe Kultur GmbH"],
       ["2026-10-03", -48.17, "REWE Markt GmbH"],
     ]);
     expect(r[1].purpose).toBe("Miete Oktober");
@@ -124,7 +124,7 @@ describe("bank import: reading files", () => {
       ["2026-10-01", -200, "EUR"],
       ["2026-10-03", -8.5, "EUR"],
     ]);
-    expect(r[1].payee).toBe("Backhaus Eichstaett");
+    expect(r[1].payee).toBe("Backhaus Muenchen");
   });
 
   it("a simple three-column card statement (TF Bank)", () => {

@@ -15,8 +15,8 @@ end $$;
 -- households --------------------------------------------------------------
 create table public.households (
   id uuid primary key default gen_random_uuid(),
-  name text not null default 'Effendy Family',
-  home_city text not null default 'Eichstätt',
+  name text not null default 'Household',
+  home_city text not null default '',
   currency text not null default 'EUR',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

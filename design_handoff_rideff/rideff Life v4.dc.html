@@ -930,7 +930,7 @@ html{-webkit-tap-highlight-color:transparent}
       <div style="position:relative;font-family:'Instrument Serif',serif;font-size:49px;font-weight:400;letter-spacing:-0.01em;line-height:1.05">Friday evening</div>
       <p style="position:relative;margin:0;font-size:14px;line-height:1.55;color:rgba(255,255,255,.75)">Alex is off and Mira has no orders to pack after 17:00. That's your only shared free evening until Monday.</p>
       <div style="position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
-        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px"><div style="font-size:11px;color:rgba(255,255,255,.55)">Alex at the bar</div><div style="font-size:22px;font-weight:700">4 shifts · 30 h</div></div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px"><div style="font-size:11px;color:rgba(255,255,255,.55)">Alex at work</div><div style="font-size:22px;font-weight:700">4 shifts · 30 h</div></div>
         <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px"><div style="font-size:11px;color:rgba(255,255,255,.55)">Study this week</div><div style="font-size:22px;font-weight:700">4 of 6 h</div></div>
       </div>
       <button onClick="{{ goTogether }}" style="position:relative;align-self:flex-start;border:0;cursor:pointer;background:var(--acci);color:var(--onacci);font-weight:700;font-size:14px;border-radius:999px;padding:0 20px;height:44px" style-hover="background:var(--acc2)">Plan the date night →</button>
@@ -966,7 +966,7 @@ html{-webkit-tap-highlight-color:transparent}
 <sc-if value="{{ isShifts }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:16px" data-screen-label="Time · Shifts">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px">
-    <div style="border:1px solid var(--line);background:var(--card);border-radius:12px;padding:18px"><div style="font-size:12.5px;color:var(--mut)">Shifts in October</div><div style="font-family:'Instrument Serif',serif;font-size:44px;font-weight:400;letter-spacing:-0.01em">14</div><div style="font-size:12px;color:var(--mut2)">Gasthof zur Linde</div></div>
+    <div style="border:1px solid var(--line);background:var(--card);border-radius:12px;padding:18px"><div style="font-size:12.5px;color:var(--mut)">Shifts in October</div><div style="font-family:'Instrument Serif',serif;font-size:44px;font-weight:400;letter-spacing:-0.01em">14</div><div style="font-size:12px;color:var(--mut2)">Müller Logistik</div></div>
     <div style="border:1px solid var(--line);background:var(--card);border-radius:12px;padding:18px"><div style="font-size:12.5px;color:var(--mut)">Hours planned</div><div style="font-family:'Instrument Serif',serif;font-size:44px;font-weight:400;letter-spacing:-0.01em">106 h</div><div style="font-size:12px;color:var(--mut2)">9 of them after midnight</div></div>
     <div style="border:1px solid var(--line);background:var(--card);border-radius:12px;padding:18px"><div style="font-size:12.5px;color:var(--mut)">Tax-free night &amp; Sunday bonus</div><div style="font-family:'Instrument Serif',serif;font-size:44px;font-weight:400;letter-spacing:-0.01em;color:var(--acct)">≈ €164</div><div style="font-size:12px;color:var(--mut2)">Check it's on your payslip</div></div>
   </div>
@@ -983,7 +983,7 @@ html{-webkit-tap-highlight-color:transparent}
     </section>
     <section style="border:1px solid var(--line);background:var(--card);border-radius:18px;padding:20px">
       <h2 style="margin:0 0 4px;font-size:18px;font-weight:700">Next week's plan</h2>
-      <p style="margin:0 0 14px;font-size:13px;color:var(--mut)">Snap the Dienstplan on the bar's wall. We pick out Alex's line and add it to the calendar.</p>
+      <p style="margin:0 0 14px;font-size:13px;color:var(--mut)">Snap your Dienstplan. We pick out your line and add it to the calendar.</p>
       <sc-if value="{{ shIdle }}">
         <div style="border:2px dashed var(--line);border-radius:12px;padding:30px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;background:var(--soft)">
           <span style="font-size:30px;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex:none"><path d="M3 7h4l2-3h6l2 3h4v13H3zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path></svg></span>
@@ -1149,7 +1149,7 @@ html{-webkit-tap-highlight-color:transparent}
     </sc-for>
   </div>
   <div style="display:flex;justify-content:flex-end"><button onClick="{{ addAsset }}" style="flex:none;border:0;cursor:pointer;background:var(--acc);color:var(--onacc);border-radius:999px;padding:0 16px;min-height:40px;font-size:13px;font-weight:700;white-space:nowrap">+ Add savings or investment</button></div>
-  <p style="margin:0;font-size:12.5px;color:var(--mut2)">Rupiah values converted at €1 = Rp 18,000. Kopi Kita is valued at book value, not a market price.</p>
+  <p style="margin:0;font-size:12.5px;color:var(--mut2)">Rupiah values converted at €1 = Rp 18,000. Family café is valued at book value, not a market price.</p>
 </div>
 </sc-if>
 
@@ -1236,8 +1236,8 @@ html{-webkit-tap-highlight-color:transparent}
     </section>
 
     <section style="border:1px solid var(--line);background:var(--card);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px">
-      <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--acc);color:var(--onacc)">Family business</span><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--soft2);color:var(--mut)">Bandung · F&amp;B</span></div>
-      <h2 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em">Kopi Kita</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--acc);color:var(--onacc)">Family business</span><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--soft2);color:var(--mut)">Jakarta · F&amp;B</span></div>
+      <h2 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em">Family café</h2>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
         <sc-for list="{{ mamiKpis }}" as="k" hint-placeholder-count="4">
           <div style="background:var(--soft);border-radius:10px;padding:12px">
@@ -1248,11 +1248,11 @@ html{-webkit-tap-highlight-color:transparent}
         </sc-for>
       </div>
       <div style="padding:14px;border-radius:10px;border:1px solid var(--line)">
-        <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:14px;font-weight:700">2nd outlet in Dago</span><span style="font-size:14px;font-weight:700;color:var(--acc)">48%</span></div>
+        <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:14px;font-weight:700">2nd outlet in the second outlet</span><span style="font-size:14px;font-weight:700;color:var(--acc)">48%</span></div>
         <div style="height:6px;border-radius:999px;background:var(--soft2);margin:8px 0 6px;overflow:hidden"><div style="height:100%;width:48%;background:var(--acc);border-radius:999px"></div></div>
         <div style="font-size:12px;color:var(--mut)">Rp 120 jt of Rp 250 jt saved · ≈ €6,670 of €13,890</div>
       </div>
-      <div style="padding:12px 14px;border-radius:10px;background:var(--tint);font-size:13px;font-weight:700">Partner call: Thu 8 Oct · 14:00 here, 19:00 in Bandung</div>
+      <div style="padding:12px 14px;border-radius:10px;background:var(--tint);font-size:13px;font-weight:700">Partner call: Thu 8 Oct · 14:00 here, 19:00 in Jakarta</div>
     </section>
   </div>
 </div>
@@ -2834,18 +2834,18 @@ const D = {
   play: 'M7 4v16l13-8Z',
   pause: 'M7 4h4v16H7zM13 4h4v16h-4z',
 };
-const NAMES = { rialto: 'Alex', amnah: 'Mira' };
-const AV = { family: ['var(--acc)', 'var(--onacc)'], rialto: ['var(--soft2)', 'var(--ink)'], amnah: ['var(--tint2)', 'var(--acct)'] };
+const NAMES = { alex: 'Alex', mira: 'Mira' };
+const AV = { family: ['var(--acc)', 'var(--onacc)'], alex: ['var(--soft2)', 'var(--ink)'], mira: ['var(--tint2)', 'var(--acct)'] };
 const MONEY = ['budget', 'import', 'recur', 'subs', 'remit', 'biz', 'tax'];
 const MONEY_LABEL = { budget: 'Budget', import: 'Bank import', subs: 'Subscriptions', tax: 'Taxes & refund' };
 
 const THINGS = {
-  cancel: { title: 'Cancel DAZN and Disney+', meta: 'Not opened in 45+ days · saves €540 a year', owner: 'rialto', cta: 'Review subscriptions', go: 'subs' },
-  vat: { title: 'Submit September VAT pre-return', meta: 'Due Sat 10 Oct · €486, already in the tax pot', owner: 'rialto', cta: 'Open taxes', go: 'tax' },
-  upload: { title: 'Upload September Sparkasse statement', meta: '2 minutes · last month missing for taxes', owner: 'amnah', cta: 'Import statement', go: 'import' },
-  invoice: { title: 'Chase invoice #2026-041, Bäckerei Weber', meta: '€1,450 · 6 days overdue', owner: 'rialto', cta: 'See income', go: 'budget' },
-  zalando: { title: 'Check the pending Zalando return', meta: '€89.00 refund not back yet (sent 22 Sep)', owner: 'amnah', cta: 'See transactions', go: 'budget' },
-  fabric: { title: 'Order fabric for winter collection', meta: '€180 · paid from business capital, not household', owner: 'amnah', cta: 'Open budget', go: 'budget' },
+  cancel: { title: 'Cancel DAZN and Disney+', meta: 'Not opened in 45+ days · saves €540 a year', owner: 'alex', cta: 'Review subscriptions', go: 'subs' },
+  vat: { title: 'Submit September VAT pre-return', meta: 'Due Sat 10 Oct · €486, already in the tax pot', owner: 'alex', cta: 'Open taxes', go: 'tax' },
+  upload: { title: 'Upload September Sparkasse statement', meta: '2 minutes · last month missing for taxes', owner: 'mira', cta: 'Import statement', go: 'import' },
+  invoice: { title: 'Chase invoice #2026-041, Bäckerei Schmidt', meta: '€1,450 · 6 days overdue', owner: 'alex', cta: 'See income', go: 'budget' },
+  zalando: { title: 'Check the pending Zalando return', meta: '€89.00 refund not back yet (sent 22 Sep)', owner: 'mira', cta: 'See transactions', go: 'budget' },
+  fabric: { title: 'Order fabric for winter collection', meta: '€180 · paid from business capital, not household', owner: 'mira', cta: 'Open budget', go: 'budget' },
 };
 const PEOPLE = {
   family: {
@@ -2853,23 +2853,23 @@ const PEOPLE = {
     briefing: "You've spent €403 of this month's €1,320 flexible money — €917 left, about €38 a day for 24 days. Online shopping is moving fast: 52% used with 23% of the month gone. DAZN and Disney+ haven't been opened in over 45 days; cancelling both saves €540 a year. And the September VAT pre-return is due Saturday — €486, already covered by the tax pot.",
     stats: [
       { label: 'Flexible money left', value: '€917', note: '€38 a day · 24 days', noteColor: 'rgba(255,255,255,.55)' },
-      { label: 'Income this month', value: '€6,150', note: 'Bar · Studio · Atelier', noteColor: 'rgba(255,255,255,.55)' },
+      { label: 'Income this month', value: '€6,150', note: 'Salary · Studio · Atelier', noteColor: 'rgba(255,255,255,.55)' },
       { label: 'Into goals', value: '€1,350', note: 'Paid first, on 1 Oct', noteColor: '#7CF0A6' },
     ],
     things: ['cancel', 'vat', 'upload'], priv: null,
   },
-  rialto: {
+  alex: {
     greet: 'Morning, Alex',
-    briefing: "Bäckerei Weber's invoice, €1,450, is 6 days overdue — a short friendly reminder today usually does it. Studio income so far this month is €1,850 of your usual €2,600. The September VAT pre-return is due Saturday. Your DAZN hasn't been opened since mid-August, that's €420 a year.",
+    briefing: "Bäckerei Schmidt's invoice, €1,450, is 6 days overdue — a short friendly reminder today usually does it. Studio income so far this month is €1,850 of your usual €2,600. The September VAT pre-return is due Saturday. Your DAZN hasn't been opened since mid-August, that's €420 a year.",
     stats: [
-      { label: 'Bar salary (net)', value: '€2,150', note: 'Gasthof zur Linde · paid 30 Sep', noteColor: 'rgba(255,255,255,.55)' },
+      { label: 'Salary (net)', value: '€2,150', note: 'Müller Logistik · paid 30 Sep', noteColor: 'rgba(255,255,255,.55)' },
       { label: 'Studio invoiced, Oct', value: '€1,850', note: 'Usual: €2,600', noteColor: 'rgba(255,255,255,.55)' },
       { label: 'Waiting to be paid', value: '€1,450', note: '1 invoice overdue', noteColor: 'var(--acc2)' },
     ],
     things: ['invoice', 'vat', 'cancel'],
     priv: { emoji: '🏔️', name: 'Anniversary weekend, Lake Garda', cur: 540, target: 900, meta: '€540 of €900 · €60/month · ready by April' },
   },
-  amnah: {
+  mira: {
     greet: 'Morning, Mira',
     briefing: "Mira Atelier made €620 in the first week — 23 orders, best start since spring. The household side looks calm: groceries are at 24% of budget. The €89 Zalando refund still hasn't arrived, worth a check. And September's Sparkasse statement is the last missing document for taxes.",
     stats: [
@@ -2906,17 +2906,17 @@ const TXS = [
   { emoji: '📦', name: 'Zalando', date: '5 Oct', cat: 'Online shopping', who: 'Mira', amt: -59.95 },
   { emoji: '🧵', name: 'Etsy payout · Mira Atelier', date: '4 Oct', cat: 'Business income', who: 'Mira', amt: 312.4 },
   { emoji: '🍕', name: 'Pizzeria Da Gino', date: '3 Oct', cat: 'Eating out', who: 'Family', amt: -38.5 },
-  { emoji: '🍺', name: 'Gasthof zur Linde · salary', date: '30 Sep', cat: 'Income', who: 'Alex', amt: 2150 },
+  { emoji: '🍺', name: 'Müller Logistik · salary', date: '30 Sep', cat: 'Income', who: 'Alex', amt: 2150 },
 ];
 const FLAGGED = [
-  { id: 'aral', raw: 'ARAL TANKSTELLE EICHSTAETT', date: '18 Sep', hint: 'no fuel purchases on record', amt: -12.4, opts: ['Tobacco & drinks', 'Transport', 'Groceries'] },
+  { id: 'aral', raw: 'ARAL TANKSTELLE MUENCHEN', date: '18 Sep', hint: 'no fuel purchases on record', amt: -12.4, opts: ['Tobacco & drinks', 'Transport', 'Groceries'] },
   { id: 'stoff', raw: 'ÜBERWEISUNG STOFFHAUS NÜRNBERG', date: '15 Sep', hint: 'paid from joint account', amt: -182.5, opts: ['Business · Atelier', 'Personal & gifts', 'Online shopping'] },
-  { id: 'cash', raw: 'GA SPK EICHSTÄTT BARGELD', date: '12 Sep', hint: 'cash withdrawal', amt: -100, opts: ['Cash, split later', 'Eating out', 'Groceries'] },
+  { id: 'cash', raw: 'GA SPK MÜNCHEN BARGELD', date: '12 Sep', hint: 'cash withdrawal', amt: -100, opts: ['Cash, split later', 'Eating out', 'Groceries'] },
   { id: 'steam', raw: 'PAYPAL *STEAM GAMES', date: '6 Sep', hint: 'first time seen', amt: -19.99, opts: ['Personal & gifts', 'Online shopping', 'Streaming'] },
 ];
 const AUTO = [
-  { emoji: '🛒', raw: 'REWE MARKT GMBH EICHSTAETT', cat: 'Groceries', conf: '99%', amt: -64.2 },
-  { emoji: '🍺', raw: 'LOHN GASTHOF ZUR LINDE', cat: 'Income · Bar', conf: '100%', amt: 2150 },
+  { emoji: '🛒', raw: 'REWE MARKT GMBH MUENCHEN', cat: 'Groceries', conf: '99%', amt: -64.2 },
+  { emoji: '🍺', raw: 'LOHN MUELLER LOGISTIK', cat: 'Income · Salary', conf: '100%', amt: 2150 },
   { emoji: '🛡️', raw: 'TECHNIKER KRANKENKASSE', cat: 'Insurance & health', conf: '100%', amt: -230.12 },
   { emoji: '📦', raw: 'AMAZON EU S.A R.L.', cat: 'Online shopping', conf: '97%', amt: -38.99 },
   { emoji: '📺', raw: 'NETFLIX.COM', cat: 'Streaming', conf: '100%', amt: -13.99 },
@@ -2937,7 +2937,7 @@ const SUBS = [
   { id: 'prime', name: 'Amazon Prime', who: 'Family', price: 8.99, used: '11 orders in September', flag: '', bg: '#232F3E' },
 ];
 const SOON = {
-  time: { stage: 'Stage 2', tag: 'Soon', title: 'Time & goals', desc: 'Your week, Alex\'s bar shifts and the year\'s goals in one place — broken down so every week has one clear step.', items: [{ e: '🗓️', t: 'Weekly plan for both of you' }, { e: '🍺', t: 'Work & shift schedule' }, { e: '🎯', t: 'Yearly goals broken into weeks' }, { e: '📚', t: 'Learning tracker' }] },
+  time: { stage: 'Stage 2', tag: 'Soon', title: 'Time & goals', desc: 'Your week, Alex\'s work shifts and the year\'s goals in one place — broken down so every week has one clear step.', items: [{ e: '🗓️', t: 'Weekly plan for both of you' }, { e: '🍺', t: 'Work & shift schedule' }, { e: '🎯', t: 'Yearly goals broken into weeks' }, { e: '📚', t: 'Learning tracker' }] },
   invest: { stage: 'Stage 3', tag: 'Soon', title: 'Investments & career', desc: 'Every savings pot and investment together, with a 10-year simulation. A simulation, never a buy recommendation.', items: [{ e: '🏦', t: 'All savings & investments overview' }, { e: '📈', t: '10-year simulation' }, { e: '🧭', t: 'Career progress' }] },
   life: { stage: 'Stage 4', tag: 'Soon', title: 'Life', desc: 'The things money can\'t measure. Journal and notes stay private by default.', items: [{ e: '🏃', t: 'Sport' }, { e: '😴', t: 'Sleep' }, { e: '🧡', t: 'Family time' }, { e: '📓', t: 'Notes & journal (private)' }] },
   ask: { stage: 'Ask AI', tag: 'Next', title: 'Ask — chat with your family numbers', desc: 'Ask anything, like “Can we afford Lake Garda next summer?”. Every answer comes with the numbers behind it and one next step.', items: [{ e: '💬', t: 'Chat that reads your budget, goals and income' }, { e: '🔢', t: 'Always shows the numbers it used' }, { e: '➡️', t: 'Ends with one concrete next step' }] },
@@ -2953,21 +2953,21 @@ const MODS = {
 };
 const MOD_ORDER = ['money', 'time', 'invest', 'life'];
 const modOf = sc => MOD_ORDER.find(k => MODS[k].tabs.some(t => t[0] === sc));
-const OWN = { rialto: ['var(--soft2)', 'var(--ink)', 'Alex'], amnah: ['var(--tint2)', 'var(--acct)', 'Mira'], together: ['var(--acc)', 'var(--onacc)', 'Together'] };
+const OWN = { alex: ['var(--soft2)', 'var(--ink)', 'Alex'], mira: ['var(--tint2)', 'var(--acct)', 'Mira'], together: ['var(--acc)', 'var(--onacc)', 'Together'] };
 const EV = { r: ['var(--soft2)', 'var(--ink)'], a: ['var(--tint2)', 'var(--acct)'], t: ['var(--acc)', 'var(--onacc)'] };
 const WK_PRIOS = [
-  { id: 'ml', title: 'Finish the Machine Learning assignment', meta: 'Due Sun 11 Oct · about 3 hours left', owner: 'rialto' },
-  { id: 'mami', title: 'Kopi Kita call: budget for the Dago outlet', meta: 'Thu 14:00 · 19:00 in Bandung', owner: 'amnah' },
+  { id: 'ml', title: 'Finish the Machine Learning assignment', meta: 'Due Sun 11 Oct · about 3 hours left', owner: 'alex' },
+  { id: 'mami', title: 'Family café call: budget for the second outlet', meta: 'Thu 14:00 · 19:00 in Jakarta', owner: 'mira' },
   { id: 'datefri', title: 'Date night on Friday', meta: 'Your only shared free evening · €70 from eating out', owner: 'together' },
 ];
 const WK_DAYS = [
   ['Mon', 5, [['a', '09:00', 'Pack Atelier orders'], ['r', '10:00', 'AI lecture (online)']]],
-  ['Tue', 6, [['a', '15:00', 'Tax papers'], ['r', '19:00', 'Call · Bäckerei Weber']]],
-  ['Wed', 7, [['r', '07:30', 'Gym'], ['a', '11:00', 'Etsy product photos'], ['r', '18:00–01:00', 'Bar shift']]],
-  ['Thu', 8, [['a', '14:00', 'Kopi Kita partner call'], ['r', '18:00–01:00', 'Bar shift']]],
+  ['Tue', 6, [['a', '15:00', 'Tax papers'], ['r', '19:00', 'Call · Bäckerei Schmidt']]],
+  ['Wed', 7, [['r', '07:30', 'Gym'], ['a', '11:00', 'Etsy product photos'], ['r', '18:00–01:00', 'Work shift']]],
+  ['Thu', 8, [['a', '14:00', 'Family café partner call'], ['r', '18:00–01:00', 'Work shift']]],
   ['Fri', 9, [['r', '07:30', 'Gym'], ['t', '19:00', 'Date night']]],
-  ['Sat', 10, [['r', '09:00', 'VAT pre-return'], ['r', '17:00–02:00', 'Bar shift']]],
-  ['Sun', 11, [['r', '11:00', 'ML assignment due'], ['r', '16:00–23:00', 'Bar shift']]],
+  ['Sat', 10, [['r', '09:00', 'VAT pre-return'], ['r', '17:00–02:00', 'Work shift']]],
+  ['Sun', 11, [['r', '11:00', 'ML assignment due'], ['r', '16:00–23:00', 'Work shift']]],
 ];
 const SHIFTS_NOW = [['Wed', 7, '18:00 – 01:00', '7 hours · today', ['Night']], ['Thu', 8, '18:00 – 01:00', '7 hours', ['Night']], ['Sat', 10, '17:00 – 02:00', '9 hours', ['Night']], ['Sun', 11, '16:00 – 23:00', '7 hours', ['Sunday']]];
 const SH_NEXT = [
@@ -2977,11 +2977,11 @@ const SH_NEXT = [
   { id: 'sat', day: 'Sat 17', time: '17:00 – 02:00', note: 'No clashes' },
 ];
 const YG = [
-  { emoji: '🎓', name: 'AI studies: 30 ECTS this year', owner: 'rialto', done: 21, target: 30, unit: 'ECTS', step: '6 study hours', week: '4 / 6 h', tip: 'To catch up: 7 study hours a week until Christmas.', rate: 0.72 },
-  { emoji: '💻', name: 'Alex Studio: 8 new clients', owner: 'rialto', done: 6, target: 8, unit: 'clients', step: '5 outreach messages', week: '5 / 5', tip: 'On pace — 2 more clients by December.', rate: 0.82 },
-  { emoji: '🧵', name: 'Atelier: 500 orders', owner: 'amnah', done: 412, target: 500, unit: 'orders', step: '10 orders', week: '23 / 10', tip: 'Ahead — 500 could land by mid-November.', rate: 0.94 },
-  { emoji: '🍜', name: 'Kopi Kita: save for the 2nd outlet', owner: 'amnah', done: 120, target: 250, unit: 'jt Rp', step: 'Rp 4.8 jt saved', week: 'Rp 3.1 jt', tip: 'Needs Rp 11.8 jt a week to finish this year. Mid-2027 is more realistic.', rate: 0.55 },
-  { emoji: '🏋️', name: 'Gym 3× a week', owner: 'rialto', done: 104, target: 156, unit: 'sessions', step: '3 sessions', week: '1 / 3', tip: 'Two more this week keeps the streak alive.', rate: 0.7 },
+  { emoji: '🎓', name: 'Studies: 30 ECTS this year', owner: 'alex', done: 21, target: 30, unit: 'ECTS', step: '6 study hours', week: '4 / 6 h', tip: 'To catch up: 7 study hours a week until Christmas.', rate: 0.72 },
+  { emoji: '💻', name: 'Alex Studio: 8 new clients', owner: 'alex', done: 6, target: 8, unit: 'clients', step: '5 outreach messages', week: '5 / 5', tip: 'On pace — 2 more clients by December.', rate: 0.82 },
+  { emoji: '🧵', name: 'Atelier: 500 orders', owner: 'mira', done: 412, target: 500, unit: 'orders', step: '10 orders', week: '23 / 10', tip: 'Ahead — 500 could land by mid-November.', rate: 0.94 },
+  { emoji: '🍜', name: 'Family café: save for the 2nd outlet', owner: 'mira', done: 120, target: 250, unit: 'jt Rp', step: 'Rp 4.8 jt saved', week: 'Rp 3.1 jt', tip: 'Needs Rp 11.8 jt a week to finish this year. Mid-2027 is more realistic.', rate: 0.55 },
+  { emoji: '🏋️', name: 'Gym 3× a week', owner: 'alex', done: 104, target: 156, unit: 'sessions', step: '3 sessions', week: '1 / 3', tip: 'Two more this week keeps the streak alive.', rate: 0.7 },
   { emoji: '🧡', name: '45 date nights', owner: 'together', done: 33, target: 45, unit: 'dates', step: '1 date night', week: '0 / 1', tip: 'Friday is planned. One a week gets you to 44.', rate: 0.8 },
 ];
 const LEARN = [
@@ -2993,23 +2993,23 @@ const ASSETS = [
   { emoji: '🏦', name: 'Tagesgeld', where: 'Trade Republic · 2.0% interest', v: 9450, change: '+€138 interest this year', up: true, color: 'var(--acc)', facts: [['Monthly', '€500'], ['Available', 'today'], ['For', 'Emergency fund']] },
   { emoji: '🎯', name: 'Goal pots', where: 'Sparkasse sub-accounts', v: 5950, change: 'Car €3,200 · Business €2,750', color: 'var(--acc2)', facts: [['Monthly', '€450'], ['Available', 'today'], ['Interest', 'none']] },
   { emoji: '🥇', name: 'Gold', where: '40 g in bars · home safe', v: 4160, change: '+€610 this year', up: true, color: 'var(--tint2)', facts: [['Price used', '€104 / g'], ['Can sell', '1–3 days'], ['Insured', 'Hausrat, up to €5,000']] },
-  { emoji: '🍜', name: 'Kopi Kita share', where: 'Bandung · 30% family stake', v: 10000, change: 'Rp 180 jt · book value', color: 'var(--mut)', facts: [['Last valued', 'Dec 2025'], ['Can sell', 'not easily'], ['Currency', 'IDR']] },
+  { emoji: '🍜', name: 'Family café share', where: 'Jakarta · 30% family stake', v: 10000, change: 'Rp 180 jt · book value', color: 'var(--mut)', facts: [['Last valued', 'Dec 2025'], ['Can sell', 'not easily'], ['Currency', 'IDR']] },
   { emoji: '🇮🇩', name: 'BCA savings', where: 'Bank Central Asia · Rp 45 jt', v: 2500, change: 'Rp 45,000,000', color: 'var(--line2)', facts: [['For', 'Family visits'], ['Available', 'today, in IDR'], ['Currency', 'IDR']] },
 ];
 const SIM_SCEN = { cautious: { etf: 0.03, tg: 0.015, gold: 0.01, idr: -0.01 }, middle: { etf: 0.06, tg: 0.02, gold: 0.03, idr: 0.02 }, hopeful: { etf: 0.08, tg: 0.025, gold: 0.05, idr: 0.04 } };
 const SIM_COLORS = ['var(--ink)', 'var(--acc)', 'var(--tint2)', 'var(--mut2)'];
 const STUDIO_STEPS = [['plan', 'Business plan & offer', 'Jun'], ['tax', 'Tax number (Fragebogen)', 'Jul'], ['gew', 'Gewerbe registered, Stadt München', 'Jul'], ['bank', 'Separate business account', 'in progress'], ['site', 'Offer page for vibe-code builds', 'next'], ['ret', '3 monthly retainer clients', '1 of 3']];
-const GYM_LOG = [['💪', 'Strength', 'Today · 07:30', 'rialto'], ['🧘', 'Pilates class', 'Mon · 18:30', 'amnah'], ['💪', 'Strength', 'Sun · 10:00', 'rialto'], ['🏃', 'Cardio', 'Fri · 07:30', 'rialto'], ['💪', 'Strength', 'Thu · 09:00', 'amnah']];
+const GYM_LOG = [['💪', 'Strength', 'Today · 07:30', 'alex'], ['🧘', 'Pilates class', 'Mon · 18:30', 'mira'], ['💪', 'Strength', 'Sun · 10:00', 'alex'], ['🏃', 'Cardio', 'Fri · 07:30', 'alex'], ['💪', 'Strength', 'Thu · 09:00', 'mira']];
 const DEBTS = [
   { id: 'd0', emoji: '🛋️', name: 'Furniture loan', lender: 'Sparkasse Ratenkredit', who: 'family', bal: 3840, orig: 6000, rate: 6.9, pay: 160 },
-  { id: 'd1', emoji: '👪', name: 'Family loan · Kopi Kita start', lender: 'Family, Bandung', who: 'family', bal: 1390, orig: 2500, rate: 0, pay: 60 },
-  { id: 'd2', emoji: '📱', name: 'Phone financing', lender: 'o2', who: 'rialto', bal: 456, orig: 912, rate: 0, pay: 38 },
-  { id: 'd3', emoji: '💳', name: 'Klarna pay later', lender: 'Klarna', who: 'amnah', bal: 286, orig: 480, rate: 0, pay: 95 },
+  { id: 'd1', emoji: '👪', name: 'Family loan · Family café start', lender: 'Family, Jakarta', who: 'family', bal: 1390, orig: 2500, rate: 0, pay: 60 },
+  { id: 'd2', emoji: '📱', name: 'Phone financing', lender: 'o2', who: 'alex', bal: 456, orig: 912, rate: 0, pay: 38 },
+  { id: 'd3', emoji: '💳', name: 'Klarna pay later', lender: 'Klarna', who: 'mira', bal: 286, orig: 480, rate: 0, pay: 95 },
 ];
 const DATE_LOG = [
   { id: 'dl0', emoji: '🍝', name: 'Trattoria am Markt + castle walk', when: 'Fri 2 Oct', cost: '€64', rating: 5 },
-  { id: 'dl1', emoji: '🎬', name: 'Cinema, Ingolstadt', when: 'Fri 25 Sep', cost: '€32', rating: 4 },
-  { id: 'dl2', emoji: '🥾', name: 'Altmühltal walk + picnic', when: 'Sat 13 Sep', cost: '€18', rating: 5 },
+  { id: 'dl1', emoji: '🎬', name: 'Cinema night', when: 'Fri 25 Sep', cost: '€32', rating: 4 },
+  { id: 'dl2', emoji: '🥾', name: 'Riverside walk + picnic', when: 'Sat 13 Sep', cost: '€18', rating: 5 },
 ];
 const PKEYS = ['dismissed', 'warnPct', 'efMonths', 'cats', 'txs', 'goals', 'incomes', 'subs', 'events', 'ygoals', 'learn', 'assets', 'ideas', 'members', 'gyms', 'jnl', 'dates', 'debts', 'dStrat', 'dExtra', 'done', 'studio', 'priv', 'lang', 'dateIdea', 'shared', 'cancelled', 'resolved', 'scen', 'simMove', 'wi', 'shOk', 'learnAdd', 'gymAdd', 'recur', 'remits', 'fx', 'sec', 'notif', 'biz'];
 const TODAY = () => new Date();
@@ -3030,16 +3030,16 @@ function debtSim(debts, strat, extra) {
   return { months: m, interest, done };
 }
 const DATE_IDEAS = [
-  { id: 'trattoria', emoji: '🍝', name: 'Trattoria am Markt + castle walk', short: 'Dinner, then up to the Willibaldsburg', cost: '€70', from: 'Eating out' },
-  { id: 'hike', emoji: '🥾', name: 'Altmühltal sunset walk', short: 'Picnic on the Jura cliffs', cost: '€15', from: 'Groceries' },
-  { id: 'cook', emoji: '👩‍🍳', name: 'Cook Sundanese food at home', short: 'Nasi timbel night, phones away', cost: '€25', from: 'Groceries' },
-  { id: 'cinema', emoji: '🎬', name: 'Cinema in Ingolstadt', short: '20 min by train with the Deutschlandticket', cost: '€32', from: 'Personal & gifts' },
-  { id: 'therme', emoji: '♨️', name: 'Therme Bad Gögging', short: 'Evening ticket for two', cost: '€60', from: 'Personal & gifts' },
+  { id: 'trattoria', emoji: '🍝', name: 'Trattoria am Markt + castle walk', short: 'Dinner, then a walk through the old town', cost: '€70', from: 'Eating out' },
+  { id: 'hike', emoji: '🥾', name: 'Sunset walk', short: 'A picnic somewhere with a view', cost: '€15', from: 'Groceries' },
+  { id: 'cook', emoji: '👩‍🍳', name: 'Cook together at home', short: 'A new recipe, phones away', cost: '€25', from: 'Groceries' },
+  { id: 'cinema', emoji: '🎬', name: 'Cinema night', short: '20 min by train with the Deutschlandticket', cost: '€32', from: 'Personal & gifts' },
+  { id: 'therme', emoji: '♨️', name: 'Spa evening', short: 'Evening ticket for two', cost: '€60', from: 'Personal & gifts' },
   { id: 'breakfast', emoji: '☕', name: 'Breakfast date', short: 'Before Alex\'s shift, café in town', cost: '€22', from: 'Eating out' },
 ];
 const JOURNAL = {
-  rialto: [{ date: 'Tue 6 Oct', text: 'Weber call went fine, they say they\'ll pay this week. Tired after the lecture, but the ML stuff is finally clicking.' }, { date: 'Sun 4 Oct', text: 'Slow Sunday. Mira\'s new scarf designs look really good. Need to stop buying random things on Amazon at 2am after shifts.' }, { date: 'Thu 1 Oct', text: 'New month. Paid ourselves first — felt good seeing the emergency fund past half.' }],
-  amnah: [{ date: 'Tue 6 Oct', text: '23 orders in a week! Packed until midnight. Called Mama, she sends love to both of us.' }, { date: 'Sat 3 Oct', text: 'Kopi Kita numbers came in. Dago still feels far away, but we\'re almost halfway.' }, { date: 'Wed 30 Sep', text: 'Zalando refund still not here. Note to self: less online shopping, more sewing.' }],
+  alex: [{ date: 'Tue 6 Oct', text: 'Schmidt call went fine, they say they\'ll pay this week. Tired after the lecture, but the ML stuff is finally clicking.' }, { date: 'Sun 4 Oct', text: 'Slow Sunday. Mira\'s new scarf designs look really good. Need to stop buying random things on Amazon at 2am after shifts.' }, { date: 'Thu 1 Oct', text: 'New month. Paid ourselves first — felt good seeing the emergency fund past half.' }],
+  mira: [{ date: 'Tue 6 Oct', text: '23 orders in a week! Packed until midnight. Called Mama, she sends love to both of us.' }, { date: 'Sat 3 Oct', text: 'Family café numbers came in. the second outlet still feels far away, but we\'re almost halfway.' }, { date: 'Wed 30 Sep', text: 'Zalando refund still not here. Note to self: less online shopping, more sewing.' }],
 };
 
 const G_INIT = [
@@ -3047,17 +3047,17 @@ const G_INIT = [
   { id: 'g2', emoji: '🚗', name: 'Family car', cur: 3200, target: 14000, m: 300, owner: 'family' },
   { id: 'g3', emoji: '📈', name: 'Retirement ETF · first milestone', cur: 11870, target: 20000, m: 400, owner: 'family' },
   { id: 'g4', emoji: '💼', name: 'Business capital', cur: 2750, target: 8000, m: 150, owner: 'family' },
-  { id: 'g5', emoji: '🏔️', name: 'Anniversary weekend, Lake Garda', cur: 540, target: 900, m: 60, owner: 'rialto', private: true },
-  { id: 'g6', emoji: '📚', name: 'German B2 course (VHS)', cur: 410, target: 690, m: 70, owner: 'amnah', private: true },
+  { id: 'g5', emoji: '🏔️', name: 'Anniversary weekend, Lake Garda', cur: 540, target: 900, m: 60, owner: 'alex', private: true },
+  { id: 'g6', emoji: '📚', name: 'German B2 course (VHS)', cur: 410, target: 690, m: 70, owner: 'mira', private: true },
 ];
 const INCOMES = [
-  { id: 'i1', name: 'Gasthof zur Linde · salary', who: 'rialto', kind: 'Salary', amt: 2150 },
-  { id: 'i2', name: 'Alex Studio', who: 'rialto', kind: 'Business', amt: 2600 },
-  { id: 'i3', name: 'Mira Atelier', who: 'amnah', kind: 'Business', amt: 1400 },
+  { id: 'i1', name: 'Müller Logistik · salary', who: 'alex', kind: 'Salary', amt: 2150 },
+  { id: 'i2', name: 'Alex Studio', who: 'alex', kind: 'Business', amt: 2600 },
+  { id: 'i3', name: 'Mira Atelier', who: 'mira', kind: 'Business', amt: 1400 },
 ];
 const MEMBERS = [
-  { id: 'm1', name: 'Alex Morgan', email: 'alex@example.com', role: 'Admin', avBg: AV.rialto[0], avFg: AV.rialto[1] },
-  { id: 'm2', name: 'Mira Morgan', email: 'mira@example.com', role: 'Admin', avBg: AV.amnah[0], avFg: AV.amnah[1] },
+  { id: 'm1', name: 'Alex Morgan', email: 'alex@example.com', role: 'Admin', avBg: AV.alex[0], avFg: AV.alex[1] },
+  { id: 'm2', name: 'Mira Morgan', email: 'mira@example.com', role: 'Admin', avBg: AV.mira[0], avFg: AV.mira[1] },
 ];
 const ymOf = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 const RECUR = [
@@ -3068,7 +3068,7 @@ const RECUR = [
   { id: 'r5', emoji: '🛡️', name: 'HUK · liability & home', amt: -45, cat: 'Insurance & health', who: 'Family', day: 1, on: true, last: '2026-10' },
   { id: 'r6', emoji: '🚆', name: 'Deutschlandticket ×2', amt: -116, cat: 'Transport', who: 'Family', day: 1, on: true, last: '2026-10' },
   { id: 'r7', emoji: '💻', name: 'Shopify · Mira Atelier', amt: -39, cat: 'Business tools', who: 'Mira', day: 12, on: true, last: '2026-09' },
-  { id: 'r8', emoji: '💶', name: 'Gasthof zur Linde · salary', amt: 2150, cat: 'Income', who: 'Alex', day: 28, on: true, last: '2026-09' },
+  { id: 'r8', emoji: '💶', name: 'Müller Logistik · salary', amt: 2150, cat: 'Income', who: 'Alex', day: 28, on: true, last: '2026-09' },
 ];
 const REMITS = [
   { id: 'rm1', to: 'Mama · Alex’s side', eur: 200, rate: 18010, fee: 1.76, via: 'Wise', purpose: 'Monthly support', date: '2026-09-25' },
@@ -3091,10 +3091,10 @@ const BIZ = [
   { id: 'b5', biz: 'atelier', month: '2026-08', rev: 1450, cost: 560, tax: 250, file: 'Shopify_payouts_Aug.csv' },
   { id: 'b6', biz: 'atelier', month: '2026-07', rev: 1210, cost: 480, tax: 205, file: '' },
 ];
-const BIZ_META = { studio: ['Alex Studio', 'Web & AI · Alex', 'rialto'], atelier: ['Mira Atelier', 'Online shop · Mira', 'amnah'] };
+const BIZ_META = { studio: ['Alex Studio', 'Web & AI · Alex', 'alex'], atelier: ['Mira Atelier', 'Online shop · Mira', 'mira'] };
 const NOTIF_DEF = { bills: true, tax: true, shifts: true, budget: true, goals: false, time: '08:00' };
 const FACE_D = 'M7 3H5a2 2 0 0 0-2 2v2M17 3h2a2 2 0 0 1 2 2v2M7 21H5a2 2 0 0 1-2-2v-2M17 21h2a2 2 0 0 0 2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16c1.5 1.3 4.5 1.3 6 0';
-const MENU = [['📷', 'Scan receipt', 'scan'], ['💳', 'Debt', 'debt'], ['🧾', 'Transaction', 'tx'], ['📅', 'Calendar event', 'event'], ['🍺', 'Bar shift', 'shift'], ['🎯', 'Goal', 'goal'], ['🔁', 'Subscription', 'sub'], ['📈', 'Investment value', 'asset'], ['🏋️', 'Gym session', 'nav:gym'], ['📓', 'Journal note', 'nav:journal'], ['🔁', 'Recurring payment', 'recur'], ['🇮🇩', 'Transfer home', 'remit']];
+const MENU = [['📷', 'Scan receipt', 'scan'], ['💳', 'Debt', 'debt'], ['🧾', 'Transaction', 'tx'], ['📅', 'Calendar event', 'event'], ['🍺', 'Work shift', 'shift'], ['🎯', 'Goal', 'goal'], ['🔁', 'Subscription', 'sub'], ['📈', 'Investment value', 'asset'], ['🏋️', 'Gym session', 'nav:gym'], ['📓', 'Journal note', 'nav:journal'], ['🔁', 'Recurring payment', 'recur'], ['🇮🇩', 'Transfer home', 'remit']];
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const addM = m => { const t = 2026 * 12 + 9 + m; return MON[t % 12] + ' ' + Math.floor(t / 12); };
@@ -3177,7 +3177,7 @@ const ADM_PAYS = [
   { id: 'p2', who: 'Jonas Becker', sub: 'Life Plus · yearly · 20 Oct', amt: '€199.00' },
   { id: 'p3', who: 'Rizky Pratama', sub: 'Together · monthly · 19 Oct', amt: '€24.90' },
   { id: 'p4', who: 'Anna Schulz', sub: 'Life · monthly · 19 Oct · SEPA', amt: '€12.90' },
-  { id: 'p5', who: 'Tom Weber', sub: 'Life Plus · monthly · 18 Oct · PayPal', amt: '€19.90' },
+  { id: 'p5', who: 'Tom Schmidt', sub: 'Life Plus · monthly · 18 Oct · PayPal', amt: '€19.90' },
 ];
 const ADM_AI = [['Jonas Becker', 'Life Plus', 412, 21.4], ['Sofia Rossi', 'Life Plus · trial', 288, 14.9], ['Rizky Pratama', 'Together', 196, 9.7], ['Lena Hoffmann', 'Together', 154, 7.6], ['Anna Schulz', 'Life', 20, 0.9]];
 const ADM_CONN = [['Google Calendar', '1,842 users · two-way sync', '97.9%', 'warn'], ['Email forwarding', '2,310 users · 14,200 mails this month', '99.9%', 'ok'], ['File imports (Trade Republic, Wise)', '1,120 files this month', '99.2%', 'ok'], ['German bank account (PSD2)', 'Waiting on provider contract', '—', 'soon'], ['Google Drive', 'Waiting on Google verification', '—', 'soon']];
@@ -3198,7 +3198,7 @@ const THEMES = [['noir', 'Noir', '#000000', '#F4F2EC', '#E8D9B5'], ['classic', '
 const EURc = n => '€' + n.toFixed(2).replace('.', ',');
 const LS = { total: 71, trend: [61, 63, 62, 66, 65, 68, 67, 71], pillars: [
   { k: 'money', score: 78, weight: '30%', lines: [['+', 'Flex budget 71% used, 24 days in'], ['+', 'Tax pot on track for the year'], ['−', 'Online shopping 37% over its average']] },
-  { k: 'time', score: 64, weight: '25%', lines: [['+', '3 of 5 focus blocks done'], ['−', '18 h of bar shifts left little free time'], ['+', 'Learning streak: 4 days']] },
+  { k: 'time', score: 64, weight: '25%', lines: [['+', '3 of 5 focus blocks done'], ['−', '18 h of work shifts left little free time'], ['+', 'Learning streak: 4 days']] },
   { k: 'health', score: 58, weight: '20%', lines: [['+', 'Gym 2 of 3 sessions'], ['−', 'Sleep average 6 h 40 m, goal 7 h 30 m'], ['−', 'No walk logged since Saturday']] },
   { k: 'goals', score: 81, weight: '25%', lines: [['+', '4 of 4 goals on schedule'], ['+', 'Emergency fund passed 50%'], ['−', 'Car pot €40 behind this month']] },
 ] };
@@ -3221,7 +3221,7 @@ const RL = {
     const p = {}; if (d) RL_KEYS.forEach(k => { if (d[k] !== undefined) p[k] = d[k]; });
     if (!d || !d.onbDone) Object.assign(p, { onb: 0 });
     if (!d || !d.authed) p.auth = 'start';
-    if (p.plan && PLANS[p.plan].seats === 1) Object.assign(p, { person: 'rialto', viewer: 'rialto' });
+    if (p.plan && PLANS[p.plan].seats === 1) Object.assign(p, { person: 'alex', viewer: 'alex' });
     this.setState(p);
     const oa = this.ask.bind(this);
     this.ask = q => { const s = this.state, P0 = PLANS[s.plan || 'together'], used = s.aiUsed ?? 14; if (!q || !String(q).trim() || s.typing) return oa(q); if (P0.ai && used >= P0.ai) return this.setState({ upsell: 'ai' }); if (P0.ai) this.setState({ aiUsed: used + 1 }); return oa(q); };
@@ -3238,8 +3238,8 @@ const RL = {
     this.mapSync(s);
     if (typeof PKEYS !== 'undefined' && this.initial) { const changed = !this._pkPrev || PKEYS.some(k => this._pkPrev[k] !== s[k]); if (changed) { const first = !this._pkPrev; this._pkPrev = {}; PKEYS.forEach(k => this._pkPrev[k] = s[k]); if (!first) { clearTimeout(this._pkT); this._pkT = setTimeout(() => this.persist(), 400); } } }
   },
-  setPlan(k, after) { const L = this.state.lang || 'en'; this.setState({ plan: k, ...(PLANS[k].seats === 1 ? { person: 'rialto', viewer: 'rialto' } : {}), toast: (T[L] || T.en).switched + ' ' + PLANS[k].name }, after); },
-  finishOnb(sample) { const s = this.state, k = s.onbPlan || 'plus'; if (sample) this.loadSample(); else this.startFresh(); this.setState({ onb: null, onbDone: true, plan: k, screen: 'home', ...(PLANS[k].seats === 1 ? { person: 'rialto', viewer: 'rialto' } : { person: 'family' }), toast: (T[s.lang] || T.en).welcomeT }, () => { window.scrollTo(0, 0); this.rlAnim(); }); },
+  setPlan(k, after) { const L = this.state.lang || 'en'; this.setState({ plan: k, ...(PLANS[k].seats === 1 ? { person: 'alex', viewer: 'alex' } : {}), toast: (T[L] || T.en).switched + ' ' + PLANS[k].name }, after); },
+  finishOnb(sample) { const s = this.state, k = s.onbPlan || 'plus'; if (sample) this.loadSample(); else this.startFresh(); this.setState({ onb: null, onbDone: true, plan: k, screen: 'home', ...(PLANS[k].seats === 1 ? { person: 'alex', viewer: 'alex' } : { person: 'family' }), toast: (T[s.lang] || T.en).welcomeT }, () => { window.scrollTo(0, 0); this.rlAnim(); }); },
   mapData(s, tx) {
     const P = Object.fromEntries(LS.pillars.map(p => [p.k, p.score])), N = [];
     N.push({ id: 'core', kind: 'core', label: 'Life Score', val: LS.total, r: 7.5, st: 'acc', pos: [0, 0, 0], fields: [[tx.f_score, LS.total + ' / 100'], ['Δ', tx.delta]] });
@@ -3463,7 +3463,7 @@ class Component extends DCLogic {
   persist() { const data = {}; PKEYS.forEach(k => data[k] = this.state[k]); const at = Date.now(); try { localStorage.setItem('ef-data-v1', JSON.stringify({ v: 1, at, data })); this.setState({ savedAt: at }); } catch (e) {} }
   exportData() { const data = {}; PKEYS.forEach(k => data[k] = this.state[k]); const blob = new Blob([JSON.stringify({ app: 'rideff-life', v: 1, at: new Date().toISOString(), data }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rideff-life-backup-' + new Date().toISOString().slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); this.setState({ dataMsg: 'Backup downloaded.' }); }
   importData(e) { const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const j = JSON.parse(r.result), d = j.data || j, patch = {}; PKEYS.forEach(k => { if (d[k] !== undefined) patch[k] = d[k]; }); if (!Object.keys(patch).length) throw 0; this.setState({ ...patch, dataMsg: 'Imported ' + f.name + '.' }); } catch (x) { this.setState({ dataMsg: 'That file is not an Morgan family backup.' }); } }; r.readAsText(f); e.target.value = ''; }
-  state = { plan: 'together', palette: 'noir', voice: 'both', briefAt: '07:00', aiUsed: 14, onb: null, upsell: null, lsShown: 71, pp: {}, form: null, cats: CATS.map((c, i) => ({ id: 'c' + i, ...c })), txs: TXS.map((t, i) => ({ id: 't' + i, ...t })), goals: G_INIT, incomes: INCOMES, subs: SUBS, events: WK_DAYS.flatMap(([day, , evs], di) => evs.map(([who, time, title], i) => ({ id: 'e' + di + '_' + i, day, who, time, title }))), ygoals: YG.map((g, i) => ({ id: 'y' + i, ...g })), learn: LEARN.flatMap(t => t.items.map(([title, type, who, next, pct], i) => ({ id: t.name.slice(0, 3) + i, track: t.name, title, type, who, next, pct }))), assets: ASSETS.map((a, i) => ({ id: 'a' + i, ...a })), ideas: DATE_IDEAS, members: MEMBERS, sh: 'idle', shProg: 0, shOk: {}, learnAdd: {}, scen: 'middle', simMove: true, studio: { plan: true, tax: true, gew: true }, gymAdd: { rialto: [], amnah: [] }, gyms: GYM_LOG.map(([emoji, type, when, who], i) => ({ id: 'g' + i, emoji, type, when, who })), jnl: ['rialto', 'amnah'].flatMap(w => JOURNAL[w].map((e, i) => ({ id: 'j' + w[0] + i, who: w, ...e }))), dates: DATE_LOG, debts: DEBTS, dStrat: 'avalanche', dExtra: 50, dateIdea: 'trattoria', journal: JOURNAL, jDraft: '', w: window.innerWidth, screen: 'home', soon: 'time', msgs: [], typing: false, draft: '', wi: WI_DEFAULT, priv: { money: true, goals: true, journal: true, ai: false }, exp: {}, lang: (() => { try { const L = (navigator.languages || [navigator.language || 'de']).map(x => String(x).slice(0, 2).toLowerCase()); return L.find(x => ['de', 'en', 'id'].includes(x)) || 'de'; } catch (e) { return 'de'; } })(), person: 'family', viewer: 'rialto', playing: false, prog: 0, done: {}, shared: { rialto: false, amnah: false }, imp: 'pick', bank: 'sparkasse', impProg: 0, resolved: {}, cancelled: {}, dismissed: {}, warnPct: 80, efMonths: 6, alertF: 'all', biz: BIZ, recur: RECUR, remits: REMITS, fx: 18000, rmAmt: 200, sec: { on: false, pin: '', bio: false, auto: 1 }, notif: NOTIF_DEF, online: typeof navigator === 'undefined' || navigator.onLine !== false, notifPerm: typeof Notification === 'undefined' ? 'none' : Notification.permission, toast: '', lockMode: null, scan: null };
+  state = { plan: 'together', palette: 'noir', voice: 'both', briefAt: '07:00', aiUsed: 14, onb: null, upsell: null, lsShown: 71, pp: {}, form: null, cats: CATS.map((c, i) => ({ id: 'c' + i, ...c })), txs: TXS.map((t, i) => ({ id: 't' + i, ...t })), goals: G_INIT, incomes: INCOMES, subs: SUBS, events: WK_DAYS.flatMap(([day, , evs], di) => evs.map(([who, time, title], i) => ({ id: 'e' + di + '_' + i, day, who, time, title }))), ygoals: YG.map((g, i) => ({ id: 'y' + i, ...g })), learn: LEARN.flatMap(t => t.items.map(([title, type, who, next, pct], i) => ({ id: t.name.slice(0, 3) + i, track: t.name, title, type, who, next, pct }))), assets: ASSETS.map((a, i) => ({ id: 'a' + i, ...a })), ideas: DATE_IDEAS, members: MEMBERS, sh: 'idle', shProg: 0, shOk: {}, learnAdd: {}, scen: 'middle', simMove: true, studio: { plan: true, tax: true, gew: true }, gymAdd: { alex: [], mira: [] }, gyms: GYM_LOG.map(([emoji, type, when, who], i) => ({ id: 'g' + i, emoji, type, when, who })), jnl: ['alex', 'mira'].flatMap(w => JOURNAL[w].map((e, i) => ({ id: 'j' + w[0] + i, who: w, ...e }))), dates: DATE_LOG, debts: DEBTS, dStrat: 'avalanche', dExtra: 50, dateIdea: 'trattoria', journal: JOURNAL, jDraft: '', w: window.innerWidth, screen: 'home', soon: 'time', msgs: [], typing: false, draft: '', wi: WI_DEFAULT, priv: { money: true, goals: true, journal: true, ai: false }, exp: {}, lang: (() => { try { const L = (navigator.languages || [navigator.language || 'de']).map(x => String(x).slice(0, 2).toLowerCase()); return L.find(x => ['de', 'en', 'id'].includes(x)) || 'de'; } catch (e) { return 'de'; } })(), person: 'family', viewer: 'alex', playing: false, prog: 0, done: {}, shared: { alex: false, mira: false }, imp: 'pick', bank: 'sparkasse', impProg: 0, resolved: {}, cancelled: {}, dismissed: {}, warnPct: 80, efMonths: 6, alertF: 'all', biz: BIZ, recur: RECUR, remits: REMITS, fx: 18000, rmAmt: 200, sec: { on: false, pin: '', bio: false, auto: 1 }, notif: NOTIF_DEF, online: typeof navigator === 'undefined' || navigator.onLine !== false, notifPerm: typeof Notification === 'undefined' ? 'none' : Notification.permission, toast: '', lockMode: null, scan: null };
   componentDidUpdate(pp, ps) { this.mapTalkTick(); this.rlPersist(ps); if (ps && ps.screen !== this.state.screen) setTimeout(() => { const row = document.querySelector('[data-tabrow]'); if (!row) return; const btn = [...row.children].find(b => getComputedStyle(b).color === 'rgb(255, 255, 255)'); if (btn) row.scrollTo({ left: Math.max(0, btn.offsetLeft - row.offsetLeft - 16), behavior: 'smooth' }); }, 60); if (ps && this.state.toast && this.state.toast !== ps.toast) { clearTimeout(this.toastT); this.toastT = setTimeout(() => this.setState({ toast: '' }), 3800); } if (ps && PKEYS.some(k => ps[k] !== this.state[k])) { clearTimeout(this.saveT); this.saveT = setTimeout(() => this.persist(), 400); } if (this.state.cmdOpen && !(ps && ps.cmdOpen)) setTimeout(() => this.cmdRef.current && this.cmdRef.current.focus(), 0); if (pp.theme !== this.props.theme && this.props.theme) this.setTheme(this.props.theme); }
   componentDidMount() { window.__rlNav = (x, st) => { if (st) this.setState(st); this.nav(x); }; this.initial = {}; PKEYS.forEach(k => this.initial[k] = this.state[k]); try { const d = JSON.parse(localStorage.getItem('ef-data-v1') || 'null'); if (d && d.data) { const p = {}; PKEYS.forEach(k => { if (d.data[k] !== undefined) p[k] = d.data[k]; }); this.setState({ ...p, savedAt: d.at, lockMode: p.sec && p.sec.on ? 'unlock' : null }); } } catch (e) {} this.onKey = e => { if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.setState(st => ({ cmdOpen: !st.cmdOpen, cmdQ: '', cmdSel: 0 })); } else if (e.key === 'Escape' && this.state.cmdOpen) this.setState({ cmdOpen: false }); }; window.addEventListener('keydown', this.onKey); try { const t = localStorage.getItem('ef-theme-v5'); if (t) this.setState({ theme: t }); } catch (e) {} this.mq = window.matchMedia && matchMedia('(prefers-color-scheme: dark)'); this.onMq = () => this.forceUpdate(); this.mq && this.mq.addEventListener && this.mq.addEventListener('change', this.onMq); this.onR = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onR); this.v7Mount(); this.rlMount(); try { if (!localStorage.getItem('rl-v3-noir')) { localStorage.setItem('rl-v3-noir', '1'); setTimeout(() => this.setState({ palette: 'noir' }), 400); } } catch (e) {} }
   componentWillUnmount() { window.removeEventListener('keydown', this.onMapEsc); if (this._hero) this._hero.destroy(); ['_sideOrb', '_tabOrb', '_askOrb', '_vOrb', '_authOrb', '_mapOrb', '_mtOrb'].forEach(k => this[k] && this[k].destroy()); ['online', 'offline'].forEach(k => window.removeEventListener(k, this.onNet)); window.removeEventListener('beforeinstallprompt', this.onBip); window.removeEventListener('keydown', this.onPinKey); document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('keydown', this.onKey); window.removeEventListener('resize', this.onR); this.stopPlay(); clearInterval(this.impT); }
@@ -3538,14 +3538,14 @@ class Component extends DCLogic {
     };
   }
   memVals(s, aiName) {
-    const me = s.viewer || 'rialto', tab = s.memTab || 'private', on = s.memOn !== false;
+    const me = s.viewer || 'alex', tab = s.memTab || 'private', on = s.memOn !== false;
     const all = s.mem || [
-      { id: 'm1', owner: 'rialto', scope: 'private', text: 'Wants to finish the B.Sc. before starting a full-time job', at: '2 Nov', src: 'Voice chat' },
-      { id: 'm2', owner: 'rialto', scope: 'private', text: 'Prefers short answers with one next step', at: '28 Oct', src: 'Chat' },
-      { id: 'm3', owner: 'amnah', scope: 'private', text: 'Saving quietly for a birthday surprise', at: '30 Oct', src: 'Chat' },
-      { id: 'm4', owner: 'amnah', scope: 'private', text: 'Packs Atelier orders on Monday mornings', at: '21 Oct', src: 'Voice chat' },
-      { id: 'm5', owner: 'rialto', scope: 'shared', text: 'Lake Garda trip planned for May, budget €900', at: '1 Nov', src: 'Voice chat' },
-      { id: 'm6', owner: 'amnah', scope: 'shared', text: 'Sends €150 home to Indonesia around the 5th', at: '12 Oct', src: 'Chat' },
+      { id: 'm1', owner: 'alex', scope: 'private', text: 'Wants to finish the B.Sc. before starting a full-time job', at: '2 Nov', src: 'Voice chat' },
+      { id: 'm2', owner: 'alex', scope: 'private', text: 'Prefers short answers with one next step', at: '28 Oct', src: 'Chat' },
+      { id: 'm3', owner: 'mira', scope: 'private', text: 'Saving quietly for a birthday surprise', at: '30 Oct', src: 'Chat' },
+      { id: 'm4', owner: 'mira', scope: 'private', text: 'Packs Atelier orders on Monday mornings', at: '21 Oct', src: 'Voice chat' },
+      { id: 'm5', owner: 'alex', scope: 'shared', text: 'Lake Garda trip planned for May, budget €900', at: '1 Nov', src: 'Voice chat' },
+      { id: 'm6', owner: 'mira', scope: 'shared', text: 'Sends €150 home to Indonesia around the 5th', at: '12 Oct', src: 'Chat' },
     ];
     const mine = all.filter(m => tab === 'shared' ? m.scope === 'shared' : m.scope === 'private' && m.owner === me);
     const upd = fn => this.setState(st => ({ mem: fn(st.mem || all) }));
@@ -3620,7 +3620,7 @@ class Component extends DCLogic {
     const s = this.state;
     const E = (...e) => e.map(x => [x, x]);
     const DAYS = WK_DAYS.map(([d, n]) => [d, d + ' ' + n]);
-    const K3 = [['family', 'Family'], ['rialto', 'Alex'], ['amnah', 'Mira']];
+    const K3 = [['family', 'Family'], ['alex', 'Alex'], ['mira', 'Mira']];
     const DEFS = {
       tx: { list: 'txs', titles: ['Add transaction', 'Edit transaction'], req: ['amt', 'name'],
         fields: [{ k: 'kind', label: 'Type', kind: 'chips', opts: [['out', 'Expense'], ['in', 'Income']] }, { k: 'amt', label: 'Amount', kind: 'amount', ph: '0.00' }, { k: 'name', label: 'Where / from', kind: 'text', ph: 'e.g. REWE München' }, { k: 'cat', label: 'Category', kind: 'chips', opts: [...s.cats.map(c => [c.name, c.emoji + ' ' + c.name]), ['Income', '💶 Income'], ['Business income', '🧵 Business income']] }, { k: 'who', label: 'Who', kind: 'chips', opts: E('Family', 'Alex', 'Mira') }, { k: 'date', label: 'Date', kind: 'date' }],
@@ -3634,21 +3634,21 @@ class Component extends DCLogic {
         toVals: c => ({ emoji: c.emoji, name: c.name, limit: c.limit, fixed: c.fixed ? 'fixed' : 'flex', spent: c.spent }),
         fromVals: v => ({ emoji: v.emoji, name: v.name, limit: num(v.limit), fixed: v.fixed === 'fixed', spent: num(v.spent) }) },
       income: { list: 'incomes', titles: ['Add income source', 'Edit income source'], req: ['name', 'amt'], append: true,
-        fields: [{ k: 'name', label: 'Name', kind: 'text', ph: 'e.g. Gasthof zur Linde · salary' }, { k: 'who', label: 'Whose', kind: 'chips', opts: [['rialto', 'Alex'], ['amnah', 'Mira']] }, { k: 'kind', label: 'Kind', kind: 'chips', opts: E('Salary', 'Business', 'Other') }, { k: 'amt', label: 'Net per month (average)', kind: 'amount', ph: '0' }],
+        fields: [{ k: 'name', label: 'Name', kind: 'text', ph: 'e.g. Müller Logistik · salary' }, { k: 'who', label: 'Whose', kind: 'chips', opts: [['alex', 'Alex'], ['mira', 'Mira']] }, { k: 'kind', label: 'Kind', kind: 'chips', opts: E('Salary', 'Business', 'Other') }, { k: 'amt', label: 'Net per month (average)', kind: 'amount', ph: '0' }],
         defaults: { name: '', who: s.viewer, kind: 'Salary', amt: '' }, toVals: x => ({ name: x.name, who: x.who, kind: x.kind, amt: x.amt }), fromVals: v => ({ name: v.name, who: v.who, kind: v.kind, amt: num(v.amt) }) },
       goal: { list: 'goals', titles: ['Add goal', 'Edit goal'], req: ['name', 'target'], append: true,
-        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('🛟', '🚗', '📈', '💼', '🏠', '✈️', '🏔️', '📚', '💍', '🎓') }, { k: 'name', label: 'Goal', kind: 'text', ph: 'e.g. Trip to Bandung' }, { k: 'target', label: 'Target', kind: 'amount', ph: '0' }, { k: 'cur', label: 'Saved so far', kind: 'amount', ph: '0' }, { k: 'm', label: 'Put in each month', kind: 'amount', ph: '0' }, { k: 'owner', label: 'Whose goal', kind: 'chips', opts: K3 }, { k: 'private', label: 'Privacy', kind: 'toggle', tlabel: 'Private, only the owner sees it' }],
+        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('🛟', '🚗', '📈', '💼', '🏠', '✈️', '🏔️', '📚', '💍', '🎓') }, { k: 'name', label: 'Goal', kind: 'text', ph: 'e.g. Trip to Jakarta' }, { k: 'target', label: 'Target', kind: 'amount', ph: '0' }, { k: 'cur', label: 'Saved so far', kind: 'amount', ph: '0' }, { k: 'm', label: 'Put in each month', kind: 'amount', ph: '0' }, { k: 'owner', label: 'Whose goal', kind: 'chips', opts: K3 }, { k: 'private', label: 'Privacy', kind: 'toggle', tlabel: 'Private, only the owner sees it' }],
         defaults: { emoji: '✈️', name: '', target: '', cur: '0', m: '', owner: 'family', private: false },
         toVals: g => ({ emoji: g.emoji, name: g.name, target: g.target, cur: g.cur, m: g.m, owner: g.owner, private: !!g.private }),
         fromVals: v => ({ emoji: v.emoji, name: v.name, target: num(v.target), cur: num(v.cur), m: num(v.m), owner: v.owner, private: v.owner !== 'family' && !!v.private }) },
       event: { list: 'events', titles: ['Add to this week', 'Edit event'], req: ['title'], append: true,
         fields: [{ k: 'title', label: 'What', kind: 'text', ph: 'e.g. Dentist' }, { k: 'who', label: 'Who', kind: 'chips', opts: [['r', 'Alex'], ['a', 'Mira'], ['t', 'Together']] }, { k: 'day', label: 'Day', kind: 'chips', opts: DAYS }, { k: 'time', label: 'Time', kind: 'text', ph: '19:00' }],
         defaults: { title: '', who: 't', day: 'Fri', time: '' }, toVals: e => ({ title: e.title, who: e.who, day: e.day, time: e.time }), fromVals: v => ({ title: v.title, who: v.who, day: v.day, time: v.time || 'All day' }) },
-      shift: { list: 'events', titles: ['Add bar shift', 'Edit shift'], req: ['start', 'end'], append: true,
+      shift: { list: 'events', titles: ['Add shift', 'Edit shift'], req: ['start', 'end'], append: true,
         fields: [{ k: 'day', label: 'Day', kind: 'chips', opts: DAYS }, { k: 'start', label: 'Start', kind: 'text', ph: '18:00' }, { k: 'end', label: 'End', kind: 'text', ph: '01:00' }],
-        defaults: { day: 'Fri', start: '18:00', end: '01:00' }, toVals: e => { const [a, b] = e.time.split('–'); return { day: e.day, start: a || '', end: b || '' }; }, fromVals: v => ({ who: 'r', title: 'Bar shift', day: v.day, time: v.start + '–' + v.end }) },
+        defaults: { day: 'Fri', start: '18:00', end: '01:00' }, toVals: e => { const [a, b] = e.time.split('–'); return { day: e.day, start: a || '', end: b || '' }; }, fromVals: v => ({ who: 'r', title: 'Work shift', day: v.day, time: v.start + '–' + v.end }) },
       ygoal: { list: 'ygoals', titles: ['Add yearly goal', 'Edit yearly goal'], req: ['name', 'target'], append: true,
-        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('🎓', '💻', '🧵', '🍜', '🏋️', '🧡', '📖', '🏃', '🕌', '💰') }, { k: 'name', label: 'Goal for 2026', kind: 'text', ph: 'e.g. Read 12 books' }, { k: 'owner', label: 'Whose', kind: 'chips', opts: [['rialto', 'Alex'], ['amnah', 'Mira'], ['together', 'Together']] }, { k: 'target', label: 'Target number', kind: 'number', ph: '12' }, { k: 'unit', label: 'Unit', kind: 'text', ph: 'books' }, { k: 'done', label: 'Done so far', kind: 'number', ph: '0' }, { k: 'step', label: 'Weekly step', kind: 'text', ph: 'e.g. 30 pages' }],
+        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('🎓', '💻', '🧵', '🍜', '🏋️', '🧡', '📖', '🏃', '🕌', '💰') }, { k: 'name', label: 'Goal for 2026', kind: 'text', ph: 'e.g. Read 12 books' }, { k: 'owner', label: 'Whose', kind: 'chips', opts: [['alex', 'Alex'], ['mira', 'Mira'], ['together', 'Together']] }, { k: 'target', label: 'Target number', kind: 'number', ph: '12' }, { k: 'unit', label: 'Unit', kind: 'text', ph: 'books' }, { k: 'done', label: 'Done so far', kind: 'number', ph: '0' }, { k: 'step', label: 'Weekly step', kind: 'text', ph: 'e.g. 30 pages' }],
         defaults: { emoji: '📖', name: '', owner: s.viewer, target: '', unit: '', done: '0', step: '' },
         toVals: g => ({ emoji: g.emoji, name: g.name, owner: g.owner, target: g.target, unit: g.unit, done: g.done, step: g.step }),
         fromVals: (v, o) => ({ emoji: v.emoji, name: v.name, owner: v.owner, target: num(v.target), unit: v.unit, done: num(v.done), step: v.step || '—', week: o ? o.week : '0 / 1', tip: o ? o.tip : 'New goal. The weekly squares start filling from this week.', rate: o ? o.rate : 0, fresh: o ? o.fresh : true }) },
@@ -3668,7 +3668,7 @@ class Component extends DCLogic {
         toVals: x => ({ name: x.name, price: x.price, who: x.who, usage: subUsage(x) }),
         fromVals: (v, o) => (o && v.usage === subUsage(o) ? { name: v.name, price: num(v.price), who: v.who } : { name: v.name, price: num(v.price), who: v.who, usage: v.usage, flag: v.usage === 'Not in 45+ days' ? 'unused' : v.usage === 'Rarely' ? 'rare' : '', used: v.usage === 'Not in 45+ days' ? 'Not opened in 45+ days' : v.usage === 'Rarely' ? 'Rarely used' : 'Used ' + v.usage.toLowerCase(), bg: o ? o.bg : 'var(--mut)' }) },
       gym: { list: 'gyms', titles: ['Log gym session', 'Edit gym session'], req: ['type'],
-        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('💪', '🏃', '🧘', '🏋️') }, { k: 'type', label: 'Session', kind: 'text', ph: 'e.g. Strength, legs' }, { k: 'when', label: 'When', kind: 'text', ph: 'e.g. Thu 8 Oct · 07:30' }, { k: 'who', label: 'Who', kind: 'chips', opts: [['rialto', 'Alex'], ['amnah', 'Mira']] }],
+        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('💪', '🏃', '🧘', '🏋️') }, { k: 'type', label: 'Session', kind: 'text', ph: 'e.g. Strength, legs' }, { k: 'when', label: 'When', kind: 'text', ph: 'e.g. Thu 8 Oct · 07:30' }, { k: 'who', label: 'Who', kind: 'chips', opts: [['alex', 'Alex'], ['mira', 'Mira']] }],
         defaults: { emoji: '💪', type: '', when: todayShort(), who: s.viewer }, toVals: g => ({ emoji: g.emoji, type: g.type, when: g.when, who: g.who }), fromVals: (v, o) => ({ emoji: v.emoji, type: v.type, when: v.when || todayShort(), who: v.who, isNew: o ? o.isNew : true }) },
       journal: { list: 'jnl', titles: ['New journal entry', 'Edit journal entry'], req: ['text'],
         fields: [{ k: 'date', label: 'Date', kind: 'text', ph: 'e.g. Thu 8 Oct' }, { k: 'text', label: 'Entry', kind: 'text', ph: 'What happened today?' }],
@@ -3680,7 +3680,7 @@ class Component extends DCLogic {
         fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('💳', '🏦', '📱', '🛋️', '🚗', '🎓', '👪') }, { k: 'name', label: 'Name', kind: 'text', ph: 'e.g. Car loan' }, { k: 'lender', label: 'Lender', kind: 'text', ph: 'e.g. Sparkasse' }, { k: 'who', label: 'Whose', kind: 'chips', opts: K3 }, { k: 'bal', label: 'Balance left', kind: 'amount', ph: '0' }, { k: 'orig', label: 'Original amount', kind: 'amount', ph: '0' }, { k: 'rate', label: 'Interest % per year', kind: 'number', ph: '0' }, { k: 'pay', label: 'Monthly payment', kind: 'amount', ph: '0' }],
         defaults: { emoji: '💳', name: '', lender: '', who: 'family', bal: '', orig: '', rate: '0', pay: '' }, toVals: d => ({ emoji: d.emoji, name: d.name, lender: d.lender, who: d.who, bal: String(d.bal), orig: String(d.orig), rate: String(d.rate), pay: String(d.pay) }), fromVals: v => ({ emoji: v.emoji, name: v.name, lender: v.lender || '—', who: v.who, bal: num(v.bal), orig: Math.max(num(v.orig), num(v.bal)), rate: num(v.rate), pay: num(v.pay) }) },
       idea: { list: 'ideas', titles: ['Add date idea', 'Edit date idea'], req: ['name'], append: true,
-        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('🍝', '🥾', '🎬', '♨️', '☕', '🎳', '🧺', '🎨') }, { k: 'name', label: 'Idea', kind: 'text', ph: 'e.g. Bowling in Ingolstadt' }, { k: 'short', label: 'Details', kind: 'text', ph: 'Where, when, what' }, { k: 'cost', label: 'Cost for two', kind: 'amount', ph: '0' }, { k: 'from', label: 'Pay from', kind: 'chips', opts: E('Eating out', 'Groceries', 'Personal & gifts') }],
+        fields: [{ k: 'emoji', label: 'Icon', kind: 'chips', opts: E('🍝', '🥾', '🎬', '♨️', '☕', '🎳', '🧺', '🎨') }, { k: 'name', label: 'Idea', kind: 'text', ph: 'e.g. Bowling night' }, { k: 'short', label: 'Details', kind: 'text', ph: 'Where, when, what' }, { k: 'cost', label: 'Cost for two', kind: 'amount', ph: '0' }, { k: 'from', label: 'Pay from', kind: 'chips', opts: E('Eating out', 'Groceries', 'Personal & gifts') }],
         defaults: { emoji: '🎳', name: '', short: '', cost: '', from: 'Personal & gifts' }, toVals: i => ({ emoji: i.emoji, name: i.name, short: i.short, cost: num(String(i.cost).replace('€', '')), from: i.from }), fromVals: v => ({ emoji: v.emoji, name: v.name, short: v.short || 'Your idea', cost: num(v.cost) ? EUR(num(v.cost)) : 'Free', from: v.from }) },
       recur: { list: 'recur', titles: ['Add recurring payment', 'Edit recurring payment'], req: ['name', 'amt', 'day'], append: true,
         fields: [{ k: 'kind', label: 'Type', kind: 'chips', opts: [['out', 'Goes out'], ['in', 'Comes in']] }, { k: 'name', label: 'What', kind: 'text', ph: 'e.g. Rent · Wohnbau' }, { k: 'amt', label: 'Amount each month', kind: 'amount', ph: '0.00' }, { k: 'day', label: 'Day of the month (1–28)', kind: 'number', ph: '1' }, { k: 'cat', label: 'Budget category', kind: 'chips', opts: s.cats.map(c => [c.name, c.name]) }, { k: 'who', label: 'Whose', kind: 'chips', opts: E('Family', 'Alex', 'Mira') }],
@@ -3718,10 +3718,10 @@ class Component extends DCLogic {
     const own = o => ({ owner: OWN[o][2], ownerBg: OWN[o][0], ownerFg: OWN[o][1] });
     // time
     const wkPrios = WK_PRIOS.map(p => { const d = !!s.done[p.id]; return { ...p, ...chk(d), ...own(p.owner), titleColor: d ? 'var(--mut2)' : 'var(--ink)', deco: d ? 'line-through' : 'none', toggle: () => this.setState(st => ({ done: { ...st.done, [p.id]: !st.done[p.id] } })) }; });
-    const wkDays = WK_DAYS.map(([dow, num]) => { const t = num === 7; return { dow, num, bg: t ? 'var(--tint)' : 'var(--soft)', border: t ? 'var(--acc)' : 'transparent', labelColor: t ? 'var(--acct)' : 'var(--mut2)', events: s.events.filter(e => e.day === dow).sort((a, b) => a.time.localeCompare(b.time)).map(e => ({ time: e.time, title: e.title, bg: EV[e.who][0], fg: EV[e.who][1], edit: () => this.openForm(e.title === 'Bar shift' ? 'shift' : 'event', e.id) })) }; });
+    const wkDays = WK_DAYS.map(([dow, num]) => { const t = num === 7; return { dow, num, bg: t ? 'var(--tint)' : 'var(--soft)', border: t ? 'var(--acc)' : 'transparent', labelColor: t ? 'var(--acct)' : 'var(--mut2)', events: s.events.filter(e => e.day === dow).sort((a, b) => a.time.localeCompare(b.time)).map(e => ({ time: e.time, title: e.title, bg: EV[e.who][0], fg: EV[e.who][1], edit: () => this.openForm(e.title === 'Work shift' ? 'shift' : 'event', e.id) })) }; });
     const DIDX = Object.fromEntries(WK_DAYS.map(([d, n], i) => [d, [i, n]]));
     const toH = x => { const [hh, mm] = String(x || '').split(':').map(Number); return hh + (mm || 0) / 60; };
-    const shiftsNow = s.events.filter(e => e.title === 'Bar shift').sort((a, b) => DIDX[a.day][0] - DIDX[b.day][0]).map(e => { const num = DIDX[e.day][1]; const [a, b] = e.time.split('–'); let hr = toH(b) - toH(a); if (hr <= 0) hr += 24; const tags = []; if (b && toH(b) < toH(a)) tags.push('Night'); if (e.day === 'Sun') tags.push('Sunday'); return { dow: e.day, num, time: e.time.replace('–', ' – '), hours: (isNaN(hr) ? '' : (Math.round(hr * 10) / 10) + ' hours') + (num === 7 ? ' · today' : ''), tags, dateBg: num === 7 ? 'var(--warn)' : 'var(--soft2)', dateFg: 'var(--ink)', edit: () => this.openForm('shift', e.id) }; });
+    const shiftsNow = s.events.filter(e => e.title === 'Work shift').sort((a, b) => DIDX[a.day][0] - DIDX[b.day][0]).map(e => { const num = DIDX[e.day][1]; const [a, b] = e.time.split('–'); let hr = toH(b) - toH(a); if (hr <= 0) hr += 24; const tags = []; if (b && toH(b) < toH(a)) tags.push('Night'); if (e.day === 'Sun') tags.push('Sunday'); return { dow: e.day, num, time: e.time.replace('–', ' – '), hours: (isNaN(hr) ? '' : (Math.round(hr * 10) / 10) + ' hours') + (num === 7 ? ' · today' : ''), tags, dateBg: num === 7 ? 'var(--warn)' : 'var(--soft2)', dateFg: 'var(--ink)', edit: () => this.openForm('shift', e.id) }; });
     const shOn = id => s.shOk[id] !== false;
     const shNext = SH_NEXT.map(x => ({ ...x, ...chk(shOn(x.id)), noteColor: x.warn ? 'var(--acct)' : 'var(--mut2)', toggle: () => this.setState(st => ({ shOk: { ...st.shOk, [x.id]: !(st.shOk[x.id] !== false) } })) }));
     const shCount = SH_NEXT.filter(x => shOn(x.id)).length;
@@ -3733,7 +3733,7 @@ class Component extends DCLogic {
       const weeks = Array.from({ length: 52 }, (_, w) => { if (w > 40) return { bg: 'var(--card)', bd: 'var(--line)' }; if (w === 40) return { bg: 'var(--card)', bd: 'var(--acc)' }; if (g.fresh) return { bg: 'var(--soft)', bd: 'var(--soft)' }; const v = Math.abs(Math.sin(w * 12.9898 + gi * 78.233) * 43758.5453) % 1; const c = v < g.rate ? 'var(--ink)' : v < g.rate + 0.12 ? 'var(--tint2)' : 'var(--soft2)'; return { bg: c, bd: c }; });
       return { ...g, edit: () => this.openForm('ygoal', g.id), ...own(g.owner), status: st[0], stBg: st[1], stFg: st[2], doneL: g.done.toLocaleString('en-IE'), targetL: g.target.toLocaleString('en-IE'), w: Math.min(100, g.done / g.target * 100) + '%', weeks };
     });
-    const LP = [{ id: 'rialto', goal: 180, base: 140, hist: [150, 190, 120, 180, 200, 160, 170] }, { id: 'amnah', goal: 120, base: 95, hist: [100, 130, 90, 120, 140, 110, 125] }];
+    const LP = [{ id: 'alex', goal: 180, base: 140, hist: [150, 190, 120, 180, 200, 160, 170] }, { id: 'mira', goal: 120, base: 95, hist: [100, 130, 90, 120, 140, 110, 125] }];
     const learnPeople = LP.map(p => { const mins = p.base + (s.learnAdd[p.id] || 0), all = [...p.hist, mins], mx = Math.max(...all, p.goal); return { name: NAMES[p.id], initial: NAMES[p.id][0], avBg: AV[p.id][0], avFg: AV[p.id][1], goal: p.goal, mins, w: Math.min(100, mins / p.goal * 100) + '%', bars: all.map((v, i) => ({ h: Math.round(v / mx * 100) + '%', bg: i === 7 ? 'var(--acc)' : v >= p.goal ? 'var(--inv)' : 'var(--line2)' })), log: () => this.setState(st => ({ learnAdd: { ...st.learnAdd, [p.id]: (st.learnAdd[p.id] || 0) + 25 } })) }; });
     const learnTracks = LEARN.map(t => ({ emoji: t.emoji, name: t.name, add: () => this.openForm('learn', null, { track: t.name }), items: s.learn.filter(i => i.track === t.name).map(i => ({ ...i, pctL: i.pct + '%', w: Math.min(100, i.pct) + '%', edit: () => this.openForm('learn', i.id) })) }));
     // invest
@@ -3745,7 +3745,7 @@ class Component extends DCLogic {
     const total = sum(yr[10], 3), mx = total * 1.05, Y = v => (200 - v / mx * 195).toFixed(1);
     const simAreas = [0, 1, 2, 3].map(k => { const top = yr.map((y, i) => (i ? 'L' : 'M') + i * 60 + ' ' + Y(sum(y, k))).join(' '); const bot = yr.map((y, i) => [i * 60, k ? sum(y, k - 1) : 0]).reverse().map(([x, v]) => 'L' + x + ' ' + Y(v)).join(' '); return { d: top + ' ' + bot + ' Z', color: SIM_COLORS[k] }; }).reverse();
     const pc = r => (r * 100).toFixed(1).replace('.0', '') + '%';
-    const simRows = [['ETF savings plan', pc(R.etf) + ' a year · €400/mo' + (s.simMove ? ' + €500 from Apr 2028' : '')], ['Tagesgeld', pc(R.tg) + ' interest · €500/mo until €18,000'], ['Gold', pc(R.gold) + ' a year · no new buys'], ['Indonesia (Kopi Kita + BCA)', pc(R.idr) + ' a year in €, after currency moves']].map(([name, assume], k) => ({ name, assume, color: SIM_COLORS[k], now: EUR(yr[0][k]), end: EUR(yr[10][k]) }));
+    const simRows = [['ETF savings plan', pc(R.etf) + ' a year · €400/mo' + (s.simMove ? ' + €500 from Apr 2028' : '')], ['Tagesgeld', pc(R.tg) + ' interest · €500/mo until €18,000'], ['Gold', pc(R.gold) + ' a year · no new buys'], ['Indonesia (Family café + BCA)', pc(R.idr) + ' a year in €, after currency moves']].map(([name, assume], k) => ({ name, assume, color: SIM_COLORS[k], now: EUR(yr[0][k]), end: EUR(yr[10][k]) }));
     const simScen = [['cautious', 'Cautious'], ['middle', 'Middle'], ['hopeful', 'Hopeful']].map(([id, label]) => ({ label, bg: s.scen === id ? 'var(--inv)' : 'transparent', fg: s.scen === id ? '#fff' : 'var(--ink)', pick: () => this.setState({ scen: id }) }));
     // career
     const modules = [['Semester 1 · 6 modules', 1, '30 ECTS'], ['Python for data', 1, '5 ECTS · grade 1.3'], ['Mathematics II', 1, '7 ECTS · grade 2.0'], ['Statistics', 0, 'exam 14 Nov'], ['Machine Learning basics', 0, 'assignment due Sun']].map(([name, d, meta]) => ({ name, meta, mark: d ? '✓' : '…', dotBg: d ? 'var(--okbg)' : 'var(--tint)', dotFg: d ? 'var(--ok)' : 'var(--acct)' }));
@@ -3753,13 +3753,13 @@ class Component extends DCLogic {
     const studioSteps = STUDIO_STEPS.map(([id, name, meta]) => { const d = !!s.studio[id]; return { name, meta: d ? '✓ ' + meta : meta, ...chk(d), color: d ? 'var(--mut)' : 'var(--ink)', toggle: () => this.setState(st => ({ studio: { ...st.studio, [id]: !st.studio[id] } })) }; });
     const mamiKpis = [['Revenue, September', 'Rp 92 jt', '≈ €5,110 · +8% vs August', 'var(--ok)'], ['Net profit', 'Rp 18 jt', '≈ €1,000', 'var(--mut)'], ['Orders a day', '140', 'GoFood + walk-in', 'var(--mut)'], ['Rating', '4.7 ★', '1,240 reviews', 'var(--mut)']].map(([label, value, note, noteColor]) => ({ label, value, note, noteColor }));
     // life
-    const GP = [{ id: 'rialto', goal: 3, base: 1, streak: '6-week streak', hist: [3, 4, 3, 3, 3, 4, 3] }, { id: 'amnah', goal: 2, base: 1, streak: '2-week streak', hist: [1, 2, 0, 2, 1, 2, 2] }];
+    const GP = [{ id: 'alex', goal: 3, base: 1, streak: '6-week streak', hist: [3, 4, 3, 3, 3, 4, 3] }, { id: 'mira', goal: 2, base: 1, streak: '2-week streak', hist: [1, 2, 0, 2, 1, 2, 2] }];
     const gymPeople = GP.map(p => { const count = p.base + s.gyms.filter(g => g.who === p.id && g.isNew).length, all = [...p.hist, count], m = Math.max(...all, p.goal); return { name: NAMES[p.id], initial: NAMES[p.id][0], avBg: AV[p.id][0], avFg: AV[p.id][1], goal: p.goal, count, streak: p.streak, dots: Array.from({ length: Math.max(p.goal, count) }, (_, i) => i < count ? 'var(--acc)' : 'var(--soft2)'), bars: all.map((v, i) => ({ h: Math.max(4, Math.round(v / m * 100)) + '%', bg: i === 7 ? 'var(--acc)' : v >= p.goal ? 'var(--inv)' : 'var(--line2)' })), logs: [['Strength', '💪'], ['Cardio', '🏃'], ['Class', '🧘']].map(([label, emoji]) => ({ label, go: () => this.setState(st => ({ gymAdd: { ...st.gymAdd, [p.id]: [{ type: label, emoji }, ...st.gymAdd[p.id]] }, gyms: [{ id: 'g' + Date.now(), emoji, type: label, when: todayShort(), who: p.id, isNew: true }, ...st.gyms] })) })) }; });
     const gymLog = s.gyms.slice(0, 8).map(g => ({ ...g, ...own(g.who), who: NAMES[g.who], edit: () => this.openForm('gym', g.id) }));
     const nd = s.ideas.find(i => i.id === s.dateIdea) || s.ideas[0];
     const dateIdeas = s.ideas.map(i => ({ ...i, border: i.id === s.dateIdea ? 'var(--acc)' : 'var(--line)', bg: i.id === s.dateIdea ? 'var(--tint)' : 'var(--card)', pick: () => this.setState({ dateIdea: i.id }) }));
     const dateWeeks = [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 2].map(v => v === 2 ? 'var(--tint2)' : v ? 'var(--acc)' : 'var(--soft2)');
-    const other = s.viewer === 'rialto' ? 'Mira' : 'Alex';
+    const other = s.viewer === 'alex' ? 'Mira' : 'Alex';
     return {
       ...(() => {
         const incomeTotal = s.incomes.reduce((a, x) => a + x.amt, 0);
@@ -3770,7 +3770,7 @@ class Component extends DCLogic {
           ['Budget categories', s.cats.length + ' categories · tap one to change its limit', s.cats.length > 0, 'cat', 'budget'],
           ['Goals', s.goals.length + ' goals · shared and private', s.goals.length > 0, 'goal', 'home'],
           ['Savings & investments', s.assets.length + ' accounts · update values once a month', s.assets.length > 0, 'asset', 'invest'],
-          ['Bar shift schedule', s.sh === 'done' ? 'Next week uploaded' : 'Snap the Dienstplan, or add shifts by hand', s.sh === 'done', 'shift', 'shifts'],
+          ['Work shift schedule', s.sh === 'done' ? 'Next week uploaded' : 'Snap the Dienstplan, or add shifts by hand', s.sh === 'done', 'shift', 'shifts'],
           ['Yearly goals', s.ygoals.length + ' goals · each with a weekly step', s.ygoals.length > 0, 'ygoal', 'ygoals'],
         ];
         const setupDone = SET.filter(x => x[2]).length;
@@ -3860,7 +3860,7 @@ class Component extends DCLogic {
     if (showCard && !aSt && !v.holdAt && !v.wantHold) setTimeout(() => this.setState(x => x.vOn && !x.vOn.holdAt ? { vOn: { ...x.vOn, wantHold: true } } : null), 0);
     const setAct = (val, extra) => this.setState(x => ({ ...(extra ? extra(x) : {}), vOn: x.vOn ? { ...x.vOn, resumeAt: Date.now() + 4000, acts: { ...(x.vOn.acts || {}), [tn]: val } } : null }));
     const apply = () => {
-      if (A.k === 'tx') { const id = 'vx' + Date.now(); setAct({ s: 'saved', id }, x => ({ txs: [{ id, emoji: '🛒', name: 'REWE', date: 'Today', cat: 'Groceries', who: x.person === 'amnah' ? 'Mira' : 'Alex', amt: -23.4 }, ...(x.txs || [])], cats: (x.cats || []).map(c => c.name === 'Groceries' ? { ...c, spent: (c.spent || 0) + 23.4 } : c) })); }
+      if (A.k === 'tx') { const id = 'vx' + Date.now(); setAct({ s: 'saved', id }, x => ({ txs: [{ id, emoji: '🛒', name: 'REWE', date: 'Today', cat: 'Groceries', who: x.person === 'mira' ? 'Mira' : 'Alex', amt: -23.4 }, ...(x.txs || [])], cats: (x.cats || []).map(c => c.name === 'Groceries' ? { ...c, spent: (c.spent || 0) + 23.4 } : c) })); }
       else if (A.k === 'goal') setAct({ s: 'saved' }, x => ({ goals: (x.goals || []).map(g => /Lake Garda/.test(g.name) ? { ...g, cur: g.cur + 60 } : g) }));
       else setAct({ s: 'saved' });
     };
@@ -4125,7 +4125,7 @@ class Component extends DCLogic {
       onDraft: e => this.setState({ draft: e.target.value }), onKey: e => { if (e.key === 'Enter') this.ask(this.state.draft); }, sendDraft: () => this.ask(this.state.draft),
       wiExpenses, wiSliders, wiTargets, wiGoals, wiReset: () => this.setState({ wi: WI_DEFAULT }),
       wiYear: (gross < 0 ? '−' : '+') + EUR(Math.abs(gross * 12)), wiMonth: EUR(gross, 0), wiYearColor: gross < 0 ? '#FF8080' : '#fff',
-      wiShifts: Math.abs(shifts) + ' shifts', wiShiftsNote: shifts > 0 ? 'at the bar you wouldn\'t need to work, per year' : shifts < 0 ? 'extra at the bar to make up for it, per year' : 'change something to see the effect',
+      wiShifts: Math.abs(shifts) + ' shifts', wiShiftsNote: shifts > 0 ? 'you wouldn\'t need to work, per year' : shifts < 0 ? 'extra to make up for it, per year' : 'change something to see the effect',
       wiRet: wi.ret + '%', wiFv: EUR(ptsA[10]), wiFvDelta: (fvDelta >= 0 ? '+' : '−') + EUR(Math.abs(fvDelta)), wiFvDeltaColor: fvDelta > 0 ? 'var(--ok)' : fvDelta < 0 ? 'var(--bad)' : 'var(--mut2)',
       wiPath: toPath(ptsA), wiBasePath: toPath(ptsB), wiArea: toPath(ptsA) + ' L600 180 L0 180 Z',
       members: s.members.map(m => ({ ...m, initial: m.name[0], avBg: m.avBg || 'var(--soft2)', avFg: m.avFg || 'var(--ink)', edit: () => this.openForm('member', m.id) })),
@@ -4163,7 +4163,7 @@ class Component extends DCLogic {
     const s = this.state, ds = s.debts || [], strat = s.dStrat || 'avalanche', extra = s.dExtra == null ? 50 : s.dExtra;
     const r = debtSim(ds, strat, extra), base = debtSim(ds, strat, 0);
     const tot = ds.reduce((a, d) => a + (+d.bal || 0), 0), orig = ds.reduce((a, d) => a + Math.max(+d.orig || 0, +d.bal || 0), 0), pay = ds.reduce((a, d) => a + (+d.pay || 0), 0);
-    const ownL = { family: ['var(--soft2)', 'var(--ink)', 'Joint'], rialto: OWN.rialto, amnah: OWN.amnah };
+    const ownL = { family: ['var(--soft2)', 'var(--ink)', 'Joint'], alex: OWN.alex, mira: OWN.mira };
     const ordered = [...ds].filter(d => +d.bal > 0).sort((a, b) => (r.done[a.id] || 0) - (r.done[b.id] || 0)), mx = Math.max(1, r.months);
     const top = [...ds].filter(d => +d.bal > 0).sort((a, b) => strat === 'snowball' ? a.bal - b.bal : (b.rate - a.rate) || (a.bal - b.bal))[0];
     const savedM = base.months - r.months, savedI = base.interest - r.interest;
@@ -4189,14 +4189,14 @@ class Component extends DCLogic {
       else if (p >= warn) A.push({ id: 'near-' + c.id + tag, sev: 'soon', area: 'money', title: c.name + ' at ' + Math.round(p) + '% of budget', meta: EUR(c.limit - c.spent) + ' left for the next ' + left + ' days', when: 'This month', cta: 'Open budget', go: 'budget' });
       else if (p >= 30 && p / 100 > frac * 1.6) A.push({ id: 'fast-' + c.id + tag, sev: 'info', area: 'money', title: c.name + ' is moving fast', meta: Math.round(p) + '% used with ' + Math.round(frac * 100) + '% of the month gone', when: 'This month', cta: 'Open budget', go: 'budget' });
     });
-    if (!s.done.invoice) A.push({ id: 'invoice', done: 'invoice', sev: 'urgent', area: 'money', title: 'Invoice #2026-041 is overdue', meta: '€1,450 from Bäckerei Weber · a short friendly reminder usually does it', when: '6 days late', cta: 'See income', go: 'budget' });
+    if (!s.done.invoice) A.push({ id: 'invoice', done: 'invoice', sev: 'urgent', area: 'money', title: 'Invoice #2026-041 is overdue', meta: '€1,450 from Bäckerei Schmidt · a short friendly reminder usually does it', when: '6 days late', cta: 'See income', go: 'budget' });
     [['vat', '2026-10-10', 'VAT pre-return, September', '€486 · already in the tax pot · via ELSTER'], ['estq4', '2026-12-10', 'Income tax prepayment Q4', '€620 · joint · from the tax pot']].forEach(([id, iso, title, meta]) => { const n = dd(new Date(iso + 'T12:00')); if (s.done[id] || n > 30 || n < -60) return; A.push({ id, done: id, sev: n <= 3 ? 'urgent' : n <= 10 ? 'soon' : 'info', area: 'money', title, meta, when: whenL(n), cta: 'Open taxes', go: 'tax' }); });
     const nx = now.getDate() === 1 ? day0 : new Date(y, mo + 1, 1), nn = dd(nx), bills = [...s.cats.filter(c => c.fixed && c.limit).map(c => [c.name, +c.limit]), ...(s.debts || []).filter(d => +d.bal > 0 && +d.pay).map(d => [d.name, +d.pay])];
     if (bills.length) { const tot = bills.reduce((a, b) => a + b[1], 0); A.push({ id: 'bills-' + nx.getFullYear() + '-' + nx.getMonth(), sev: nn <= 3 ? 'soon' : 'info', area: 'money', title: 'Bills on ' + fmtD(nx) + ': ' + EUR(tot), meta: bills.slice(0, 4).map(b => b[0] + ' ' + EUR(b[1])).join(' · ') + (bills.length > 4 ? ' · +' + (bills.length - 4) + ' more' : '') + '. Keep it in the joint account.', when: whenL(nn), cta: 'See debts', go: 'debts' }); }
     const unused = s.subs.filter(x => x.flag === 'unused' && !s.cancelled[x.id]);
     if (unused.length) A.push({ id: 'subs-' + unused.map(x => x.id).join('-'), sev: 'soon', area: 'money', title: unused.length + ' subscription' + (unused.length > 1 ? 's' : '') + ' not used in 45+ days', meta: unused.map(x => x.name).join(', ') + ' · ' + EUR(unused.reduce((a, x) => a + x.price, 0) * 12) + ' a year', when: 'Ongoing', cta: 'Review subscriptions', go: 'subs' });
     const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    [0, 1].forEach(off => { const d = DOW[(now.getDay() + off) % 7], dt = new Date(y, mo, now.getDate() + off); s.events.filter(e => e.day === d && (e.title === 'Bar shift' || e.who === 't')).forEach(e => { const shift = e.title === 'Bar shift'; A.push({ id: 'ev-' + e.id + '-' + dt.toISOString().slice(0, 10), sev: off === 0 && shift ? 'soon' : 'info', area: 'time', title: (shift ? 'Bar shift ' : e.title + ' ') + (off ? 'tomorrow' : 'today'), meta: (e.time || 'All day').replace('–', ' – ') + (shift ? ' · Alex · Gasthof zur Linde' : ' · together'), when: off ? 'Tomorrow' : 'Today', cta: shift ? 'See shifts' : 'See this week', go: shift ? 'shifts' : 'week' }); }); });
+    [0, 1].forEach(off => { const d = DOW[(now.getDay() + off) % 7], dt = new Date(y, mo, now.getDate() + off); s.events.filter(e => e.day === d && (e.title === 'Work shift' || e.who === 't')).forEach(e => { const shift = e.title === 'Work shift'; A.push({ id: 'ev-' + e.id + '-' + dt.toISOString().slice(0, 10), sev: off === 0 && shift ? 'soon' : 'info', area: 'time', title: (shift ? 'Work shift ' : e.title + ' ') + (off ? 'tomorrow' : 'today'), meta: (e.time || 'All day').replace('–', ' – ') + (shift ? ' · Alex · Müller Logistik' : ' · together'), when: off ? 'Tomorrow' : 'Today', cta: shift ? 'See shifts' : 'See this week', go: shift ? 'shifts' : 'week' }); }); });
     const wk = Math.max(1, Math.ceil((day0 - new Date(y, 0, 1)) / 864e5 / 7)), exp = Math.min(1, wk / 52);
     s.ygoals.forEach(g => { if (!g.target || g.fresh) return; const r = g.done / (g.target * exp); if (r < 0.92) A.push({ id: 'yg-' + g.id + tag, sev: 'info', area: 'goals', title: 'Behind on: ' + g.name, meta: g.done.toLocaleString('en-IE') + ' of ' + g.target.toLocaleString('en-IE') + ' ' + (g.unit || '') + ' · should be about ' + Math.round(g.target * exp).toLocaleString('en-IE') + ' by now', when: 'Week ' + wk, cta: 'Open yearly goals', go: 'ygoals' }); });
     const ef = this.efCalc(s);
@@ -4238,7 +4238,7 @@ class Component extends DCLogic {
     const rGoals = s.goals.filter(g => !g.private).map(g => { const p = g.target ? Math.min(100, Math.round(g.cur / g.target * 100)) : 0; return { name: g.name, pctLabel: p + '%', w: p + '%', meta: gMeta(g).meta }; });
     const mStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const gymN = (s.gyms || []).filter(g => g.isNew).length, jN = (s.jnl || []).length;
-    const rLife = [['Bar shifts this week', s.events.filter(e => e.title === 'Bar shift').length], ['Yearly goals', s.ygoals.length + ' goals'], ['Gym sessions logged in app', gymN + ' new'], ['Date nights logged', (s.dates || []).length], ['Journal entries (count only)', jN], ['Learning items', (s.learn || []).length]].map(([k, v]) => ({ k, v: String(v) }));
+    const rLife = [['Work shifts this week', s.events.filter(e => e.title === 'Work shift').length], ['Yearly goals', s.ygoals.length + ' goals'], ['Gym sessions logged in app', gymN + ' new'], ['Date nights logged', (s.dates || []).length], ['Journal entries (count only)', jN], ['Learning items', (s.learn || []).length]].map(([k, v]) => ({ k, v: String(v) }));
     const rMoney = [['Savings & investments', EUR(assets)], ['Debt left', debt ? '−' + EUR(debt) : '€0'], ['Net worth', EUR(assets - debt)], ['Into goals each month', EUR(goalsIn)], ['Subscriptions', EUR(subsM, 2) + ' / mo'], ['Emergency fund', ef.mL + ' of ' + ef.tgt + ' months']].map(([k, v]) => ({ k, v }));
     return {
       isAlerts: s.screen === 'alerts', isReport: s.screen === 'report', goAlerts: go('alerts'),
@@ -4385,7 +4385,7 @@ class Component extends DCLogic {
       secAuto: [[0, 'Right away'], [1, 'After 1 min'], [5, 'After 5 min']].map(([v, l]) => seg((sec.auto ?? 1) === v, () => this.setState({ sec: { ...sec, auto: v } }), l)),
       lockNow: () => this.setState({ lockMode: 'unlock', pinIn: '', pinErr: '' }), changePin: () => this.startPinSetup(),
       ntPermL: PERM[0], ntPermBg: PERM[1], ntPermFg: PERM[2], ntCanAsk: perm === 'default', ntAsk: () => this.askNotif(),
-      ntRows: [['bills', 'Bills & recurring payments', 'The day before money goes out'], ['tax', 'Tax deadlines', '3 days before · VAT, prepayments'], ['shifts', 'Bar shifts', '2 hours before each shift'], ['budget', 'Budget warnings', 'When a category passes ' + (s.warnPct || 80) + '%'], ['goals', 'Goals', 'A short nudge on Sunday evening']].map(([k, label, sub]) => ({ label, sub, ...sw(!!nt[k]), toggle: () => this.setState({ notif: { ...nt, [k]: !nt[k] } }) })),
+      ntRows: [['bills', 'Bills & recurring payments', 'The day before money goes out'], ['tax', 'Tax deadlines', '3 days before · VAT, prepayments'], ['shifts', 'Work shifts', '2 hours before each shift'], ['budget', 'Budget warnings', 'When a category passes ' + (s.warnPct || 80) + '%'], ['goals', 'Goals', 'A short nudge on Sunday evening']].map(([k, label, sub]) => ({ label, sub, ...sw(!!nt[k]), toggle: () => this.setState({ notif: { ...nt, [k]: !nt[k] } }) })),
       ntTimes: ['07:00', '08:00', '20:00'].map(t => seg(nt.time === t, () => this.setState({ notif: { ...nt, time: t } }), t)),
       ntTest: () => this.notify('Rent goes out tomorrow', '€1,050 to Wohnbau München · Sparkasse balance is fine'),
       isOffline: !s.online, olL: s.online ? 'Online' : 'Offline', olBg: s.online ? 'var(--okbg)' : 'var(--soft2)', olFg: s.online ? 'var(--ok)' : 'var(--mut)',
@@ -4444,19 +4444,19 @@ class Component extends DCLogic {
     const tabDefs = [{ k: 'home', label: 'Home', d: D.home, on: sc === 'home', go: go('home') }, { k: 'money', label: 'Money', d: D.wallet, on: isMoney, go: go('budget') }, { label: 'Ask', d: D.spark, on: sc === 'ask', go: go('ask') }, { label: 'What if', d: D.sliders, on: sc === 'whatif', go: go('whatif') }, { label: 'More', d: D.grid, on: sc === 'more' || sc === 'alerts' || sc === 'report' || sc === 'soon' || sc === 'settings' || sc === 'setup' || sc === 'admin' || sc === 'help' || (!!curMod && curMod !== 'money'), go: go('more') }];
     const tabs = tabDefs.map(t => ({ ...t, isOrb: t.label === 'Ask', notOrb: t.label !== 'Ask', label: trL(s.lang, t.label), bg: t.on ? 'var(--inv)' : 'transparent', fg: t.on ? '#fff' : 'var(--mut)' }));
 
-    const personOpts = (PLANS[s.plan || 'together'].seats > 1 ? ['family', 'rialto', 'amnah'] : []).map(id => ({ label: id === 'family' ? 'Family' : NAMES[id], initial: id === 'family' ? 'EF' : NAMES[id][0], avBg: AV[id][0], avFg: AV[id][1], bg: s.person === id ? 'var(--inv)' : 'transparent', fg: s.person === id ? '#fff' : 'var(--ink)', go: () => { this.stopPlay(); this.setState({ person: id, prog: 0 }); } }));
-    const pal = { rialto: ['var(--soft2)', 'var(--ink)'], amnah: ['var(--tint2)', 'var(--acct)'] };
+    const personOpts = (PLANS[s.plan || 'together'].seats > 1 ? ['family', 'alex', 'mira'] : []).map(id => ({ label: id === 'family' ? 'Family' : NAMES[id], initial: id === 'family' ? 'EF' : NAMES[id][0], avBg: AV[id][0], avFg: AV[id][1], bg: s.person === id ? 'var(--inv)' : 'transparent', fg: s.person === id ? '#fff' : 'var(--ink)', go: () => { this.stopPlay(); this.setState({ person: id, prog: 0 }); } }));
+    const pal = { alex: ['var(--soft2)', 'var(--ink)'], mira: ['var(--tint2)', 'var(--acct)'] };
     const things = P.things.map(k => { const t = THINGS[k], d = !!s.done[k]; return { ...t, owner: NAMES[t.owner], ownerBg: pal[t.owner][0], ownerFg: pal[t.owner][1], go: go(t.go), toggle: () => this.setState(st => ({ done: { ...st.done, [k]: !st.done[k] } })), check: d ? D.check : '', boxBg: d ? 'var(--ok)' : 'var(--card)', boxBorder: d ? 'var(--ok)' : 'var(--line2)', titleColor: d ? 'var(--mut2)' : 'var(--ink)', deco: d ? 'line-through' : 'none' }; });
     const doneCount = P.things.filter(k => s.done[k]).length;
     const pg = g => { const p = Math.round(g.cur / g.target * 100); return { ...g, pctLabel: p + '%', w: p + '%' }; };
 
     const owner = s.person === 'family' ? null : s.person;
     const canSee = owner && (s.viewer === owner || s.shared[owner]);
-    const other = s.viewer === 'rialto' ? 'Mira' : 'Alex';
+    const other = s.viewer === 'alex' ? 'Mira' : 'Alex';
 
     const stages = [
       { stage: 'Stage 1', title: 'Money', tag: 'Live', desc: 'Budget, bank import, subscriptions, taxes.', go: go('budget'), bg: 'var(--inv)', fg: '#fff', eyebrow: 'var(--acc2)', sub: 'rgba(255,255,255,.65)', tagBg: 'var(--acc)', tagFg: 'var(--onacc)' },
-      { stage: 'Stage 2', title: 'Time & goals', tag: 'Live', desc: 'This week, bar shifts, yearly goals by week, learning.', go: go('week') },
+      { stage: 'Stage 2', title: 'Time & goals', tag: 'Live', desc: 'This week, work shifts, yearly goals by week, learning.', go: go('week') },
       { stage: 'Stage 3', title: 'Invest & career', tag: 'Live', desc: 'All savings in one view, 10-year simulation, career.', go: go('invest') },
       { stage: 'Stage 4', title: 'Life', tag: 'Live', desc: 'Gym, date nights, private journal.', go: go('gym') },
     ].map(m => ({ bg: 'var(--card)', fg: 'var(--ink)', eyebrow: 'var(--mut2)', sub: 'var(--mut)', tagBg: 'var(--tint)', tagFg: 'var(--acct)', ...m }));
@@ -4471,7 +4471,7 @@ class Component extends DCLogic {
     // import
     const stepIdx = { pick: 0, reading: 1, review: 1, done: 2 }[s.imp];
     const impSteps = ['Upload', 'Check', 'Done'].map((l, i) => ({ n: i < stepIdx ? '✓' : i + 1, label: l, bg: i === stepIdx ? 'var(--card)' : 'transparent', fg: i <= stepIdx ? 'var(--ink)' : 'var(--mut2)', dot: i <= stepIdx ? 'var(--acc)' : 'var(--soft2)', dotFg: i <= stepIdx ? 'var(--onacc)' : 'var(--mut)' }));
-    const banks = [{ id: 'sparkasse', name: 'Sparkasse Ingolstadt München', sub: 'Joint current account · DE12 •••• 4471', short: 'S', logoBg: '#E2001A' }, { id: 'tr', name: 'Trade Republic', sub: 'ETF savings plan · cash account', short: 'TR', logoBg: 'var(--inv)' }, { id: 'other', name: 'Any other bank', sub: 'Upload a CSV or PDF statement · we match the columns', short: '+', logoBg: '#5B616E' }].map(b => ({ ...b, border: s.bank === b.id ? 'var(--acc)' : 'var(--line)', pick: () => this.setState({ bank: b.id }) }));
+    const banks = [{ id: 'sparkasse', name: 'Sparkasse the city München', sub: 'Joint current account · DE12 •••• 4471', short: 'S', logoBg: '#E2001A' }, { id: 'tr', name: 'Trade Republic', sub: 'ETF savings plan · cash account', short: 'TR', logoBg: 'var(--inv)' }, { id: 'other', name: 'Any other bank', sub: 'Upload a CSV or PDF statement · we match the columns', short: '+', logoBg: '#5B616E' }].map(b => ({ ...b, border: s.bank === b.id ? 'var(--acc)' : 'var(--line)', pick: () => this.setState({ bank: b.id }) }));
     const isSpk = s.bank === 'sparkasse';
     const flagged = FLAGGED.map(f => ({ ...f, amt: EUR(f.amt, 2), opts: f.opts.map((o, i) => { const on = s.resolved[f.id] === o, sugg = !s.resolved[f.id] && i === 0; return { label: (on ? '✓ ' : '') + o, bg: on ? 'var(--inv)' : sugg ? 'var(--tint)' : 'var(--card)', fg: on ? '#fff' : 'var(--ink)', border: on ? 'var(--ink)' : sugg ? 'var(--acc2)' : 'var(--line)', pick: () => this.setState(st => ({ resolved: { ...st.resolved, [f.id]: o } })) }; }) }));
     const openCount = FLAGGED.filter(f => !s.resolved[f.id]).length;
@@ -4494,7 +4494,7 @@ class Component extends DCLogic {
       })(), ...this.cmdVals(sc, navRaw, aiName), ...(() => { const bs = this.props.briefStyle ?? 'strip', open = !!this.state.briefOpen, sents = P.briefing.split(/(?<=\.)\s+/).filter(Boolean); const nc = c => /255,255,255/.test(c) ? 'var(--mut)' : c === '#7CF0A6' ? 'var(--ok)' : 'var(--acct)'; return { briefIsCard: bs === 'card', briefIsStrip: bs === 'strip', briefIsChip: bs === 'chip', briefOpen: open, briefLine: open ? P.briefing : sents[0], briefWrap: open ? 'normal' : 'nowrap', briefMore: open ? 'Less' : 'Read all', briefChev: open ? '▴' : '▾', briefCount: sents.length, briefNotes: sents.map((t, i) => ({ t, n: String(i + 1).padStart(2, '0') })), toggleBrief: () => this.setState(st => ({ briefOpen: !st.briefOpen })), kpis: P.stats.map(x => ({ ...x, noteColor: nc(x.noteColor) })) }; })(), paletteAttr: s.palette || this.props.palette || 'noir', notNoir: (s.palette || this.props.palette || 'noir') !== 'noir', isNoir: (s.palette || this.props.palette || 'noir') === 'noir', themeAttr: thDark ? 'dark' : 'light', themeOpts, themeIcon: TH_D[thPref], cycleTheme: () => this.setTheme(thPref === 'light' ? 'dark' : thPref === 'dark' ? 'system' : 'light'), ...this.heroVals(P, s), ...this.orbVals(s), goAsk: () => this.nav('ask'), mainPad: wide ? '32px 40px 56px 288px' : '18px 14px calc(120px + env(safe-area-inset-bottom))',
       nav, tabs, moreList,
       viewerName: NAMES[s.viewer], viewerInitial: NAMES[s.viewer][0], viewerAvBg: AV[s.viewer][0], viewerAvFg: AV[s.viewer][1],
-      switchViewer: () => this.setState(st => ({ viewer: st.viewer === 'rialto' ? 'amnah' : 'rialto' })),
+      switchViewer: () => this.setState(st => ({ viewer: st.viewer === 'alex' ? 'mira' : 'alex' })),
       isHome: sc === 'home', isModule: !!curMod, isBudget: sc === 'budget', isImport: sc === 'import', isSubs: sc === 'subs', isTax: sc === 'tax', isSoon: sc === 'soon', isMore: sc === 'more',
       P, personOpts, things, doneCount, goals: s.goals.filter(g => g.owner === 'family' || !g.private).map(g => ({ ...pg(gMeta(g)), edit: () => this.openForm('goal', g.id) })), goalsMonthly: EUR(s.goals.filter(g => g.owner === 'family').reduce((a, g) => a + g.m, 0)) + ' / month in', addGoal: () => this.openForm('goal'),
       togglePlay: () => this.togglePlay(P.briefing), playLabel: s.playing ? 'Pause' : s.prog >= 100 ? 'Listen again' : 'Listen', playIcon: s.playing ? D.pause : D.play,
@@ -4535,7 +4535,7 @@ class Component extends DCLogic {
         { name: 'Sparkasse statements Jan–Aug', meta: '8 of 9 months', mark: '✓', dotBg: 'var(--okbg)', dotFg: 'var(--ok)', missing: false },
         { name: 'Sparkasse statement September', meta: 'Missing', mark: '!', dotBg: 'var(--tint)', dotFg: 'var(--acct)', missing: true },
         { name: 'TK insurance certificate 2026', meta: 'Arrives in January', mark: '…', dotBg: 'var(--soft2)', dotFg: 'var(--mut)', missing: false },
-        { name: 'Wage tax statement, Gasthof zur Linde', meta: 'Arrives in February', mark: '…', dotBg: 'var(--soft2)', dotFg: 'var(--mut)', missing: false },
+        { name: 'Wage tax statement, Müller Logistik', meta: 'Arrives in February', mark: '…', dotBg: 'var(--soft2)', dotFg: 'var(--mut)', missing: false },
         { name: 'Business receipts', meta: '84 matched · 6 without receipt', mark: '!', dotBg: 'var(--tint)', dotFg: 'var(--acct)', missing: false },
       ],
       soon: soon || SOON.time,

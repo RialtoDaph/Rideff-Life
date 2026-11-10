@@ -21,11 +21,11 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
   insert into public.events (kind, title, date, start_time, end_time, who)
-    values ('shift', 'Bar shift', '2026-10-14', '18:00', '01:00', a) returning id into shift;
+    values ('shift', 'Work shift', '2026-10-14', '18:00', '01:00', a) returning id into shift;
   -- The same shift again (reading the roster twice) is refused.
   begin
     insert into public.events (kind, title, date, start_time, end_time, who)
-      values ('shift', 'Bar shift', '2026-10-14', '18:00', '01:00', a);
+      values ('shift', 'Work shift', '2026-10-14', '18:00', '01:00', a);
     insert into r values ('the same shift is never saved twice', false);
   exception when unique_violation then
     insert into r values ('the same shift is never saved twice', true);
@@ -49,7 +49,7 @@ begin
     not exists (select 1 from sent where run = '15:30' and key like 'shift:%'));
   insert into r values ('shift reminder 2 hours before, to the person working',
     exists (select 1 from sent where run = '16:05' and member_id = a and key like 'shift:' || shift || '%'
-            and title = 'Shift at 18:00' and body like 'Bar shift · 18:00–01:00%'));
+            and title = 'Shift at 18:00' and body like 'Work shift · 18:00–01:00%'));
   insert into r values ('the shift reminder is sent once',
     not exists (select 1 from sent where run = '16:20' and key like 'shift:%'));
   insert into r values ('the partner gets no reminder for your shift',

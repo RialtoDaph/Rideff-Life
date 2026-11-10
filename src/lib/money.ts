@@ -1,4 +1,4 @@
-// Money rules from docs/design/README.md and DATA_MODEL.md → "Computed".
+// Money rules from design_handoff_rideff/README.md and DATA_MODEL.md → "Computed".
 // Pure functions only, so they can be unit tested (money.test.ts).
 
 export type Visibility = "family" | "private";

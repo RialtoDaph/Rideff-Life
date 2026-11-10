@@ -209,10 +209,10 @@
 "Nichts geplant. Tippe auf + Hinzufügen.",
 "Belum ada rencana. Ketuk + Tambah."
 ],
-"bar_shift": [
-"Bar shift",
-"Barschicht",
-"Shift bar"
+"work_shift": [
+"Work shift",
+"Arbeitsschicht",
+"Shift kerja"
 ],
 "no_shifts_found": [
 "No shifts were found in that picture.",
@@ -750,9 +750,9 @@
 "Pengingat"
 ],
 "shift_reminder_note": [
-"You get a reminder 2 hours before (Settings → Reminders → Bar shifts).",
-"Du wirst 2 Stunden vorher erinnert (Einstellungen → Erinnerungen → Barschichten).",
-"Kamu diingatkan 2 jam sebelumnya (Pengaturan → Pengingat → Shift bar)."
+"You get a reminder 2 hours before (Settings → Reminders → Shifts).",
+"Du wirst 2 Stunden vorher erinnert (Einstellungen → Erinnerungen → Schichten).",
+"Kamu diingatkan 2 jam sebelumnya (Pengaturan → Pengingat → Shift)."
 ],
 "what": [
 "What",
@@ -810,9 +810,9 @@
 "Ubah agenda"
 ],
 "add_shift": [
-"Add bar shift",
-"Barschicht hinzufügen",
-"Tambah shift bar"
+"Add shift",
+"Schicht hinzufügen",
+"Tambah shift"
 ],
 "add_to_week": [
 "Add to this week",

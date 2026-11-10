@@ -78,7 +78,7 @@ export function ShiftsScreen() {
   }
 
   async function saveFound() {
-    const rows = keep.map((f) => ({ kind: "shift", title: tt("bar_shift"), date: f.date, start_time: f.start, end_time: f.end || null, who: userId, source: "roster", note: f.note || null }));
+    const rows = keep.map((f) => ({ kind: "shift", title: tt("work_shift"), date: f.date, start_time: f.start, end_time: f.end || null, who: userId, source: "roster", note: f.note || null }));
     if (!rows.length) return setFound(null);
     const { added: n, error } = await time.insertMany("events", rows);
     if (error) return toast(error);
