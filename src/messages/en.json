@@ -2187,7 +2187,24 @@
     "pw_submit": "Sign in",
     "pw_back": "Back",
     "pw_wrong": "Email or password is wrong.",
-    "pw_failed": "Could not sign in. Try again."
+    "pw_failed": "Could not sign in. Try again.",
+    "tg_title": "Telegram",
+    "tg_sub": "Chat with {name} in Telegram: send receipts, rosters and questions, and get reminders and the morning briefing there.",
+    "tg_connected": "Connected",
+    "tg_as": "Linked as {who} since {when}.",
+    "tg_connect": "Connect Telegram",
+    "tg_reconnect": "Connect again",
+    "tg_how": "Telegram opens with the bot. Tap Start there; this page shows Connected afterwards.",
+    "tg_open": "Open Telegram",
+    "tg_check": "I tapped Start",
+    "tg_disc": "Disconnect",
+    "tg_disc_q": "Disconnect Telegram? The bot stops answering this account.",
+    "tg_disc_done": "Telegram disconnected.",
+    "tg_disc_failed": "Could not disconnect. Try again.",
+    "tg_err_no_token": "The Telegram bot token is missing in Vercel (TELEGRAM_BOT_TOKEN), or it was added after the last deployment.",
+    "tg_err_no_server_key": "The Supabase secret key is missing in Vercel (SUPABASE_SECRET_KEY).",
+    "tg_err_bad_token": "Telegram did not accept the bot token. Check TELEGRAM_BOT_TOKEN in Vercel.",
+    "tg_err_failed": "Could not connect. Try again."
   },
   "plans": {
     "life": [

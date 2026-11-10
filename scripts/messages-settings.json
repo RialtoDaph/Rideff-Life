@@ -1023,5 +1023,90 @@
 "Could not sign in. Try again.",
 "Anmeldung fehlgeschlagen. Versuche es erneut.",
 "Gagal masuk. Coba lagi."
+],
+"tg_title": [
+"Telegram",
+"Telegram",
+"Telegram"
+],
+"tg_sub": [
+"Chat with {name} in Telegram: send receipts, rosters and questions, and get reminders and the morning briefing there.",
+"Mit {name} in Telegram schreiben: Kassenbons, Dienstpläne und Fragen schicken, Erinnerungen und das Morgen-Briefing dort bekommen.",
+"Chat dengan {name} di Telegram: kirim struk, jadwal kerja, dan pertanyaan, serta terima pengingat dan briefing pagi di sana."
+],
+"tg_connected": [
+"Connected",
+"Verbunden",
+"Terhubung"
+],
+"tg_as": [
+"Linked as {who} since {when}.",
+"Verbunden als {who} seit {when}.",
+"Terhubung sebagai {who} sejak {when}."
+],
+"tg_connect": [
+"Connect Telegram",
+"Telegram verbinden",
+"Hubungkan Telegram"
+],
+"tg_reconnect": [
+"Connect again",
+"Neu verbinden",
+"Hubungkan ulang"
+],
+"tg_how": [
+"Telegram opens with the bot. Tap Start there; this page shows Connected afterwards.",
+"Telegram öffnet sich mit dem Bot. Tippe dort auf Start; danach steht hier Verbunden.",
+"Telegram akan terbuka dengan bot-nya. Tekan Start di sana; setelah itu halaman ini menampilkan Terhubung."
+],
+"tg_open": [
+"Open Telegram",
+"Telegram öffnen",
+"Buka Telegram"
+],
+"tg_check": [
+"I tapped Start",
+"Ich habe Start getippt",
+"Sudah tekan Start"
+],
+"tg_disc": [
+"Disconnect",
+"Trennen",
+"Putuskan"
+],
+"tg_disc_q": [
+"Disconnect Telegram? The bot stops answering this account.",
+"Telegram trennen? Der Bot antwortet diesem Konto dann nicht mehr.",
+"Putuskan Telegram? Bot tidak akan menjawab akun ini lagi."
+],
+"tg_disc_done": [
+"Telegram disconnected.",
+"Telegram getrennt.",
+"Telegram terputus."
+],
+"tg_disc_failed": [
+"Could not disconnect. Try again.",
+"Trennen hat nicht geklappt. Versuche es erneut.",
+"Gagal memutuskan. Coba lagi."
+],
+"tg_err_no_token": [
+"The Telegram bot token is missing in Vercel (TELEGRAM_BOT_TOKEN), or it was added after the last deployment.",
+"Der Telegram-Bot-Token fehlt in Vercel (TELEGRAM_BOT_TOKEN) oder wurde nach dem letzten Deployment eingetragen.",
+"Token bot Telegram belum ada di Vercel (TELEGRAM_BOT_TOKEN), atau ditambahkan setelah deploy terakhir."
+],
+"tg_err_no_server_key": [
+"The Supabase secret key is missing in Vercel (SUPABASE_SECRET_KEY).",
+"Der geheime Supabase-Schlüssel fehlt in Vercel (SUPABASE_SECRET_KEY).",
+"Kunci rahasia Supabase belum ada di Vercel (SUPABASE_SECRET_KEY)."
+],
+"tg_err_bad_token": [
+"Telegram did not accept the bot token. Check TELEGRAM_BOT_TOKEN in Vercel.",
+"Telegram hat den Bot-Token nicht akzeptiert. Prüfe TELEGRAM_BOT_TOKEN in Vercel.",
+"Telegram tidak menerima token bot. Cek TELEGRAM_BOT_TOKEN di Vercel."
+],
+"tg_err_failed": [
+"Could not connect. Try again.",
+"Verbinden hat nicht geklappt. Versuche es erneut.",
+"Gagal menghubungkan. Coba lagi."
 ]
 }

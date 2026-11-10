@@ -63,7 +63,8 @@ export const TOOLS = [
   fn("forget", "Suggest deleting a memory the caller owns, by its id. Deletes nothing until the person agrees on the card.", { memory_id: { type: "string" } }, ["memory_id"]),
 ];
 
-export type CardKind = "transaction" | "event" | "goal" | "remember" | "forget";
+// "shifts" comes from Telegram only: a roster read from a photo, saved together.
+export type CardKind = "transaction" | "event" | "goal" | "remember" | "forget" | "shifts";
 export type CardStatus = "pending" | "saved" | "undone" | "skipped";
 export type Card = { id: string; kind: CardKind; status: CardStatus; args: Record<string, unknown> };
 
@@ -109,6 +110,8 @@ async function cleanProposal(sb: SupabaseClient, userId: string, kind: CardKind,
       if (!fact) return { error: "Nothing to remember." };
       return { text: fact, scope: a.scope === "shared" ? "shared" : "private" };
     }
+    case "shifts":
+      return { error: "Shifts come from a roster photo." };
     case "forget": {
       const { data } = await sb.from("ai_memories").select("id,text,scope,kind").eq("id", text(a.memory_id, 40)).eq("owner_id", userId).maybeSingle();
       return data ? { memory_id: data.id, text: data.text, scope: data.scope, kind: data.kind } : { error: "No such memory of this person." };
@@ -193,14 +196,15 @@ export async function runTool(sb: SupabaseClient, userId: string, name: string, 
   return { output: { error: "Unknown tool." } };
 }
 
-type Pending = { id: string; tool: CardKind; args: Out; status: CardStatus; result: { table: string; id: string; row?: Out } | null };
+type Pending = { id: string; tool: CardKind; args: Out; status: CardStatus; result: { table: string; id: string; ids?: string[]; row?: Out } | null };
 
 /** The person tapped Save. This is the only place the assistant's suggestions become data. */
-export async function saveCard(sb: SupabaseClient, userId: string, id: string, edited?: string) {
+export async function saveCard(sb: SupabaseClient, userId: string, id: string, edited?: string, extra?: Out) {
   const { data } = await sb.from("ai_pending_actions").select("id,tool,args,status,result").eq("id", id).maybeSingle();
   const p = data as Pending | null;
   if (!p || p.status !== "pending") return { error: "gone" };
-  const a = p.args;
+  // extra: what the server added on Save, e.g. the kept receipt photo from Telegram.
+  const a = { ...p.args, ...extra };
   let result: Pending["result"];
 
   if (p.tool === "forget") {
@@ -209,10 +213,36 @@ export async function saveCard(sb: SupabaseClient, userId: string, id: string, e
     const { error } = await sb.from("ai_memories").delete().eq("id", a.memory_id).eq("owner_id", userId);
     if (error) return { error: "failed" };
     result = { table: "ai_memories", id: String(a.memory_id), row };
+  } else if (p.tool === "shifts") {
+    // Saved once per person, date and start time: a shift already there is skipped.
+    const ids: string[] = [];
+    for (const s of (Array.isArray(a.shifts) ? a.shifts : []) as Out[]) {
+      const { data: row, error } = await sb
+        .from("events")
+        .insert({ kind: "shift", title: a.title, date: s.date, start_time: s.start, end_time: s.end ?? null, who: userId, source: "roster", note: s.note ?? null })
+        .select("id")
+        .single();
+      if (row) ids.push(row.id);
+      else if (error?.code !== "23505") return { error: "failed" };
+    }
+    result = { table: "events", id: ids[0] ?? "", ids };
   } else {
     const insert: [string, Out] =
       p.tool === "transaction"
-        ? ["transactions", { payee: a.payee, amount: a.amount, date: a.date, category_id: a.category_id, paid_by: userId, source: "assistant", visibility: a.visibility }]
+        ? [
+            "transactions",
+            {
+              payee: a.payee,
+              amount: a.amount,
+              date: a.date,
+              category_id: a.category_id,
+              paid_by: userId,
+              source: a.receipt_file_id ? "receipt" : "assistant",
+              visibility: a.visibility,
+              note: typeof a.note === "string" && a.note ? a.note : null,
+              receipt_file_id: a.receipt_file_id ?? null,
+            },
+          ]
         : p.tool === "event"
           ? ["events", { kind: "event", title: a.title, date: a.date, start_time: a.time, who: a.visibility === "private" ? userId : null, visibility: a.visibility }]
           : p.tool === "goal"
@@ -236,7 +266,9 @@ export async function undoCard(sb: SupabaseClient, id: string) {
   if (p.status === "saved" && p.result && UNDOABLE.includes(p.result.table)) {
     const { error } = p.result.row
       ? await sb.from(p.result.table).insert(p.result.row)
-      : await sb.from(p.result.table).delete().eq("id", p.result.id);
+      : p.result.ids
+        ? await sb.from(p.result.table).delete().in("id", p.result.ids)
+        : await sb.from(p.result.table).delete().eq("id", p.result.id);
     if (error) return { error: "failed" };
   }
   await sb.from("ai_pending_actions").update({ status: "undone" }).eq("id", id);

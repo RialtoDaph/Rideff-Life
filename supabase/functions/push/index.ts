@@ -2,6 +2,8 @@
 //   pg_cron every 15 minutes   {"action":"run"}   sends what private.push_due() says is due
 //   the app                    {"action":"key"}   the public VAPID key for subscribing
 //   the app (signed in)        {"action":"test", "endpoint"?}   one test reminder
+// "run" also hands each due reminder of a member who linked Telegram to the app's
+// server (private.telegram_config), which sends it there; the bot token stays in Vercel.
 // "run" sends only reminders that are due and not sent yet, so calling it
 // more often changes nothing. The VAPID key pair is made here on first use
 // and kept in private.push_keys; the private key never leaves the server.
@@ -74,6 +76,30 @@ async function deliver(items: Item[], subs: Sub[]) {
   return { sent, failed, removed: gone.length };
 }
 
+/** Due reminders of members with a linked Telegram chat go to the app's server. */
+async function toTelegram(items: Item[]) {
+  const [cfg] = await sql`select notify_url, secret from private.telegram_config where id = 1`;
+  if (!cfg) return 0;
+  const links = await sql<{ member_id: string; chat_id: string }[]>`
+    select member_id, chat_id::text from private.telegram_links
+    where chat_id is not null and member_id = any(${[...new Set(items.map((i) => i.member_id))]}::uuid[])`;
+  const chat = new Map(links.map((l) => [l.member_id, l.chat_id]));
+  const out = items.filter((i) => chat.has(i.member_id)).map((i) => ({ ...i, chat_id: chat.get(i.member_id) }));
+  if (!out.length) return 0;
+  try {
+    const res = await fetch(cfg.notify_url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${cfg.secret}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ items: out }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) console.log("telegram notify refused", res.status);
+  } catch (e) {
+    console.log("telegram notify error", String(e));
+  }
+  return out.length;
+}
+
 /** The signed-in user's id, checked by Supabase Auth. */
 async function userId(req: Request) {
   const auth = req.headers.get("Authorization");
@@ -100,7 +126,8 @@ Deno.serve(async (req) => {
       const ids = [...new Set(items.map((i) => i.member_id))];
       const subs = await sql<Sub[]>`select id, member_id, endpoint, p256dh, auth
                                     from public.push_subscriptions where member_id = any(${ids}::uuid[])`;
-      return json({ due: items.length, ...(await deliver(items, subs)) });
+      const [pushed, telegram] = await Promise.all([deliver(items, subs), toTelegram(items)]);
+      return json({ due: items.length, ...pushed, telegram });
     }
 
     if (action === "test") {
