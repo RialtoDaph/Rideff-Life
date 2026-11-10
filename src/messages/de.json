@@ -2187,7 +2187,24 @@
     "pw_submit": "Anmelden",
     "pw_back": "Zurück",
     "pw_wrong": "E-Mail oder Passwort ist falsch.",
-    "pw_failed": "Anmeldung fehlgeschlagen. Versuche es erneut."
+    "pw_failed": "Anmeldung fehlgeschlagen. Versuche es erneut.",
+    "tg_title": "Telegram",
+    "tg_sub": "Mit {name} in Telegram schreiben: Kassenbons, Dienstpläne und Fragen schicken, Erinnerungen und das Morgen-Briefing dort bekommen.",
+    "tg_connected": "Verbunden",
+    "tg_as": "Verbunden als {who} seit {when}.",
+    "tg_connect": "Telegram verbinden",
+    "tg_reconnect": "Neu verbinden",
+    "tg_how": "Telegram öffnet sich mit dem Bot. Tippe dort auf Start; danach steht hier Verbunden.",
+    "tg_open": "Telegram öffnen",
+    "tg_check": "Ich habe Start getippt",
+    "tg_disc": "Trennen",
+    "tg_disc_q": "Telegram trennen? Der Bot antwortet diesem Konto dann nicht mehr.",
+    "tg_disc_done": "Telegram getrennt.",
+    "tg_disc_failed": "Trennen hat nicht geklappt. Versuche es erneut.",
+    "tg_err_no_token": "Der Telegram-Bot-Token fehlt in Vercel (TELEGRAM_BOT_TOKEN) oder wurde nach dem letzten Deployment eingetragen.",
+    "tg_err_no_server_key": "Der geheime Supabase-Schlüssel fehlt in Vercel (SUPABASE_SECRET_KEY).",
+    "tg_err_bad_token": "Telegram hat den Bot-Token nicht akzeptiert. Prüfe TELEGRAM_BOT_TOKEN in Vercel.",
+    "tg_err_failed": "Verbinden hat nicht geklappt. Versuche es erneut."
   },
   "plans": {
     "life": [

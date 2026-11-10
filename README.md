@@ -94,3 +94,26 @@ sent when the connection is back; the header shows how many wait.
   phone and are removed on sign-out.
 - What if, the 10-year simulation (`src/lib/plan.ts`) and the monthly report are plain
   calculations without AI. The report prints on A4 (`@media print` in `globals.css`).
+
+## Telegram (Clopar in chat)
+- Each person links their own Telegram chat in **Settings → Telegram**. The button calls
+  `/api/telegram/link`, which points the bot at this app (webhook + reminders), makes a one-time
+  code (15 minutes, `telegram_link_create()`) and opens `t.me/<bot>?start=<code>`. One chat belongs
+  to one member.
+- Needs `TELEGRAM_BOT_TOKEN` (from @BotFather), `SUPABASE_SECRET_KEY` and `ANTHROPIC_API_KEY` in
+  Vercel. Connect from the production address: the webhook goes to the address the button was
+  tapped on. The webhook and reminder secrets are made from the bot token, nothing else to set.
+- `/api/telegram` (`src/lib/telegram/bot.ts`) answers Telegram at once and works afterwards
+  (`after()`); each update is handled once (`telegram_seen()`).
+- The bot never reads with admin rights: the server key only finds who owns the chat
+  (`telegram_member()`) and opens a normal sign-in session for that person, so Row Level Security
+  and `buildContext()` decide what Clopar sees, exactly as in the app.
+- Text: Clopar answers from the same data as Ask (`src/lib/ask-server.ts`) and may call the
+  assistant's tools. Photos and PDFs: receipt, roster or statement (from the caption, or the bot
+  asks), read by `src/lib/ai-read-server.ts`. Receipts, shifts and every proposal wait in
+  `ai_pending_actions` until **Save**; Undo takes it back. A saved receipt keeps its photo in
+  the private `files` bucket. Statements are only summed up; checking and saving stays in Bank
+  import. Turns are kept in `ai_messages`, so the Ask screen shows them too.
+- Reminders: `private.push_due()` also covers members with a linked chat; the `push` Edge Function
+  hands their due items to `/api/telegram/notify` (URL and secret in `private.telegram_config`).
+  The morning summary becomes Clopar's family briefing.

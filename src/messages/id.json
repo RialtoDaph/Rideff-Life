@@ -2187,7 +2187,24 @@
     "pw_submit": "Masuk",
     "pw_back": "Kembali",
     "pw_wrong": "Email atau kata sandi salah.",
-    "pw_failed": "Gagal masuk. Coba lagi."
+    "pw_failed": "Gagal masuk. Coba lagi.",
+    "tg_title": "Telegram",
+    "tg_sub": "Chat dengan {name} di Telegram: kirim struk, jadwal kerja, dan pertanyaan, serta terima pengingat dan briefing pagi di sana.",
+    "tg_connected": "Terhubung",
+    "tg_as": "Terhubung sebagai {who} sejak {when}.",
+    "tg_connect": "Hubungkan Telegram",
+    "tg_reconnect": "Hubungkan ulang",
+    "tg_how": "Telegram akan terbuka dengan bot-nya. Tekan Start di sana; setelah itu halaman ini menampilkan Terhubung.",
+    "tg_open": "Buka Telegram",
+    "tg_check": "Sudah tekan Start",
+    "tg_disc": "Putuskan",
+    "tg_disc_q": "Putuskan Telegram? Bot tidak akan menjawab akun ini lagi.",
+    "tg_disc_done": "Telegram terputus.",
+    "tg_disc_failed": "Gagal memutuskan. Coba lagi.",
+    "tg_err_no_token": "Token bot Telegram belum ada di Vercel (TELEGRAM_BOT_TOKEN), atau ditambahkan setelah deploy terakhir.",
+    "tg_err_no_server_key": "Kunci rahasia Supabase belum ada di Vercel (SUPABASE_SECRET_KEY).",
+    "tg_err_bad_token": "Telegram tidak menerima token bot. Cek TELEGRAM_BOT_TOKEN di Vercel.",
+    "tg_err_failed": "Gagal menghubungkan. Coba lagi."
   },
   "plans": {
     "life": [

@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { useDates } from "@/lib/use-dates";
 import { Segmented } from "@/components/ui";
 import { InboxSection } from "./inbox-settings";
+import { TelegramSection } from "./telegram-settings";
 import { PageHeader } from "./page-header";
 
 function Section({ title, sub, pill, children }: { title: string; sub?: string; pill?: ReactNode; children: ReactNode }) {
@@ -114,6 +115,7 @@ export function SettingsScreen() {
               <MemorySection />
               <RemindersSection />
               <InboxSection Section={Section} Pill={Pill} />
+              <TelegramSection Section={Section} Pill={Pill} />
             </>
           )}
           {group === "look" && (
