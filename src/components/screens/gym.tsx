@@ -18,6 +18,7 @@ import { addMonths, hm, isGymName, weekStart, weekStreak, weekTotals } from "@/l
 import { useDates } from "@/lib/use-dates";
 import { WeekBars } from "./learn";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const QUICK: GymType[] = ["Strength", "Cardio", "Class"];
 
@@ -55,6 +56,15 @@ export function GymScreen() {
     });
     if (err && err !== QUEUED) return toast(err);
     toast(err === QUEUED ? tm("queued") : tt("session_logged"));
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="life" active="gym" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !time.gym.length) {

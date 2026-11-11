@@ -13,6 +13,7 @@ import { eur } from "@/lib/money";
 import { hm, nextFriday, weekStart, weekTotals } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const STAT = "rounded-[10px] border border-white/10 bg-white/5 px-3.5 py-2.5";
 
@@ -35,6 +36,15 @@ export function DateNightsScreen() {
   const target = time.yearlyGoals.find((g) => g.year === today.y && /date/i.test(`${g.name} ${g.unit}`))?.target;
   const weeks = weekTotals(past, weekStart(today.iso), 12, () => 1);
   const weeksLeft = Math.max(0, Math.floor((Date.UTC(today.y, 11, 31) - Date.parse(`${today.iso}T00:00:00Z`)) / (7 * 864e5)));
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="life" active="together" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (time.loaded && !time.dateNights.length && !time.dateIdeas.length) {
     return (
@@ -91,7 +101,7 @@ export function DateNightsScreen() {
           </div>
           {target != null && (
             <div className="h-2 overflow-hidden rounded-full bg-soft2">
-              <div className="h-full rounded-full bg-acc" style={{ width: `${Math.min(100, (count / target) * 100)}%` }} />
+              <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${Math.min(100, (count / target) * 100)}%` }} />
             </div>
           )}
           <div className="text-[13px] text-mut">{tt("dates_pace", { n: count + weeksLeft })}</div>

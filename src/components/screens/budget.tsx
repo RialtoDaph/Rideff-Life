@@ -5,6 +5,7 @@ import { Camera } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAppData } from "@/components/app-data";
+import { CountUp } from "@/components/count-up";
 import { ModuleEmpty } from "@/components/empty-state";
 import { useFinance } from "@/components/finance-data";
 import { useMoney } from "@/components/money-data";
@@ -25,14 +26,22 @@ import { AppIcon } from "@/lib/icons";
 import { eur, eurSigned } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 export function BudgetScreen() {
-  const tm = useTranslations("money");
-  const dates = useDates();
   const label = useLabel();
   const money = useMoney();
-  const { budget, today } = money;
+  const { budget } = money;
   const { openForm } = useMoneyForms();
+
+  if (!money.loaded) {
+    return (
+      <>
+        <ModuleHeader module="money" active="budget" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (money.loaded && !money.categories.length && !money.incomes.length) {
     return (
@@ -61,8 +70,6 @@ export function BudgetScreen() {
         <Categories monthPct={budget.monthPct} />
         <LatestTransactions />
       </div>
-
-      {!money.loaded && <div className="text-center text-[13px] text-mut2">{tm("loading_month", { month: dates.monthLong(today.m) })}</div>}
     </>
   );
 }
@@ -84,7 +91,9 @@ function Hero() {
             {tm("hero_day", { month: dates.monthLong(today.m), day: today.d, days: today.daysInMonth })}
           </div>
           <div className="mt-3 text-[13px] text-white/60">{tm("flexible_money_left")}</div>
-          <div className="mt-1 font-serif text-[68px] font-normal leading-none tabular-nums tracking-[-0.01em]">{eur(budget.flexLeft, 0)}</div>
+          <div className="mt-1 font-serif text-[68px] font-normal leading-none tabular-nums tracking-[-0.01em]">
+            <CountUp value={budget.flexLeft} format={(n) => eur(n, 0)} />
+          </div>
           <div className="mt-2 text-sm text-white/75">
             {tm.rich("per_day_line", {
               amount: eur(budget.perDay, 0),
@@ -144,7 +153,7 @@ function EmergencyFundCard() {
         <span className="text-sm font-bold text-mut">{tm("months_covered")}</span>
       </div>
       <div className="relative h-2.5 rounded-full bg-soft2">
-        <div className="h-full rounded-full bg-acc" style={{ width: pct(ef.months) }} />
+        <div className="bar-fill h-full rounded-full bg-acc" style={{ width: pct(ef.months) }} />
         <span className="absolute -top-1 h-[18px] w-0.5 bg-ink" style={{ left: pct(3) }} />
         <span className="absolute -top-1 h-[18px] w-0.5 bg-ink" style={{ left: `calc(${pct(ef.target)} - 2px)` }} />
       </div>
@@ -347,7 +356,7 @@ function Categories({ monthPct }: { monthPct: number }) {
               </div>
               <div className="relative ml-[34px] mt-2 h-1.5 rounded-full bg-soft2">
                 <div
-                  className="h-full rounded-full"
+                  className="bar-fill h-full rounded-full"
                   style={{ width: `${Math.min(100, pct)}%`, background: statusBarColor(status, cat.is_fixed) }}
                 />
                 {!cat.is_fixed && (

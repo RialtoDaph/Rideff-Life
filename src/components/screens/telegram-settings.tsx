@@ -11,7 +11,7 @@ type Status = { linked: boolean; username: string | null; linked_at: string | nu
 type SectionLike = (p: { title: string; sub?: string; pill?: React.ReactNode; children: React.ReactNode }) => React.ReactNode;
 type PillLike = (p: { tone: "ok" | "mut"; children: React.ReactNode }) => React.ReactNode;
 
-const ERRORS = ["no_token", "no_server_key", "bad_token"] as const;
+const ERRORS = ["no_token", "no_server_key", "bad_token", "not_production"] as const;
 
 /** Settings → Telegram: link this person's Telegram chat to Clopar, or remove the link. */
 export function TelegramSection({ Section, Pill }: { Section: SectionLike; Pill: PillLike }) {

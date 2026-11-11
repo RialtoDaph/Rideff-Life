@@ -13,6 +13,7 @@ import { AddButton, Card, H2, PrivateMark } from "@/components/ui";
 import { QUEUED } from "@/lib/offline-queue";
 import { weekStart, weekTotals } from "@/lib/time";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 /** Eight weeks as bars: this week in the accent, weeks that met the goal dark. */
 export function WeekBars({ totals, goal }: { totals: number[]; goal: number }) {
@@ -47,6 +48,15 @@ export function LearningScreen() {
     const err = await time.save("learning_minutes", { minutes: 25, date: today.iso, visibility: settings?.default_visibility?.learning ?? "family" });
     if (err && err !== QUEUED) return toast(err);
     toast(err === QUEUED ? tm("queued") : tt("minutes_logged", { n: 25 }));
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="time" active="learn" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !time.learningItems.length && !time.learningMinutes.length) {
@@ -88,7 +98,7 @@ export function LearningScreen() {
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-soft2">
-                <div className="h-full rounded-full bg-acc" style={{ width: `${Math.min(100, (min / Math.max(1, goal)) * 100)}%` }} />
+                <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${Math.min(100, (min / Math.max(1, goal)) * 100)}%` }} />
               </div>
               <WeekBars totals={totals} goal={goal} />
               <div className="text-[11px] text-mut2">{tt("last_8_weeks")}</div>
@@ -139,7 +149,7 @@ export function LearningScreen() {
                     {i.visibility === "private" && <PrivateMark />}
                   </span>
                   <span className="mt-2 block h-[5px] overflow-hidden rounded-full bg-soft2">
-                    <span className="block h-full rounded-full bg-acc" style={{ width: `${Math.min(100, i.pct)}%` }} />
+                    <span className="bar-fill block h-full rounded-full bg-acc" style={{ width: `${Math.min(100, i.pct)}%` }} />
                   </span>
                 </button>
               ))}

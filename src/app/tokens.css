@@ -20,3 +20,6 @@
 :root[data-theme="dark"][data-palette="sand"]{--bg:#13100C;--card:#1B1712;--soft:#201B15;--soft2:#28221A;--line:#332B21;--line2:#4A3F31;--ink:#EFE7DB;--mut:#B3A694;--mut2:#7E7262;--inv:#231D16;--dot:#1A1610;--acc:#D98B4A;--acct:#E8B184;--tint:rgba(217,139,74,.14);--tint2:rgba(217,139,74,.34);--onacc:#13100C}
 :root[data-palette="noir"]{--bg:#000000;--card:#111113;--soft:#0A0A0B;--soft2:#1C1C1E;--line:#1F1F22;--line2:#2E2E32;--ink:#F4F2EC;--mut:#A09D96;--mut2:#75726C;--inv:#2C2C30;--acc:#E8D9B5;--acc2:#C9B68C;--acct:#E8D9B5;--acci:#E8D9B5;--onacci:#000000;--tint:rgba(232,217,181,.12);--tint2:rgba(232,217,181,.3);--okbg:rgba(125,211,160,.13);--ok:#7DD3A0;--badbg:rgba(229,72,77,.15);--bad:#F2777B;--dot:#000000;--onacc:#000000;--warn:#E3B341;--warnbg:rgba(227,179,65,.14);--warnt:#E3B341;color-scheme:dark}
 :root[data-palette="noir"]{color-scheme:dark}
+
+/* Motion tokens (handoff: 160–220ms ease-out, sheets 280ms, Clopar 420ms). Ours, not the prototype's. */
+:root{--dur-1:160ms;--dur-2:220ms;--dur-sheet:280ms;--dur-clopar:420ms;--ease-out:cubic-bezier(.16,1,.3,1);--ease-in:cubic-bezier(.4,0,1,1);--ease-sheet:cubic-bezier(.2,.8,.2,1)}

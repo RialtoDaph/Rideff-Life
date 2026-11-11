@@ -105,7 +105,7 @@ export function PrivateMark() {
 export function ProgressBar({ pct, color = "var(--acc)", height = 6 }: { pct: number; color?: string; height?: number }) {
   return (
     <div className="overflow-hidden rounded-full bg-soft2" style={{ height }}>
-      <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: color }} />
+      <div className="bar-fill h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: color }} />
     </div>
   );
 }

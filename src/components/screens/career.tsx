@@ -12,6 +12,7 @@ import { QUEUED } from "@/lib/offline-queue";
 import type { CareerStep } from "@/lib/time";
 import { ModuleHeader, ModuleTabs } from "./module-tabs";
 import { PageHeader } from "./page-header";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const NEXT_STATUS: Record<CareerStep["status"], CareerStep["status"]> = { next: "now", now: "done", done: "next" };
 
@@ -27,6 +28,15 @@ export function CareerScreen() {
   async function cycle(s: CareerStep) {
     const err = await time.save("career_steps", { status: NEXT_STATUS[s.status] }, s.id);
     if (err && err !== QUEUED) toast(err);
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="invest" active="career" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !time.careerSteps.length) {

@@ -16,6 +16,7 @@ import { eur, parseAmount } from "@/lib/money";
 import { QUEUED } from "@/lib/offline-queue";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 export function TaxesScreen() {
   const t = useTranslations();
@@ -47,6 +48,15 @@ export function TaxesScreen() {
   async function toggle(table: "tax_deadlines" | "tax_deductions", id: string, patch: Record<string, unknown>) {
     const err = await fin.save(table, patch, id);
     if (err && err !== QUEUED) toast(err);
+  }
+
+  if (!fin.loaded) {
+    return (
+      <>
+        <ModuleHeader module="money" active="tax" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (fin.loaded && !incomes.length && !fin.businessMonths.length && !fin.taxDeadlines.length && !fin.taxDeductions.length) {

@@ -46,6 +46,9 @@
     "soon_title": "This screen arrives in phase {phase}.",
     "back_home": "Back to Home",
     "not_found": "This page does not exist.",
+    "error_title": "Something went wrong.",
+    "error_body": "Your data is safe. Try again, or go back to Home.",
+    "error_retry": "Try again",
     "continue": "Continue",
     "use_face_id": "Use Face ID",
     "waiting_face_id": "Waiting for Face ID…",
@@ -75,7 +78,16 @@
     "already_signed_in": "You are already signed in. An account belongs to one household, so use another email to join this one.",
     "sample_loaded": "Sample data is in. Have a look around.",
     "sample_not_empty": "Sample data only goes into an empty household.",
-    "sample_failed": "Could not load the sample data. Try again."
+    "sample_failed": "Could not load the sample data. Try again.",
+    "legal_nav": "Legal",
+    "legal_impressum": "Legal notice",
+    "legal_privacy": "Privacy",
+    "legal_terms": "Terms",
+    "legal_withdrawal": "Withdrawal",
+    "legal_draft": "Draft: the provider's details are still missing, so this text is not in force yet.",
+    "legal_binding": "This is a translation for your convenience. The German version is the binding one.",
+    "legal_updated": "Last changed {date}",
+    "checkout_legal": "By paying you accept the terms. You can withdraw within 14 days."
   },
   "de": {
     "help": "Hilfe",
@@ -124,6 +136,9 @@
     "soon_title": "Dieser Bildschirm kommt in Phase {phase}.",
     "back_home": "Zurück zum Start",
     "not_found": "Diese Seite gibt es nicht.",
+    "error_title": "Etwas ist schiefgelaufen.",
+    "error_body": "Deine Daten sind sicher. Versuche es erneut oder gehe zurück zum Start.",
+    "error_retry": "Erneut versuchen",
     "continue": "Weiter",
     "use_face_id": "Face ID verwenden",
     "waiting_face_id": "Warte auf Face ID…",
@@ -153,7 +168,16 @@
     "already_signed_in": "Du bist schon angemeldet. Ein Konto gehört zu einem Haushalt, nutze also eine andere E-Mail.",
     "sample_loaded": "Beispieldaten sind da. Schau dich um.",
     "sample_not_empty": "Beispieldaten gehen nur in einen leeren Haushalt.",
-    "sample_failed": "Die Beispieldaten konnten nicht geladen werden. Versuch es noch einmal."
+    "sample_failed": "Die Beispieldaten konnten nicht geladen werden. Versuch es noch einmal.",
+    "legal_nav": "Rechtliches",
+    "legal_impressum": "Impressum",
+    "legal_privacy": "Datenschutz",
+    "legal_terms": "AGB",
+    "legal_withdrawal": "Widerruf",
+    "legal_draft": "Entwurf: Die Angaben zum Anbieter fehlen noch, deshalb gilt dieser Text noch nicht.",
+    "legal_binding": "Maßgeblich ist diese deutsche Fassung.",
+    "legal_updated": "Zuletzt geändert am {date}",
+    "checkout_legal": "Mit der Zahlung akzeptierst du die AGB. Du kannst innerhalb von 14 Tagen widerrufen."
   },
   "id": {
     "help": "Bantuan",
@@ -202,6 +226,9 @@
     "soon_title": "Layar ini hadir di fase {phase}.",
     "back_home": "Kembali ke Beranda",
     "not_found": "Halaman ini tidak ada.",
+    "error_title": "Ada yang tidak beres.",
+    "error_body": "Datamu aman. Coba lagi, atau kembali ke Beranda.",
+    "error_retry": "Coba lagi",
     "continue": "Lanjut",
     "use_face_id": "Pakai Face ID",
     "waiting_face_id": "Menunggu Face ID…",
@@ -231,6 +258,15 @@
     "already_signed_in": "Kamu sudah masuk. Satu akun hanya untuk satu rumah tangga, jadi pakai email lain untuk bergabung.",
     "sample_loaded": "Data contoh sudah masuk. Silakan lihat-lihat.",
     "sample_not_empty": "Data contoh hanya bisa masuk ke rumah tangga yang kosong.",
-    "sample_failed": "Data contoh gagal dimuat. Coba lagi."
+    "sample_failed": "Data contoh gagal dimuat. Coba lagi.",
+    "legal_nav": "Hukum",
+    "legal_impressum": "Impressum",
+    "legal_privacy": "Privasi",
+    "legal_terms": "Ketentuan",
+    "legal_withdrawal": "Hak pembatalan",
+    "legal_draft": "Draf: data penyedia belum diisi, jadi teks ini belum berlaku.",
+    "legal_binding": "Ini terjemahan untuk memudahkanmu. Yang mengikat adalah versi bahasa Jerman.",
+    "legal_updated": "Terakhir diubah {date}",
+    "checkout_legal": "Dengan membayar kamu menyetujui ketentuan. Kamu bisa membatalkan dalam 14 hari."
   }
 }

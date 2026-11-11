@@ -13,6 +13,7 @@ import { bestQuote, remittanceQuotes, rp, rpFull } from "@/lib/finance";
 import { eur, parseAmount } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const QUICK = [100, 200, 300, 500];
 
@@ -42,6 +43,15 @@ export function RemitScreen() {
   const midRate = parseAmount(shownRate) > 0 ? parseAmount(shownRate) : rate;
   const quotes = eurAmount > 0 ? remittanceQuotes(eurAmount, midRate) : [];
   const best = quotes.length ? bestQuote(quotes) : null;
+
+  if (!loaded) {
+    return (
+      <>
+        <ModuleHeader module="money" active="remit" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (loaded && !remittances.length) {
     return (
@@ -76,7 +86,7 @@ export function RemitScreen() {
                 <span className="tabular-nums">{eur(total, 0)}</span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-acc2" style={{ width: `${(total / byPerson[0][1]) * 100}%` }} />
+                <div className="bar-fill h-full rounded-full bg-acc2" style={{ width: `${(total / byPerson[0][1]) * 100}%` }} />
               </div>
             </div>
           ))}

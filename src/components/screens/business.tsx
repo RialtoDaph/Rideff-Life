@@ -13,6 +13,7 @@ import { businessStats, profit } from "@/lib/finance";
 import { eur } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 export function BusinessScreen() {
   const tm = useTranslations("money");
@@ -21,6 +22,15 @@ export function BusinessScreen() {
   const { businesses, businessMonths, files, openFile, loaded } = useFinance();
   const { members } = useAppData();
   const { openForm } = useMoneyForms();
+
+  if (!loaded) {
+    return (
+      <>
+        <ModuleHeader module="money" active="biz" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (loaded && !businesses.length) {
     return (

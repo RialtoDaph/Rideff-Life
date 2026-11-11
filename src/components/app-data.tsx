@@ -99,6 +99,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile>(EMPTY);
   const [ready, setReady] = useState(false);
+  // The time this phone opened the app, to tell a finished trial from a running one.
+  const [now, setNow] = useState(0);
 
   const load = useCallback(async (userId: string) => {
     const sb = supabase();
@@ -135,6 +137,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
       const cached = readCache();
       if (cached?.userId === userId) setProfile(cached);
+      setNow(Date.now());
       setReady(true);
       load(userId);
     });
@@ -171,7 +174,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const value: AppData = {
     ...profile,
     bill,
-    plan: activePlan(bill),
+    plan: activePlan(bill, now),
     me: profile.members.find((x) => x.id === profile.userId),
     ready,
     reload,

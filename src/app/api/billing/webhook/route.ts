@@ -30,19 +30,22 @@ export async function POST(req: Request) {
     return Response.json({ received: true });
   }
 
-  const { error } = await sb
-    .from("subscriptions_billing")
-    .update({
-      plan: bought.plan,
-      interval: bought.interval,
-      status: billStatus(sub.status),
-      seats: PLANS[bought.plan].seats,
-      provider_ref: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
-      current_period_end: new Date(item.current_period_end * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("household_id", household);
+  // billing_apply handles each event once and never lets an older event overwrite a newer one
+  // (Stripe sends some twice, and not always in order).
+  const { data: outcome, error } = await sb.rpc("billing_apply", {
+    p_event: event.id,
+    p_type: event.type,
+    p_event_at: new Date(event.created * 1000).toISOString(),
+    p_household: household,
+    p_plan: bought.plan,
+    p_interval: bought.interval,
+    p_status: billStatus(sub.status),
+    p_seats: PLANS[bought.plan].seats,
+    p_customer: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+    p_period_end: new Date(item.current_period_end * 1000).toISOString(),
+  });
   // A failed write answers 500, so Stripe sends the event again.
   if (error) return new Response("write failed", { status: 500 });
+  if (outcome !== "applied") console.log("stripe event", event.id, outcome);
   return Response.json({ received: true });
 }

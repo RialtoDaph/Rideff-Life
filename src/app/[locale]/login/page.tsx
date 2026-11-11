@@ -9,6 +9,7 @@ import { EmailCode } from "@/components/auth/email-code";
 import { PasskeyOffer } from "@/components/auth/passkey-offer";
 import { PasswordSignIn } from "@/components/auth/password-sign-in";
 import { Clopar } from "@/components/clopar";
+import { LegalLinks } from "@/components/legal-links";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
@@ -78,6 +79,7 @@ export default function LoginPage() {
           <p className="m-0 text-center text-xs leading-normal text-mut2 [text-wrap:pretty]">
             {t("copy.your_data_stays_in_the_eu")}
           </p>
+          <LegalLinks className="-mt-5 justify-center" />
         </>
       )}
     </AuthScreen>

@@ -33,6 +33,14 @@ export async function readWithAi(
     source = { type: "image", source: { type: "base64", media_type: type, data } };
   }
 
+  // A cap per person per day (public.ai_use), so one account cannot run up the bill.
+  const { error: quota } = await sb.rpc("ai_use", { p_kind: "read" });
+  if (quota) {
+    return quota.message.includes("ai_quota")
+      ? { error: "That is all the files Clopar can read for you today. Try again tomorrow.", status: 429 }
+      : { error: "Could not check your plan. Try again.", status: 502 };
+  }
+
   let task: { system: string; schema: Record<string, unknown>; text: string; maxTokens: number; effort: "low" | "medium" };
   if (kind === "receipt") {
     // Categories of this household, so receipts get one of yours.

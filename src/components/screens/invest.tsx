@@ -14,6 +14,7 @@ import { eur } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader, ModuleTabs } from "./module-tabs";
 import { PageHeader } from "./page-header";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 export function InvestScreen() {
   const t = useTranslations();
@@ -26,6 +27,15 @@ export function InvestScreen() {
   const family = assets.filter((a) => a.visibility === "family");
   const mine = assets.filter((a) => a.visibility === "private" && a.owner_id === userId);
   const idrTotal = family.filter((a) => a.orig_currency === "IDR").reduce((s, a) => s + assetEur(a, rate), 0);
+
+  if (!loaded) {
+    return (
+      <>
+        <ModuleHeader module="invest" active="invest" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (loaded && !assets.length) {
     return (

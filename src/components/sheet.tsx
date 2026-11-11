@@ -2,10 +2,17 @@
 
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
-/** Bottom sheet on phones, centred modal from 900px up. Tapping the scrim closes it. */
+/** How far (px) or how fast (px/ms) a sheet must be pulled down to close. */
+const DRAG_CLOSE_PX = 110;
+const DRAG_CLOSE_SPEED = 0.6;
+
+/**
+ * Bottom sheet on phones, centred modal from 900px up. Tapping the scrim, Escape,
+ * the X, or pulling the sheet down by its top closes it; it animates out first.
+ */
 export function Sheet({
   title,
   onClose,
@@ -16,8 +23,18 @@ export function Sheet({
   children: ReactNode;
 }) {
   const t = useTranslations("copy");
+  const [closing, setClosing] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; at: number; dy: number } | null>(null);
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const close = useCallback(() => setClosing(true), []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -25,24 +42,65 @@ export function Sheet({
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
+  }, [close]);
+
+  // If the closing animation never reports back (tab hidden, element gone), close anyway.
+  useEffect(() => {
+    if (!closing) return;
+    const timer = setTimeout(() => onCloseRef.current(), 400);
+    return () => clearTimeout(timer);
+  }, [closing]);
+
+  // Pull down by the header to dismiss (phones only: the modal on wide screens stays put).
+  const onDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse" || window.innerWidth >= 900 || (e.target as HTMLElement).closest("button")) return;
+    drag.current = { y: e.clientY, at: e.timeStamp, dy: 0 };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d || !panel.current) return;
+    d.dy = Math.max(0, e.clientY - d.y);
+    panel.current.style.transition = "none";
+    panel.current.style.transform = `translateY(${d.dy}px)`;
+  };
+  const onUp = (e: React.PointerEvent) => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d || !panel.current) return;
+    const speed = d.dy / Math.max(1, e.timeStamp - d.at);
+    if (d.dy > DRAG_CLOSE_PX || (d.dy > 24 && speed > DRAG_CLOSE_SPEED)) return close(); // leaves from where the finger let go
+    panel.current.style.transition = "transform var(--dur-2) var(--ease-sheet)";
+    panel.current.style.transform = "";
+  };
 
   return (
     <div
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/55 wide:items-center wide:p-6"
+      onClick={close}
+      data-closing={closing || undefined}
+      className="sheet-scrim fixed inset-0 z-[60] flex items-end justify-center bg-black/55 wide:items-center wide:p-6"
     >
       <div
+        ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        data-closing={closing || undefined}
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[88dvh] w-full max-w-[520px] flex-col gap-4 overflow-y-auto overscroll-contain rounded-t-[24px] bg-card px-[22px] pb-[calc(22px+env(safe-area-inset-bottom))] pt-[22px] shadow-[0_20px_60px_rgba(0,0,0,.3)] wide:rounded-[24px]"
+        onAnimationEnd={(e) => closing && e.target === e.currentTarget && onCloseRef.current()}
+        className="sheet-panel flex max-h-[88dvh] w-full max-w-[520px] flex-col gap-4 overflow-y-auto overscroll-contain rounded-t-[24px] bg-card px-[22px] pb-[calc(22px+env(safe-area-inset-bottom))] pt-[22px] shadow-[0_20px_60px_rgba(0,0,0,.3)] wide:rounded-[24px]"
       >
-        <div className="flex items-center justify-between gap-2.5">
+        <div
+          onPointerDown={onDown}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
+          className="relative -mx-[22px] -mt-[22px] flex touch-none items-center justify-between gap-2.5 px-[22px] pt-[22px]"
+        >
+          <span aria-hidden className="absolute left-1/2 top-2 h-1 w-9 -translate-x-1/2 rounded-full bg-line2 wide:hidden" />
           <h2 className="m-0 text-xl font-extrabold tracking-[-0.01em]">{title}</h2>
           <button
-            onClick={onClose}
+            onClick={close}
             aria-label={t("close")}
             className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full border-0 bg-soft2 text-ink"
           >

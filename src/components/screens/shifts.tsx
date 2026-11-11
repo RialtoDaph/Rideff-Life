@@ -18,6 +18,7 @@ import { eur } from "@/lib/money";
 import { afterMidnightHours, clashes, freeEvenings, hm, monthShifts, shiftBonus, shiftHours, shiftTags, timeRange, weekDays, weekStart, type CalEvent } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 type Found = { date: string; start: string; end: string; note: string; keep: boolean; exists: boolean };
 
@@ -87,6 +88,15 @@ export function ShiftsScreen() {
     const planned = rows.map((r, i) => ({ id: String(i), owner_id: userId, kind: "shift", date: r.date, start_time: r.start_time, end_time: r.end_time, who: userId }) as CalEvent);
     setAdded({ n, days: freeEvenings([...time.events, ...planned], members.map((m) => m.id), week) });
     setFound(null);
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="time" active="shifts" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !mine.length && !found && !reading && !added) {

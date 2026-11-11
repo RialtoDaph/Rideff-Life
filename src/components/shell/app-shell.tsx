@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Bell, Plus, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ViewTransition, type ReactNode } from "react";
 import { useAiName, useAppData } from "@/components/app-data";
 import { Clopar } from "@/components/clopar";
 import { useMoney } from "@/components/money-data";
@@ -53,6 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { openForm } = useMoneyForms();
   const [quickAdd, setQuickAdd] = useState(false);
   const [command, setCommand] = useState(false);
+  const fabAway = useScrollingDown(screen);
   useServiceWorker();
 
   // ⌘K / Ctrl+K toggles the command palette anywhere.
@@ -86,15 +87,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar screen={screen} />
       <MobileHeader />
       <MobileTabBar screen={screen} />
-      <main className="px-[14px] pb-[calc(120px+env(safe-area-inset-bottom))] pt-[18px] wide:pb-14 wide:pl-[288px] wide:pr-10 wide:pt-8">
-        <div className="mx-auto flex max-w-[1120px] flex-col gap-4">{children}</div>
+      <main className="px-[14px] pb-[calc(164px+env(safe-area-inset-bottom))] pt-[18px] wide:pb-14 wide:pl-[288px] wide:pr-10 wide:pt-8">
+        {/* Keyed by screen, so moving between screens fades the old one out and lifts the new one in. */}
+        <ViewTransition key={screen} enter="page" exit="page" default="none">
+          <div className="mx-auto flex max-w-[1120px] flex-col gap-4">{children}</div>
+        </ViewTransition>
       </main>
       {screen !== "ask" && screen !== "map" && (
         <button
           data-noprint
           onClick={() => setQuickAdd(true)}
           aria-label={t("add_2")}
-          className="fixed bottom-[calc(92px+env(safe-area-inset-bottom))] right-[18px] z-40 flex h-[58px] w-[58px] items-center justify-center rounded-full border-0 bg-acc text-onacc shadow-fab hover:bg-acc2 wide:hidden"
+          data-away={fabAway || undefined}
+          className="fab fixed bottom-[calc(92px+env(safe-area-inset-bottom))] right-[18px] z-40 flex h-[58px] w-[58px] items-center justify-center rounded-full border-0 bg-acc text-onacc shadow-fab hover:bg-acc2 wide:hidden"
         >
           <Plus size={26} strokeWidth={2.5} />
         </button>
@@ -103,6 +108,35 @@ export function AppShell({ children }: { children: ReactNode }) {
       {command && <CommandPalette onClose={() => setCommand(false)} />}
     </ShellContext>
   );
+}
+
+/**
+ * True while the person reads down the page, false again as soon as they scroll up,
+ * reach the end, or open another screen. The + button uses it to get out of the way.
+ */
+function useScrollingDown(screen: string) {
+  const [down, setDown] = useState(false);
+  useEffect(() => {
+    let last = window.scrollY;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 8;
+      // Small moves (rubber-banding, a resting thumb) change nothing.
+      if (Math.abs(y - last) > 6) setDown(y > last && y > 80 && !atEnd);
+      else if (y <= 80) setDown(false);
+      last = y;
+    };
+    const onScroll = () => (frame ||= requestAnimationFrame(read));
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+      setDown(false);
+    };
+  }, [screen]);
+  return down;
 }
 
 /* Desktop sidebar ----------------------------------------------------------- */
