@@ -1953,7 +1953,9 @@
     "qs_income_name": "Salary",
     "qs_fixed_name": "Fixed costs",
     "qs_flex_name": "Day to day",
-    "qs_done": "All set. This is your month."
+    "qs_done": "All set. This is your month.",
+    "rt_added": "{name} just added {what}",
+    "rt_added_many": "{name} just added {n, plural, one {# item} other {# items}}"
   },
   "assistant": {
     "thinking": "Thinking…",

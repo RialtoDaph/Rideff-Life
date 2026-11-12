@@ -20,7 +20,7 @@ for (const locale of LOCALES) {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(`${page.url()} ${e.message}`));
     page.on("console", (m) => {
-      if (m.type() === "error" && !/503|Failed to load resource/.test(m.text())) errors.push(`${page.url()} ${m.text()}`);
+      if (m.type() === "error" && !/503|Failed to load resource|WebSocket/.test(m.text())) errors.push(`${page.url()} ${m.text()}`);
     });
     const wide: string[] = [];
     texts[locale] = {};

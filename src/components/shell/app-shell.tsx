@@ -10,6 +10,7 @@ import { useMoney } from "@/components/money-data";
 import { useMoneyForms } from "@/components/money-forms";
 import { useLabel } from "@/components/nav-label";
 import { LogoTile } from "@/components/logo";
+import { HouseholdLive } from "@/components/household-live";
 import { useOnline, usePendingCount, useServiceWorker } from "@/components/pwa";
 import { THEME_OPTIONS, useTheme } from "@/components/theme";
 import { usePathname } from "@/i18n/navigation";
@@ -84,6 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext value={ui}>
+      <HouseholdLive />
       <Sidebar screen={screen} />
       <MobileHeader />
       <MobileTabBar screen={screen} />

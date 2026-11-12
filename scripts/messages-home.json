@@ -613,5 +613,15 @@
   "All set. This is your month.",
   "Fertig. Das ist dein Monat.",
   "Siap. Inilah bulanmu."
+ ],
+ "rt_added": [
+  "{name} just added {what}",
+  "{name} hat gerade {what} hinzugefügt",
+  "{name} baru saja menambahkan {what}"
+ ],
+ "rt_added_many": [
+  "{name} just added {n, plural, one {# item} other {# items}}",
+  "{name} hat gerade {n, plural, one {# Eintrag} other {# Einträge}} hinzugefügt",
+  "{name} baru saja menambahkan {n, plural, other {# item}}"
  ]
 }

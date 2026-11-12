@@ -1953,7 +1953,9 @@
     "qs_income_name": "Gaji",
     "qs_fixed_name": "Biaya tetap",
     "qs_flex_name": "Harian",
-    "qs_done": "Siap. Inilah bulanmu."
+    "qs_done": "Siap. Inilah bulanmu.",
+    "rt_added": "{name} baru saja menambahkan {what}",
+    "rt_added_many": "{name} baru saja menambahkan {n, plural, other {# item}}"
   },
   "assistant": {
     "thinking": "Berpikir…",

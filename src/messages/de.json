@@ -1953,7 +1953,9 @@
     "qs_income_name": "Gehalt",
     "qs_fixed_name": "Fixkosten",
     "qs_flex_name": "Alltag",
-    "qs_done": "Fertig. Das ist dein Monat."
+    "qs_done": "Fertig. Das ist dein Monat.",
+    "rt_added": "{name} hat gerade {what} hinzugefügt",
+    "rt_added_many": "{name} hat gerade {n, plural, one {# Eintrag} other {# Einträge}} hinzugefügt"
   },
   "assistant": {
     "thinking": "Denkt nach…",
