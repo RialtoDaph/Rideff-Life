@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/empty-state";
 import { useFinance } from "@/components/finance-data";
 import { useLabel } from "@/components/nav-label";
 import { useMoney } from "@/components/money-data";
+import { ScreenSkeleton } from "@/components/skeleton";
 import { useTime } from "@/components/time-data";
 import { Segmented } from "@/components/ui";
 import { businessStats, subscriptionTotals } from "@/lib/finance";
@@ -86,7 +87,9 @@ export function ReportScreen() {
   const dates = time.dateNights.filter((d) => d.visibility === "family" && d.date.startsWith(ym));
   const ygoals = time.yearlyGoals.filter((g) => g.visibility === "family" && g.year === t.y);
 
-  if (money.loaded && !money.transactions.length) {
+  if (!money.loaded) return <ScreenSkeleton numbers={false} />;
+
+  if (!money.transactions.length) {
     return (
       <EmptyState eyebrow={navLabel("nav.monthly_report")} title={tt("e_report")}>
         <Link href="/setup" className="flex min-h-[46px] items-center rounded-full bg-acc px-5 text-sm font-bold text-onacc hover:text-onacc">

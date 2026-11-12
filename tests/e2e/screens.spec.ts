@@ -80,6 +80,35 @@ test("empty states on a fresh account", async ({ browser }) => {
   expect(missing).toEqual([]);
 });
 
+test("three numbers bring Home to life", async ({ browser }) => {
+  await setData("clear");
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, serviceWorkers: "block" });
+  await signIn(context, "en");
+  const page = await context.newPage();
+  try {
+    await page.goto("/");
+    await settle(page);
+    const card = page.locator('[data-screen-label="Quick start"]');
+    await expect(card).toBeVisible();
+    // A bad entry is refused with a sentence, nothing is saved.
+    await card.getByRole("button", { name: "Start" }).click();
+    await expect(card.getByRole("alert")).toBeVisible();
+    const inputs = card.locator("input");
+    await inputs.nth(0).fill("2400");
+    await inputs.nth(1).fill("1200");
+    await inputs.nth(2).fill("600");
+    await card.getByRole("button", { name: "Start" }).click();
+    const hero = page.locator('[data-screen-label="Home hero"]');
+    await expect(hero).toBeVisible();
+    await expect(hero).toContainText("€");
+    await expect(card).toHaveCount(0);
+    await page.screenshot({ path: `${OUT}/shots/quick-start-hero.png` });
+  } finally {
+    await context.close();
+    await setData("seed");
+  }
+});
+
 test("gates follow the plan", async ({ browser }) => {
   const context = await browser.newContext({ serviceWorkers: "block" });
   await signIn(context);

@@ -1,13 +1,18 @@
 // rideff Life service worker.
-// - App shell: every page's HTML plus its /_next/static files are cached on install,
-//   so the app opens offline from the Home Screen.
+// - App shell: every page's HTML plus its /_next/static files are cached, so the app opens
+//   offline from the Home Screen.
+// - URLs are the same in every language (the NEXT_LOCALE cookie picks the language), so
+//   pages are cached per language: the app tells this worker which language is on screen
+//   and the pages are fetched again when it changes.
 // - Pages and RSC data: network first, cached copy when offline.
 // - /_next/static (hashed, never changes): cache first.
 // - Supabase and other origins are never touched here.
 
-const VERSION = "rl-v2";
-const SHELL = `${VERSION}-shell`;
-const RUNTIME = `${VERSION}-runtime`;
+const VERSION = "rl-v3";
+const STATIC = `${VERSION}-static`;
+const META = `${VERSION}-meta`;
+const LOCALES = ["en", "de", "id"];
+const pagesName = (locale) => `${VERSION}-pages-${locale}`;
 
 const PAGES = [
   "/", "/login", "/settings", "/more", "/map", "/plan", "/help",
@@ -20,9 +25,27 @@ const PAGES = [
 const EXTRA = ["/manifest.webmanifest", "/rideff-particles.js", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
 
 const STATIC_RE = /\/_next\/static\/[^"'\s)\\]+/g;
+const LANG_RE = /<html[^>]*\slang="([a-z]{2})"/;
 
-async function precache() {
-  const cache = await caches.open(SHELL);
+// The language the app last reported. Kept in Cache Storage because this worker can be stopped any time.
+let current = null;
+
+async function getLocale() {
+  if (current) return current;
+  try {
+    const hit = await (await caches.open(META)).match("/__locale");
+    const value = hit ? await hit.text() : "";
+    current = LOCALES.includes(value) ? value : "en";
+  } catch {
+    current = "en";
+  }
+  return current;
+}
+
+/** Fetches every page in `locale` (the cookie must already say so) and the files they need. */
+async function precachePages(locale) {
+  const pages = await caches.open(pagesName(locale));
+  const statics = await caches.open(STATIC);
   const assets = new Set(EXTRA);
   await Promise.all(
     PAGES.map(async (path) => {
@@ -30,18 +53,33 @@ async function precache() {
         const res = await fetch(path, { cache: "no-store", credentials: "same-origin" });
         if (!res.ok) return;
         const html = await res.clone().text();
+        // A page in another language (the cookie changed meanwhile) must not be filed under this one.
+        const lang = html.match(LANG_RE);
+        if (lang && lang[1] !== locale) return;
         for (const m of html.match(STATIC_RE) || []) assets.add(m);
-        await cache.put(path, res);
+        await pages.put(path, res);
       } catch {}
     }),
   );
-  await Promise.all(
-    [...assets].map((url) => cache.add(url).catch(() => {})),
-  );
+  await Promise.all([...assets].map((url) => statics.add(url).catch(() => {})));
+}
+
+async function setLocale(locale) {
+  if (!LOCALES.includes(locale)) return;
+  current = locale;
+  await (await caches.open(META)).put("/__locale", new Response(locale));
+  const pages = await caches.open(pagesName(locale));
+  // First time in this language: fetch everything. Later visits keep their pages fresh on their own.
+  if (!(await pages.match("/"))) await precachePages(locale);
 }
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(precache().then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches
+      .open(STATIC)
+      .then((c) => Promise.all(EXTRA.map((u) => c.add(u).catch(() => {}))))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (e) => {
@@ -53,27 +91,32 @@ self.addEventListener("activate", (e) => {
   );
 });
 
+self.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "locale") e.waitUntil(setLocale(e.data.locale));
+});
+
 async function networkFirst(request, fallbackPath) {
-  const cache = await caches.open(RUNTIME);
+  const cache = await caches.open(pagesName(await getLocale()));
   try {
     const res = await fetch(request);
     if (res.ok) cache.put(request, res.clone());
     return res;
   } catch (err) {
     const hit =
-      (await caches.match(request)) ||
-      (fallbackPath && (await caches.match(fallbackPath, { ignoreSearch: true }))) ||
-      (fallbackPath && (await caches.match("/")));
+      (await cache.match(request, { ignoreVary: true })) ||
+      (fallbackPath && (await cache.match(fallbackPath, { ignoreSearch: true, ignoreVary: true }))) ||
+      (fallbackPath && (await cache.match("/", { ignoreVary: true })));
     if (hit) return hit;
     throw err;
   }
 }
 
 async function cacheFirst(request) {
-  const hit = await caches.match(request);
+  const cache = await caches.open(STATIC);
+  const hit = await cache.match(request);
   if (hit) return hit;
   const res = await fetch(request);
-  if (res.ok) (await caches.open(RUNTIME)).put(request, res.clone());
+  if (res.ok) cache.put(request, res.clone());
   return res;
 }
 
