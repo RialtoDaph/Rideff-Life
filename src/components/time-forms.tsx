@@ -9,6 +9,7 @@ import { useToast } from "@/components/toast";
 import { iconFor } from "@/lib/icons";
 import { QUEUED } from "@/lib/offline-queue";
 import { parseAmount } from "@/lib/money";
+import { dbErrorKey } from "@/lib/db-error";
 import { supabase } from "@/lib/supabase";
 import { hm, weekStart } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
@@ -478,7 +479,7 @@ export function TimeForm({ kind, id, preset, onClose }: { kind: TimeFormKind; id
             const wage = num(v.wage);
             if (!(wage >= 0)) return tt("cost_number");
             const { error } = await supabase().from("member_settings").update({ shift_wage: wage }).eq("member_id", userId);
-            if (error) return tm("could_not_save", { message: error.message });
+            if (error) return tm(dbErrorKey(error, "could_not_save"), { message: error.message });
             await reload();
             toast(tm("saved"));
             onClose();

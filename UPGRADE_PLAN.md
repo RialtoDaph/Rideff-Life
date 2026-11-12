@@ -132,7 +132,8 @@ Selesai bila: akun trial kedaluwarsa tidak bisa memanggil AI; tes vitest untuk t
 - Tingkat performa: high / medium / low berdasarkan `deviceMemory`, DPR dan FPS terukur; fallback 2D statis.
 - Perbaiki "Goals 0".
 
-### Fase F — Poles layar & alur (L, bisa dipecah per modul)
+### Fase F — Poles layar & alur (L, bisa dipecah per modul) — SELESAI (PR #9)
+> Dikerjakan: More grid, skeleton, error yang bisa ditindak, empty state Clopar, Quick start, `sw.js` per locale, realtime Together. Dicoret: data layar utama ke server component (sesi ada di localStorage + app offline-first; manfaat kecil, risiko besar). Belum diuji nyata: realtime dua akun, cache offline di HP/Safari.
 - Urutan: Money (Budget, Bank import, Recurring, Debts) → Time (Week, Shifts) → sisanya.
 - More jadi grid modul dengan status ringkas per modul.
 - Onboarding: momen pertama = impor bank atau isi 3 angka → hero langsung hidup.
@@ -141,7 +142,7 @@ Selesai bila: akun trial kedaluwarsa tidak bisa memanggil AI; tes vitest untuk t
 - `sw.js`: precache per locale.
 - Pindahkan pengambilan data layar utama ke server component bila cocok dengan `cacheComponents` (kurangi kedip kosong).
 
-### Fase G — Landing page & pesan (M)
+### Fase G — Landing page & pesan (M) — DILEWATI (keputusan user: app untuk pemakaian sendiri/keluarga, tidak perlu landing publik)
 - `/` publik (bukan `noindex`): satu kalimat janji, Clopar hidup, demo Life Map interaktif dengan data contoh, 3 manfaat, harga, FAQ, tautan hukum.
 - Tiga bahasa, OG image, metadata.
 - Login tetap ringkas, tapi dengan satu baris penjelasan produk.

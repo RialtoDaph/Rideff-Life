@@ -30,3 +30,41 @@ test("opens offline and syncs what was added", async ({ browser }) => {
   await expect.poll(inserts, { timeout: 15000 }).toBe(start + 1);
   await context.close();
 });
+
+test("offline pages follow the language", async ({ browser }) => {
+  await setPlan("together");
+  await setData("seed");
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "allow" });
+  await signIn(context, "en");
+  const page = await context.newPage();
+  await page.goto("/gym");
+  await settle(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+
+  // The language changes (the cookie is what the app reads); a screen never opened in German must still open offline, in German.
+  await context.addCookies([{ name: "NEXT_LOCALE", value: "de", url: "http://localhost:3100" }]);
+  await page.reload();
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  // The worker fetches every page in German; wait until that, and the files the pages need, have settled.
+  await page.waitForFunction(
+    async () => {
+      const count = async (name: string) => (await (await caches.open(name)).keys()).length;
+      const w = window as unknown as { __seen?: string; __since?: number };
+      const now = `${await count("rl-v3-pages-de")}/${await count("rl-v3-static")}`;
+      if (w.__seen !== now) {
+        w.__seen = now;
+        w.__since = Date.now();
+      }
+      const hit = await (await caches.open("rl-v3-pages-de")).match("/week");
+      return !!hit && (await hit.text()).includes("Diese Woche") && Date.now() - (w.__since ?? Date.now()) > 2000;
+    },
+    undefined,
+    { timeout: 30000, polling: 500 },
+  );
+
+  await context.setOffline(true);
+  await page.goto("/week");
+  await settle(page);
+  await expect(page.getByRole("heading", { name: "Diese Woche" }).first()).toBeVisible();
+  await context.close();
+});

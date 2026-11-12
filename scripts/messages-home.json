@@ -508,5 +508,120 @@
   "Today's list is done",
   "Die Liste für heute ist erledigt",
   "Daftar hari ini selesai"
+ ],
+ "more_money_left": [
+  "{left} left · {perDay} a day",
+  "{left} übrig · {perDay} pro Tag",
+  "{left} tersisa · {perDay} per hari"
+ ],
+ "more_time_goals": [
+  "{n, plural, one {# yearly goal} other {# yearly goals}}",
+  "{n, plural, one {# Jahresziel} other {# Jahresziele}}",
+  "{n, plural, other {# target tahunan}}"
+ ],
+ "more_invest_net": [
+  "Net worth {net}",
+  "Nettovermögen {net}",
+  "Kekayaan bersih {net}"
+ ],
+ "more_life_gym": [
+  "{n, plural, one {# gym session} other {# gym sessions}} this month",
+  "{n, plural, one {# Gym-Einheit} other {# Gym-Einheiten}} diesen Monat",
+  "{n, plural, other {# sesi gym}} bulan ini"
+ ],
+ "more_not_started": [
+  "Not started yet",
+  "Noch nicht begonnen",
+  "Belum dimulai"
+ ],
+ "more_tools": [
+  "Tools",
+  "Werkzeuge",
+  "Alat"
+ ],
+ "qs_eyebrow": [
+  "Quick start",
+  "Schnellstart",
+  "Mulai cepat"
+ ],
+ "qs_title": [
+  "Bring a bank statement, or type three numbers. Home comes alive at once.",
+  "Bring einen Kontoauszug mit oder tipp drei Zahlen ein. Home wird sofort lebendig.",
+  "Bawa rekening koran, atau ketik tiga angka. Beranda langsung hidup."
+ ],
+ "qs_import": [
+  "Import a bank statement",
+  "Kontoauszug importieren",
+  "Impor rekening koran"
+ ],
+ "qs_or": [
+  "or",
+  "oder",
+  "atau"
+ ],
+ "qs_income": [
+  "Income per month (net)",
+  "Einkommen pro Monat (netto)",
+  "Pemasukan per bulan (bersih)"
+ ],
+ "qs_fixed": [
+  "Fixed costs per month",
+  "Fixkosten pro Monat",
+  "Biaya tetap per bulan"
+ ],
+ "qs_fixed_hint": [
+  "Rent, insurance, phone. Leave empty to skip.",
+  "Miete, Versicherung, Handy. Leer lassen zum Überspringen.",
+  "Sewa, asuransi, pulsa. Kosongkan untuk melewati."
+ ],
+ "qs_flex": [
+  "Day-to-day money per month",
+  "Geld für den Alltag pro Monat",
+  "Uang harian per bulan"
+ ],
+ "qs_flex_hint": [
+  "Groceries, going out, transport. This is the number Home counts down.",
+  "Lebensmittel, Ausgehen, Verkehr. Diese Zahl zählt Home herunter.",
+  "Belanja, jajan, transport. Angka ini yang dihitung mundur di Beranda."
+ ],
+ "qs_start": [
+  "Start",
+  "Los geht's",
+  "Mulai"
+ ],
+ "qs_check": [
+  "Enter your income and your day-to-day money (more than 0). Fixed costs can stay empty.",
+  "Gib Einkommen und Alltagsgeld ein (mehr als 0). Fixkosten dürfen leer bleiben.",
+  "Isi pemasukan dan uang harian (lebih dari 0). Biaya tetap boleh kosong."
+ ],
+ "qs_income_name": [
+  "Salary",
+  "Gehalt",
+  "Gaji"
+ ],
+ "qs_fixed_name": [
+  "Fixed costs",
+  "Fixkosten",
+  "Biaya tetap"
+ ],
+ "qs_flex_name": [
+  "Day to day",
+  "Alltag",
+  "Harian"
+ ],
+ "qs_done": [
+  "All set. This is your month.",
+  "Fertig. Das ist dein Monat.",
+  "Siap. Inilah bulanmu."
+ ],
+ "rt_added": [
+  "{name} just added {what}",
+  "{name} hat gerade {what} hinzugefügt",
+  "{name} baru saja menambahkan {what}"
+ ],
+ "rt_added_many": [
+  "{name} just added {n, plural, one {# item} other {# items}}",
+  "{name} hat gerade {n, plural, one {# Eintrag} other {# Einträge}} hinzugefügt",
+  "{name} baru saja menambahkan {n, plural, other {# item}}"
  ]
 }

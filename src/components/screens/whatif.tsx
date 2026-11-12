@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { useFinance } from "@/components/finance-data";
 import { useLabel } from "@/components/nav-label";
 import { useMoney } from "@/components/money-data";
+import { ScreenSkeleton } from "@/components/skeleton";
 import { Card, EmptyNote, H2, Segmented } from "@/components/ui";
 import { eur } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
@@ -88,7 +89,9 @@ export function WhatIfScreen() {
     ...categories.filter((c) => !c.is_fixed && c.monthly_limit > 0).map((c) => ({ id: `c-${c.id}`, name: c.name, amount: c.monthly_limit, kind: "budget" })),
   ];
 
-  if (loaded && (!incomes.length || !categories.length || !goals.length)) {
+  if (!loaded) return <ScreenSkeleton numbers={false} />;
+
+  if (!incomes.length || !categories.length || !goals.length) {
     return (
       <EmptyState eyebrow={label("nav.what_if")} title={tt("e_whatif")}>
         <Link href="/setup" className="flex min-h-[46px] items-center rounded-full bg-acc px-5 text-sm font-bold text-onacc hover:text-onacc">

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { Clopar } from "@/components/clopar";
 import { useMoney } from "@/components/money-data";
 import { SampleDataButton } from "@/components/sample-data";
 
@@ -12,6 +13,9 @@ export function EmptyState({ eyebrow, title, children }: { eyebrow: string; titl
       data-screen-label="Empty state"
       className="flex max-w-[640px] flex-col items-start gap-3 rounded-[18px] border border-dashed border-line2 bg-card px-6 py-8"
     >
+      <span aria-hidden className="relative -ml-1 mb-1 block h-[84px] w-[84px]">
+        <Clopar variant="sidebar" />
+      </span>
       <div className="eyebrow">{eyebrow}</div>
       <h2 className="m-0 text-[22px] font-bold leading-[1.25] tracking-[-0.01em] [text-wrap:pretty]">{title}</h2>
       <div className="mt-1.5 flex flex-wrap gap-2">{children}</div>

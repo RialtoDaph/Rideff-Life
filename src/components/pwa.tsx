@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { QUEUE_EVENT, pending } from "@/lib/offline-queue";
 
@@ -41,10 +42,14 @@ export function usePendingCount() {
 /* Service worker ----------------------------------------------------------- */
 
 export function useServiceWorker() {
+  const locale = useLocale();
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
-  }, []);
+    // Pages are cached per language, so the worker is told which one is on screen. By now the
+    // NEXT_LOCALE cookie already says so, which is what its own fetches use.
+    const tell = () => navigator.serviceWorker.ready.then((r) => r.active?.postMessage({ type: "locale", locale })).catch(() => {});
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(tell, () => {});
+  }, [locale]);
 }
 
 /* Install ------------------------------------------------------------------ */

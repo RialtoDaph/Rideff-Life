@@ -20,6 +20,7 @@ import {
   type Transaction,
 } from "@/lib/money";
 import { QUEUED, enqueue, flush, isNetworkError } from "@/lib/offline-queue";
+import { dbErrorKey } from "@/lib/db-error";
 import { supabase } from "@/lib/supabase";
 
 type AlertState = { alert_key: string; dismissed_at: string | null; done_at: string | null };
@@ -184,7 +185,7 @@ export function MoneyProvider({ children }: { children: ReactNode }) {
         applyLocal(table, id ? "update" : "insert", rowId, values);
         return QUEUED;
       }
-      if (error) return tm("could_not_save", { message: error.message });
+      if (error) return tm(dbErrorKey(error, "could_not_save"), { message: error.message });
       await load();
       return null;
     },
@@ -199,7 +200,7 @@ export function MoneyProvider({ children }: { children: ReactNode }) {
         applyLocal(table, "delete", id);
         return QUEUED;
       }
-      if (error) return tm("could_not_delete", { message: error.message });
+      if (error) return tm(dbErrorKey(error, "could_not_delete"), { message: error.message });
       await load();
       return null;
     },

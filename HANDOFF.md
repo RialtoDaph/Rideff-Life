@@ -32,7 +32,7 @@
 ## Langkah berikutnya
 1. Tanya user: pasang migrasi Fase A ke `rideff-life`? Lalu buka PR `fase-0` → `claude/effendy-family-app-setup-fe1wl1`.
 2. Minta alamat Impressum; isi `operator.ts`.
-3. Fase F (poles layar & alur), G (landing; tanya dulu: publik/indexable?), H (uji nyata & rilis).
+3. Fase F selesai (PR #9). G dilewati. Tinggal H (uji nyata & rilis).
 
 ## Perintah
 - `npx tsc --noEmit && npx eslint src tests && npx vitest run`

@@ -21,6 +21,7 @@ import {
 } from "@/lib/finance";
 import { SYNCED_EVENT, useMoney } from "@/components/money-data";
 import { QUEUED, enqueue, isNetworkError } from "@/lib/offline-queue";
+import { dbErrorKey } from "@/lib/db-error";
 import { supabase } from "@/lib/supabase";
 
 type FinanceRows = {
@@ -222,7 +223,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         applyLocal(table, id ? "update" : "insert", rowId, values);
         return QUEUED;
       }
-      if (error) return tm("could_not_save", { message: error.message });
+      if (error) return tm(dbErrorKey(error, "could_not_save"), { message: error.message });
       await load();
       return null;
     },
@@ -237,7 +238,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         applyLocal(table, "delete", id);
         return QUEUED;
       }
-      if (error) return tm("could_not_delete", { message: error.message });
+      if (error) return tm(dbErrorKey(error, "could_not_delete"), { message: error.message });
       await load();
       return null;
     },

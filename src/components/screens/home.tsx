@@ -13,6 +13,7 @@ import { useOnline } from "@/components/pwa";
 import { avatarColors } from "@/components/shell/avatar";
 import { useTime } from "@/components/time-data";
 import { AddButton, EmptyNote, PrivateMark, ProgressBar } from "@/components/ui";
+import { QuickStart } from "@/components/quick-start";
 import { SampleDataButton } from "@/components/sample-data";
 import { ScreenSkeleton } from "@/components/skeleton";
 import { fetchBriefing, loadBriefing, saveBriefing } from "@/lib/ask";
@@ -44,7 +45,9 @@ export function useFreshSteps() {
     { key: "sub", done: recurring.some((r) => r.is_subscription), go: () => openForm("sub") },
   ] as const;
   const done = steps.filter((s) => s.done).length;
-  return { steps, done, fresh: loaded && done < 3 };
+  // Income plus a flexible limit is enough for the hero to show money left, so Home goes live.
+  const live = incomes.length > 0 && categories.some((c) => !c.is_fixed && c.monthly_limit > 0);
+  return { steps, done, fresh: loaded && done < 3 && !live };
 }
 
 export function HomeScreen() {
@@ -121,6 +124,7 @@ function GettingStarted() {
 
   return (
     <div data-screen-label="Getting started" className="flex flex-col gap-4">
+      <QuickStart />
       <section className="flex flex-col gap-3.5 rounded-[18px] bg-inv p-6 text-white">
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="font-mono text-[11px] font-bold uppercase tracking-[.16em] text-acc2">{t("f_eyebrow")}</span>
