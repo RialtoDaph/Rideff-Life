@@ -104,7 +104,9 @@ export function lifeScore(input: {
     health.lines.push({ key: "gym", good: done >= gymGoal, done, goal: gymGoal });
   }
 
-  // Goals: money goals with a monthly amount or already reached, and yearly goals not behind.
+  // Goals: money goals with a monthly amount or already reached, and how close yearly goals are
+  // to the pace the date asks for. A goal a little behind still counts for most of its share:
+  // "all or nothing" showed 0 for a household that was at 80% of pace on everything.
   const goalsP: Pillar = { k: "goals", score: null, lines: [] };
   const goalParts: number[] = [];
   const real = goals.filter((g) => !g.is_emergency_fund);
@@ -114,8 +116,10 @@ export function lifeScore(input: {
     goalsP.lines.push({ key: "goals", good: moving === real.length, done: moving, total: real.length });
   }
   if (yearlyGoals.length) {
-    const fine = yearlyGoals.filter((g) => goalStatus(g, today.iso).status !== "behind").length;
-    goalParts.push(fine / yearlyGoals.length);
+    const status = yearlyGoals.map((g) => ({ g, ...goalStatus(g, today.iso) }));
+    const fine = status.filter((x) => x.status !== "behind").length;
+    const pace = status.map((x) => (x.status === "done" || x.expected <= 0 ? 1 : unit(x.g.done / x.expected)));
+    goalParts.push(pace.reduce((a, b) => a + b, 0) / pace.length);
     goalsP.lines.push({ key: "yearly", good: fine === yearlyGoals.length, done: fine, total: yearlyGoals.length });
   }
   goalsP.score = toScore(goalParts);

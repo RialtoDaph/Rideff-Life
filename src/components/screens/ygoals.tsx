@@ -12,6 +12,7 @@ import { AppIcon } from "@/lib/icons";
 import { addDays, goalStatus, goalTip, weekOfYear, weekStart, weekStrip, type GoalStatus, type YearlyGoal } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const STATUS_STYLE: Record<GoalStatus, string> = {
   ahead: "bg-okbg text-ok",
@@ -30,6 +31,15 @@ export function YearlyGoalsScreen() {
   const week = Math.min(52, weekOfYear(today.iso));
   const gone = Math.round((week / 52) * 100);
   const behind = goals.filter((g) => goalStatus(g, today.iso).status === "behind").length;
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="time" active="ygoals" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (time.loaded && !goals.length) {
     return (
@@ -53,7 +63,7 @@ export function YearlyGoalsScreen() {
         </div>
         <div className="min-w-[200px] max-w-[420px] flex-1">
           <div className="h-2.5 overflow-hidden rounded-full bg-soft2">
-            <div className="h-full rounded-full bg-acc" style={{ width: `${gone}%` }} />
+            <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${gone}%` }} />
           </div>
           <div className="mt-1.5 text-xs text-mut">{tt("year_gone", { pct: gone, n: 52 - week })}</div>
         </div>
@@ -118,7 +128,7 @@ function GoalCard({ g, pace }: { g: YearlyGoal; pace: number }) {
         </span>
       </div>
       <div className="relative h-2 rounded-full bg-soft2">
-        <div className="h-full rounded-full bg-acc" style={{ width: `${pct}%` }} />
+        <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${pct}%` }} />
         <span className="absolute -top-[3px] h-3.5 w-0.5 bg-acc" style={{ left: `${pace}%` }} />
       </div>
       <div role="img" aria-label={tt("weeks_of_progress")} className="flex flex-wrap gap-[3px]">

@@ -3,9 +3,10 @@
 import { Check, List, Lock, Network, Pause, Play } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useAppData, type Member, useAiName } from "@/components/app-data";
-import { ParticleStages, type Stage } from "@/components/clopar";
+import { Clopar, type CloparMode } from "@/components/clopar";
+import { CountUp } from "@/components/count-up";
 import { useMoney } from "@/components/money-data";
 import { useMoneyForms } from "@/components/money-forms";
 import { useOnline } from "@/components/pwa";
@@ -13,6 +14,7 @@ import { avatarColors } from "@/components/shell/avatar";
 import { useTime } from "@/components/time-data";
 import { AddButton, EmptyNote, PrivateMark, ProgressBar } from "@/components/ui";
 import { SampleDataButton } from "@/components/sample-data";
+import { ScreenSkeleton } from "@/components/skeleton";
 import { fetchBriefing, loadBriefing, saveBriefing } from "@/lib/ask";
 import type { Answer } from "@/lib/ask-schema";
 import { AppIcon } from "@/lib/icons";
@@ -53,6 +55,12 @@ export function HomeScreen() {
   const dates = useDates();
   const { fresh } = useFreshSteps();
   const [scope, setScope] = useState<"family" | string>("family");
+  const [celebrating, setCelebrating] = useState(false);
+  // Clopar smiles for a few seconds when the last of today's things is ticked off.
+  const celebrate = () => {
+    setCelebrating(true);
+    setTimeout(() => setCelebrating(false), 4500);
+  };
 
   const hour = useClientValue(() => new Date().getHours(), 8);
   const person = members.find((m) => m.id === scope);
@@ -85,22 +93,23 @@ export function HomeScreen() {
           </div>
         )}
       </div>
-      {!loaded ? null : fresh ? (
+      {!loaded ? (
+        <ScreenSkeleton numbers={false} />
+      ) : fresh ? (
         <GettingStarted />
       ) : (
         <>
-          <Hero />
+          <Hero celebrating={celebrating} />
           <AlertChip />
           <Briefing scope={scope} />
           {(scope === "family" || scope === userId) && <InboxCard />}
           <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
-            <ThreeThings />
+            <ThreeThings onAllDone={celebrate} />
             <UpNext scope={scope} />
           </div>
           <Goals scope={scope} viewerId={userId} />
         </>
       )}
-      {!loaded && <div className="text-center text-[13px] text-mut2">{t("loading")}</div>}
     </>
   );
 }
@@ -122,7 +131,7 @@ function GettingStarted() {
         <h2 className="m-0 font-serif text-[36px] font-normal leading-[1.15] tracking-[-0.01em] [text-wrap:pretty]">{t("f_title")}</h2>
         <p className="m-0 max-w-[560px] text-[14.5px] leading-normal text-white/75 [text-wrap:pretty]">{t("f_sub")}</p>
         <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-acci transition-[width] duration-500" style={{ width: `${(done / steps.length) * 100}%` }} />
+          <div className="bar-fill h-full rounded-full bg-acci transition-[width] duration-500" style={{ width: `${(done / steps.length) * 100}%` }} />
         </div>
       </section>
       <section className="rounded-[18px] border border-line bg-card px-4 py-1.5">
@@ -194,52 +203,64 @@ function PersonFilter({ members, value, onChange }: { members: Member[]; value: 
 }
 
 /** The one number. Its stage comes first and stays put with reduced motion; the text beside it says the same. */
-function Hero() {
+/** Clopar's mood on Home: a smile when today's list is done, leaning in when something needs you, calm otherwise. */
+function Hero({ celebrating }: { celebrating: boolean }) {
   const aiName = useAiName();
   const t = useTranslations("home");
-  const ui = useTranslations("ui");
-  const { budget } = useMoney();
-  const [stage, setStage] = useState(0);
+  const { budget, alerts } = useMoney();
   const hasBudget = budget.flexLimit > 0;
-  const value = eur(budget.flexLeft, 0);
-  const stages = useMemo<Stage[]>(() => [{ t: "text", s: value }, { t: "effi" }, { t: "tree" }], [value]);
-
-  const note = !hasBudget
-    ? t("no_budget")
-    : budget.flexLeft < 0
-      ? t("flex_over", { over: eur(-budget.flexLeft, 0) })
-      : t("flex_note", { left: value, perDay: eur(budget.perDay, 0), days: budget.daysLeft });
-  const views = [
-    { title: t("flex_left"), sub: note, cta: t("cta_budget"), href: "/budget" },
-    { title: aiName, sub: t("hero_ask_sub"), cta: t("hero_ask_cta", { name: aiName }), href: "/ask" },
-    { title: ui("life_map"), sub: t("hero_map_sub"), cta: t("hero_map_cta"), href: "/map" },
+  const over = budget.flexLeft < 0;
+  const needs = alerts.filter((a) => a.sev !== "info").length;
+  const mode: CloparMode = celebrating ? "confirm" : needs ? "listen" : "calm";
+  const mood = celebrating ? t("clopar_confirm") : needs ? t("clopar_listen", { n: needs }) : t("clopar_calm");
+  // Never more than three numbers under the big one.
+  const metrics = [
+    { label: t("hero_per_day"), value: eur(Math.max(0, budget.perDay), 0) },
+    { label: t("hero_days_left"), value: String(budget.daysLeft) },
+    { label: t("hero_spent"), value: eur(budget.flexSpent, 0) },
   ];
-  const view = views[stage] ?? views[0];
 
   return (
-    <section data-screen-label="Particle hero" className="relative flex flex-wrap items-stretch overflow-hidden rounded-2xl border border-line bg-card text-ink">
-      <div className="flex min-w-0 flex-[1_1_240px] flex-col justify-center gap-2 px-6 py-[22px]">
-        <div className="eyebrow">{view.title}</div>
-        <div className="min-h-[63px] text-[14.5px] leading-[1.45] text-acct [text-wrap:pretty]">{view.sub}</div>
-        <div className="mt-2.5 flex">
-          {views.map((v, i) => (
-            <button
-              key={v.href}
-              onClick={() => setStage(i)}
-              aria-label={t("hero_dot", { n: i + 1 })}
-              aria-pressed={i === stage}
-              className="-my-4 flex h-11 min-w-6 items-center justify-center border-0 bg-transparent p-0"
-            >
-              <span className={`block h-1.5 rounded-full transition-[width] duration-300 motion-reduce:transition-none ${i === stage ? "w-[22px] bg-acc" : "w-1.5 bg-line2"}`} />
-            </button>
-          ))}
-        </div>
-        <Link href={view.href} className="mt-1.5 flex min-h-11 items-center self-start whitespace-nowrap text-[13px] font-bold text-ink">
-          {view.cta} →
+    <section data-screen-label="Home hero" className="relative grid overflow-hidden rounded-[18px] bg-inv text-white wide:grid-cols-[minmax(0,1fr)_minmax(260px,36%)]">
+      <div className="flex min-w-0 flex-col gap-1 p-6 wide:p-8">
+        <div className="font-mono text-[11px] font-bold uppercase tracking-[.16em] text-acc2">{over ? t("hero_over") : t("flex_left")}</div>
+        {hasBudget ? (
+          <>
+            <div className="mt-2 font-serif text-[clamp(56px,15vw,84px)] font-normal leading-none tabular-nums tracking-[-0.01em]">
+              <CountUp value={Math.abs(budget.flexLeft)} format={(n) => eur(n, 0)} />
+            </div>
+            {over && <div className="mt-1 text-sm text-white/75">{t("flex_over", { over: eur(-budget.flexLeft, 0) })}</div>}
+            <dl className="m-0 mt-5 grid grid-cols-3 gap-3 border-t border-white/15 pt-4">
+              {metrics.map((m) => (
+                <div key={m.label} className="min-w-0">
+                  <dt className="truncate text-xs font-semibold text-white/55">{m.label}</dt>
+                  <dd className="m-0 mt-1 truncate text-xl font-bold tabular-nums">{m.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
+        ) : (
+          <div className="mt-2 max-w-[38ch] font-serif text-[30px] font-normal leading-[1.15] [text-wrap:pretty]">{t("no_budget")}</div>
+        )}
+        <Link href="/budget" className="mt-4 flex min-h-11 items-center self-start whitespace-nowrap text-[13px] font-bold text-white hover:text-white">
+          {t("cta_budget")} →
         </Link>
       </div>
-      <Link href={view.href} aria-label={view.cta} className="relative block h-[clamp(220px,30vw,320px)] min-w-0 flex-[3_1_420px] bg-card">
-        <ParticleStages stages={stages} stage={stage} onStage={setStage} />
+      <Link
+        href="/ask"
+        aria-label={`${t("hero_ask_cta", { name: aiName })}. ${mood}`}
+        className="relative flex min-h-[190px] flex-col justify-end border-t border-white/10 bg-inv p-5 text-white hover:text-white wide:min-h-[300px] wide:border-l wide:border-t-0"
+      >
+        <span className="absolute inset-x-0 bottom-14 top-2 bg-inv">
+          <Clopar variant="hero" mode={mode} />
+        </span>
+        <span className="relative flex items-center justify-between gap-3">
+          <span className="min-w-0">
+            <span className="block truncate text-[13px] font-bold">{mood}</span>
+            <span className="mt-0.5 block truncate text-xs text-white/55">{t("hero_ask_sub")}</span>
+          </span>
+          <span className="flex-none whitespace-nowrap text-[13px] font-bold text-acc2">{t("hero_ask_cta", { name: aiName })} →</span>
+        </span>
       </Link>
     </section>
   );
@@ -284,6 +305,24 @@ function AlertChip() {
   );
 }
 
+/** Reveals `text` a few letters at a time while `on`. With reduced motion, or when `on` is false, it is all there at once. */
+function useTyped(text: string, on: boolean) {
+  const [at, setAt] = useState({ text: "", n: 0 });
+  useEffect(() => {
+    if (!on) return;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let n = 0;
+    const timer = setInterval(() => {
+      n = still ? text.length : n + 2;
+      setAt({ text, n });
+      if (n >= text.length) clearInterval(timer);
+    }, 28);
+    return () => clearInterval(timer);
+  }, [text, on]);
+  if (!on) return text;
+  return text.slice(0, at.text === text ? at.n : 0);
+}
+
 function Briefing({ scope }: { scope: string }) {
   const aiName = useAiName();
   const t = useTranslations("home");
@@ -294,7 +333,7 @@ function Briefing({ scope }: { scope: string }) {
   const alertText = useAlertText();
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [ai, setAi] = useState<{ key: string; answer: Answer } | null>(null);
+  const [ai, setAi] = useState<{ key: string; answer: Answer; fresh?: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
   const hasData = money.transactions.length > 0 || money.incomes.length > 0;
   const day = money.today.iso;
@@ -319,7 +358,7 @@ function Briefing({ scope }: { scope: string }) {
       setLoading(false);
       if (answer) {
         saveBriefing(userId, slot, day, answer);
-        setAi({ key, answer });
+        setAi({ key, answer, fresh: true });
       }
     });
     return () => {
@@ -341,6 +380,8 @@ function Briefing({ scope }: { scope: string }) {
         .filter(Boolean)
         .join(" ");
   const text = aiAnswer?.text ?? fallback;
+  // A briefing Clopar has just written is typed out; one already on this phone is simply there.
+  const typed = useTyped(text, !!aiAnswer && !!ai?.fresh);
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
 
@@ -365,8 +406,10 @@ function Briefing({ scope }: { scope: string }) {
     <section className="flex flex-col gap-2.5 rounded-[18px] border border-line bg-soft py-2.5 pl-4 pr-2.5">
       <div className="flex min-w-0 items-center gap-3">
         <span className="flex-none font-mono text-[11px] font-bold uppercase tracking-[.12em] text-mut">{aiName}</span>
-        <span className={`min-w-0 flex-1 text-sm font-medium text-ink ${open ? "whitespace-normal leading-normal" : "truncate"}`}>
-          {loading && !aiAnswer ? <span className="text-mut">{text}</span> : text}
+        <span aria-label={text} className={`min-w-0 flex-1 text-sm font-medium leading-normal text-ink ${open ? "" : "line-clamp-2"}`}>
+          <span aria-hidden className={loading && !aiAnswer ? "text-mut" : undefined}>
+            {typed}
+          </span>
         </span>
         <button onClick={() => setOpen((v) => !v)} className="flex-none whitespace-nowrap border-0 bg-transparent px-1.5 py-2 text-[12.5px] font-bold text-mut">
           {open ? t("less") : t("read_all")}
@@ -388,7 +431,7 @@ function Briefing({ scope }: { scope: string }) {
   );
 }
 
-function ThreeThings() {
+function ThreeThings({ onAllDone }: { onAllDone: () => void }) {
   const t = useTranslations("home");
   const tt = useTranslations("t");
   const { alerts, closeAlert } = useMoney();
@@ -418,13 +461,14 @@ function ThreeThings() {
                   if (x.isDone) return;
                   setDone((d) => [...d, x]);
                   closeAlert(x.key, "done");
+                  if (items.every((i) => i.isDone || i.key === x.key)) onAllDone();
                 }}
                 aria-label={x.isDone ? t("done") : t("mark_done", { title: x.title })}
                 className={`mt-px flex h-[26px] w-[26px] flex-none items-center justify-center rounded-[9px] border-2 text-white ${
                   x.isDone ? "border-ok bg-ok" : "border-line2 bg-card"
                 }`}
               >
-                {x.isDone && <Check size={14} strokeWidth={3} />}
+                {x.isDone && <Check size={14} strokeWidth={3} className="check-draw" />}
               </button>
             ) : (
               <span className="mt-px h-[26px] w-[26px] flex-none rounded-[9px] border-2 border-dashed border-line2" />

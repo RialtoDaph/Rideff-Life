@@ -45,7 +45,7 @@ begin
   select jsonb_object_agg(name, id) into cat from public.categories;
 
   insert into public.incomes (name, member_id, kind, monthly_amount) values
-    ('Gasthof zur Linde · salary', me, 'Salary', 2150), ('Alex Studio', me, 'Business', 2600), ('Mira Atelier', null, 'Business', 1400);
+    ('Müller Logistik · salary', me, 'Salary', 2150), ('Alex Studio', me, 'Business', 2600), ('Mira Atelier', null, 'Business', 1400);
 
   insert into public.recurring (name, icon, amount, category_id, day_of_month) values
     ('Rent · Wohnbau München', 'house', -1050, (cat ->> 'Rent & utilities')::uuid, 1),
@@ -55,7 +55,7 @@ begin
     ('HUK · liability & home', 'shield', -45, (cat ->> 'Insurance & health')::uuid, 1),
     ('Deutschlandticket ×2', 'train-front', -116, (cat ->> 'Transport')::uuid, 1),
     ('Shopify · Mira Atelier', 'laptop', -39, (cat ->> 'Business tools')::uuid, 12),
-    ('Gasthof zur Linde · salary', 'banknote', 2150, null, 28);
+    ('Müller Logistik · salary', 'banknote', 2150, null, 28);
 
   insert into public.transactions (date, amount, payee, category_id) values
     (today, -46.80, 'REWE München', (cat ->> 'Groceries')::uuid),
@@ -74,16 +74,16 @@ begin
 
   insert into public.debts (name, icon, lender, balance, original, rate_pct, monthly_payment) values
     ('Furniture loan', 'sofa', 'Sparkasse Ratenkredit', 3840, 6000, 6.9, 160),
-    ('Family loan · Kopi Kita start', 'users', 'Family, Bandung', 1390, 2500, 0, 60),
+    ('Family loan · car repair', 'users', 'Family', 1390, 2500, 0, 60),
     ('Phone financing', 'smartphone', 'o2', 456, 912, 0, 38),
     ('Klarna pay later', 'credit-card', 'Klarna', 286, 480, 0, 95);
 
   insert into public.remittances (to_name, eur, fee_eur, rate_idr_per_eur, idr_received, provider, purpose, date)
   select v.to_name, v.eur, v.fee, v.rate, round((v.eur - v.fee) * v.rate), v.via, v.purpose, v.d from (values
-    ('Mama · Alex’s side', 200, 1.76, 18010, 'Wise', 'Monthly support', today - 30),
-    ('Orang tua · Mira’s side', 150, 1.48, 18010, 'Wise', 'Monthly support', today - 30),
-    ('Mama · Alex’s side', 200, 1.76, 17880, 'Wise', 'Monthly support', today - 60),
-    ('Adik · school fees', 300, 15, 17950, 'Bank transfer', 'School fees', today - 90)
+    ('Parents · Alex', 200, 1.76, 18010, 'Wise', 'Monthly support', today - 30),
+    ('Parents · Mira', 150, 1.48, 18010, 'Wise', 'Monthly support', today - 30),
+    ('Parents · Alex', 200, 1.76, 17880, 'Wise', 'Monthly support', today - 60),
+    ('Sister · school fees', 300, 15, 17950, 'Bank transfer', 'School fees', today - 90)
   ) as v(to_name, eur, fee, rate, via, purpose, d);
   insert into public.fx_rates (idr_per_eur) values (18010);
 
@@ -106,13 +106,13 @@ begin
     ('BCA savings', 'landmark', 'Bank Central Asia', 'IDR', 45000000);
 
   insert into public.events (title, date, start_time, end_time, kind) values
-    ('Pack Atelier orders', mon, '09:00', null, 'event'), ('AI lecture (online)', mon, '10:00', null, 'event'),
+    ('Pack Atelier orders', mon, '09:00', null, 'event'), ('Evening course (online)', mon, '10:00', null, 'event'),
     ('Tax papers', mon + 1, '15:00', null, 'event'), ('Gym', mon + 2, '07:30', null, 'event'),
-    ('Bar shift', mon + 2, '18:00', '01:00', 'shift'), ('Bar shift', mon + 3, '18:00', '01:00', 'shift'),
+    ('Work shift', mon + 2, '18:00', '01:00', 'shift'), ('Work shift', mon + 3, '18:00', '01:00', 'shift'),
     ('Date night', mon + 4, '19:00', null, 'event'), ('VAT pre-return', mon + 5, '09:00', null, 'event');
 
   insert into public.yearly_goals (name, icon, target, unit, done, step) values
-    ('AI studies: 30 ECTS this year', 'graduation-cap', 30, 'ECTS', 21, '6 study hours'),
+    ('Read 24 books', 'graduation-cap', 24, 'books', 17, '1 hour of reading'),
     ('Alex Studio: 8 new clients', 'laptop', 8, 'clients', 6, '5 outreach messages'),
     ('Atelier: 500 orders', 'scissors', 500, 'orders', 412, '10 orders'),
     ('Gym 3× a week', 'dumbbell', 156, 'sessions', 104, '3 sessions'),
@@ -128,15 +128,15 @@ begin
     ('Strength', today, '07:30'), ('Strength', today - 2, '10:00'), ('Cardio', today - 4, '07:30');
 
   insert into public.date_ideas (name, short, icon, cost) values
-    ('Trattoria am Markt + castle walk', 'Dinner, then up to the Willibaldsburg', 'utensils', 70),
-    ('Altmühltal sunset walk', 'Picnic on the Jura cliffs', 'mountain', 15),
-    ('Cook Sundanese food at home', 'Nasi timbel night, phones away', 'cooking-pot', 25),
-    ('Therme Bad Gögging', 'Evening ticket for two', 'waves', 60);
+    ('Dinner + old town walk', 'Try a new restaurant, then a walk', 'utensils', 70),
+    ('Sunset walk', 'A picnic somewhere with a view', 'mountain', 15),
+    ('Cook together at home', 'A new recipe, phones away', 'cooking-pot', 25),
+    ('Spa evening', 'Evening ticket for two', 'waves', 60);
   insert into public.date_nights (name, icon, date, cost, rating) values
-    ('Trattoria am Markt + castle walk', 'utensils', today - 5, 64, 5), ('Cinema, Ingolstadt', 'clapperboard', today - 12, 32, 4);
+    ('Dinner + old town walk', 'utensils', today - 5, 64, 5), ('Cinema night', 'clapperboard', today - 12, 32, 4);
 
   insert into public.journal_entries (date, text) values
-    (today - 1, 'Weber call went fine, they say they''ll pay this week. Tired after the lecture, but the ML stuff is finally clicking.');
+    (today - 1, 'Good call with a client, they will pay this week. Tired after the course, but it is finally clicking.');
 end $$;
 revoke all on function public.load_sample_data() from public, anon, authenticated;
 grant execute on function public.load_sample_data() to authenticated;

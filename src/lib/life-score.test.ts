@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { lifeScore, scoreState } from "./life-score";
 import type { BudgetSummary, EmergencyFund, Goal, Today } from "./money";
+import type { YearlyGoal } from "./time";
 
 const today: Today = { y: 2026, m: 11, d: 15, iso: "2026-11-15", ym: "2026-11", daysInMonth: 30 };
 const budget = (flexSpent: number, flexLimit = 1000) => ({ flexSpent, flexLimit }) as BudgetSummary;
@@ -45,5 +46,14 @@ describe("lifeScore", () => {
 describe("scoreState", () => {
   it("uses the map's colour steps", () => {
     expect([scoreState(75), scoreState(60), scoreState(59), scoreState(null)]).toEqual(["ok", "warn", "bad", "neu"]);
+  });
+
+  it("grades yearly goals by how close they are to pace, not all or nothing", () => {
+    // 15 November is 87% of the year: 70 of 100 is behind, yet most of the way to where it should be.
+    const behind = { year: 2026, target: 100, done: 70 } as YearlyGoal;
+    const done = { year: 2026, target: 10, done: 10 } as YearlyGoal;
+    expect(lifeScore({ ...base, yearlyGoals: [behind] }).pillars[3].score).toBe(80);
+    expect(lifeScore({ ...base, yearlyGoals: [behind, done] }).pillars[3].score).toBe(90);
+    expect(lifeScore({ ...base, yearlyGoals: [behind] }).pillars[3].lines[0]).toMatchObject({ key: "yearly", good: false, done: 0, total: 1 });
   });
 });

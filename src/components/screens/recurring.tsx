@@ -15,6 +15,7 @@ import { eur, eurSigned, recurringDate, recurringState, type RecurringState } fr
 import { QUEUED } from "@/lib/offline-queue";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const STATE_STYLE: Record<RecurringState, string> = {
   added: "bg-okbg text-ok",
@@ -63,6 +64,15 @@ export function RecurringScreen() {
   async function setSubscription(id: string, on: boolean) {
     const err = await save("recurring", { active: on, cancelled_on: on ? null : today.iso }, id);
     if (err && err !== QUEUED) toast(err);
+  }
+
+  if (!loaded) {
+    return (
+      <>
+        <ModuleHeader module="money" active="recur" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (loaded && !recurring.length) {

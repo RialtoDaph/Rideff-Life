@@ -105,7 +105,7 @@ const ROW_KEY: Record<FinanceTable, keyof FinanceRows> = {
   assets: "assets",
 };
 
-/** Today in Eichstätt (YYYY-MM-DD), shifted by `offsetDays`. */
+/** Today in Germany (YYYY-MM-DD), shifted by `offsetDays`. */
 function berlinDay(offsetDays = 0) {
   const d = new Date(Date.now() + offsetDays * 86_400_000);
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);

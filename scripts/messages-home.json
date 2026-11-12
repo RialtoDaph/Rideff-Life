@@ -473,5 +473,40 @@
   "Only you see this.",
   "Nur du siehst das.",
   "Hanya kamu yang melihat ini."
+ ],
+ "hero_per_day": [
+  "Per day",
+  "Pro Tag",
+  "Per hari"
+ ],
+ "hero_days_left": [
+  "Days left",
+  "Tage übrig",
+  "Hari tersisa"
+ ],
+ "hero_spent": [
+  "Spent",
+  "Ausgegeben",
+  "Terpakai"
+ ],
+ "hero_over": [
+  "Over budget",
+  "Über Budget",
+  "Lewat anggaran"
+ ],
+ "clopar_calm": [
+  "All calm today",
+  "Heute alles ruhig",
+  "Hari ini semua tenang"
+ ],
+ "clopar_listen": [
+  "{n, plural, one {# thing needs you} other {# things need you}}",
+  "{n, plural, one {# Sache braucht dich} other {# Sachen brauchen dich}}",
+  "{n} hal butuh perhatianmu"
+ ],
+ "clopar_confirm": [
+  "Today's list is done",
+  "Die Liste für heute ist erledigt",
+  "Daftar hari ini selesai"
  ]
 }

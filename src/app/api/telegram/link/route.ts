@@ -8,6 +8,19 @@ import { tgAdmin } from "@/lib/telegram/session";
 
 const fail = (code: string, status: number) => Response.json({ code }, { status });
 
+/**
+ * Where the bot may send its updates. There is one bot, so a preview deployment
+ * must never take its webhook away from the live app: APP_URL wins, then Vercel's
+ * production address, and only outside Vercel the address of this request.
+ */
+function appOrigin(req: Request): string | null {
+  const fixed = process.env.APP_URL?.replace(/\/+$/, "");
+  if (fixed) return fixed;
+  if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") return null;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  return new URL(req.url).origin;
+}
+
 export async function POST(req: Request) {
   if (!telegramReady()) return fail("no_token", 503);
   const admin = tgAdmin();
@@ -18,7 +31,8 @@ export async function POST(req: Request) {
   const bot = await tg<{ username?: string }>("getMe", {});
   if (!bot?.username) return fail("bad_token", 502);
 
-  const origin = new URL(req.url).origin;
+  const origin = appOrigin(req);
+  if (!origin) return fail("not_production", 409);
   const hooked = await tg("setWebhook", {
     url: `${origin}/api/telegram`,
     secret_token: derivedSecret("webhook"),

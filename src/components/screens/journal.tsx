@@ -14,6 +14,7 @@ import { Card } from "@/components/ui";
 import { QUEUED } from "@/lib/offline-queue";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 /** Always private: the database forces it and nothing here offers another choice. */
 export function JournalScreen() {
@@ -40,6 +41,15 @@ export function JournalScreen() {
     if (err && err !== QUEUED) return toast(err);
     setDraft("");
     toast(err === QUEUED ? tm("queued") : tt("journal_saved"));
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="life" active="journal" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !entries.length) {

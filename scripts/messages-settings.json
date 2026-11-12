@@ -410,9 +410,9 @@
 "Keamanan"
 ],
 "sec_sub": [
-"The PIN is kept on this phone only, as a secure hash.",
-"Die PIN bleibt nur auf diesem Handy, als sicherer Hash.",
-"PIN hanya disimpan di HP ini, sebagai hash yang aman."
+"The PIN stops someone holding this phone from opening the app. It is a screen lock kept on this phone, not encryption. Your sign-in is what protects your account.",
+"Die PIN hält andere davon ab, die App auf diesem Handy zu öffnen. Sie ist eine Bildschirmsperre auf diesem Handy, keine Verschlüsselung. Dein Konto schützt deine Anmeldung.",
+"PIN mencegah orang yang memegang HP ini membuka aplikasi. Ini kunci layar di HP ini, bukan enkripsi. Akunmu dilindungi oleh proses masukmu."
 ],
 "sec_net": [
 "Turning this on needs the internet.",
@@ -980,9 +980,9 @@
 "Tambahkan tabungan atau investasi untuk melihat semua milikmu di satu tempat."
 ],
 "del_failed": [
-"Could not delete. Check your internet connection.",
-"Löschen fehlgeschlagen. Prüfe deine Internetverbindung.",
-"Gagal menghapus. Periksa koneksi internetmu."
+"Could not delete the account. Nothing you can still see was lost. Try again.",
+"Das Konto konnte nicht gelöscht werden. Was du noch siehst, ist nicht verloren. Versuch es noch einmal.",
+"Akun tidak bisa dihapus. Yang masih terlihat tidak hilang. Coba lagi."
 ],
 "already_saved": [
 "That is already saved.",
@@ -1104,9 +1104,79 @@
 "Telegram hat den Bot-Token nicht akzeptiert. Prüfe TELEGRAM_BOT_TOKEN in Vercel.",
 "Telegram tidak menerima token bot. Cek TELEGRAM_BOT_TOKEN di Vercel."
 ],
+"tg_err_not_production": [
+"Telegram can only be connected from the live app, not from a test version.",
+"Telegram lässt sich nur in der Live-App verbinden, nicht in einer Testversion.",
+"Telegram hanya bisa dihubungkan dari app yang live, bukan dari versi tes."
+],
 "tg_err_failed": [
 "Could not connect. Try again.",
 "Verbinden hat nicht geklappt. Versuche es erneut.",
 "Gagal menghubungkan. Coba lagi."
+],
+"del_title": [
+"Delete account",
+"Konto löschen",
+"Hapus akun"
+],
+"del_sub": [
+"Gone for good. Export a backup first if you want to keep anything.",
+"Endgültig. Exportiere vorher eine Sicherung, wenn du etwas behalten willst.",
+"Permanen. Ekspor cadangan dulu jika ada yang ingin disimpan."
+],
+"del_last": [
+"This deletes your account, your household and everything in it, including uploaded files. A paid plan ends at once.",
+"Das löscht dein Konto, deinen Haushalt und alles darin, auch hochgeladene Dateien. Ein bezahlter Tarif endet sofort.",
+"Ini menghapus akunmu, rumah tanggamu, dan semua isinya, termasuk berkas yang diunggah. Paket berbayar langsung berakhir."
+],
+"del_owner": [
+"This deletes your account and everything you entered. The household stays, and {name} becomes its owner. The paid plan ends at once, because the payment method is yours.",
+"Das löscht dein Konto und alles, was du eingetragen hast. Der Haushalt bleibt, und {name} wird Inhaber. Der bezahlte Tarif endet sofort, weil die Zahlungsart dir gehört.",
+"Ini menghapus akunmu dan semua yang kamu masukkan. Rumah tangga tetap ada, dan {name} menjadi pemiliknya. Paket berbayar langsung berakhir karena cara pembayarannya milikmu."
+],
+"del_member": [
+"This deletes your account and everything you entered. The household and the others' entries stay.",
+"Das löscht dein Konto und alles, was du eingetragen hast. Der Haushalt und die Einträge der anderen bleiben.",
+"Ini menghapus akunmu dan semua yang kamu masukkan. Rumah tangga dan catatan anggota lain tetap ada."
+],
+"del_type": [
+"Type {word} to confirm",
+"Tippe {word} zur Bestätigung",
+"Ketik {word} untuk konfirmasi"
+],
+"del_open": [
+"Delete my account",
+"Mein Konto löschen",
+"Hapus akun saya"
+],
+"del_go": [
+"Delete for good",
+"Endgültig löschen",
+"Hapus permanen"
+],
+"del_wait": [
+"Deleting…",
+"Wird gelöscht…",
+"Menghapus…"
+],
+"del_keep": [
+"Keep my account",
+"Konto behalten",
+"Tetap simpan akun"
+],
+"del_billing_failed": [
+"Your paid plan could not be ended, so nothing was deleted. Try again in a moment.",
+"Dein bezahlter Tarif konnte nicht beendet werden, deshalb wurde nichts gelöscht. Versuch es gleich noch einmal.",
+"Paket berbayarmu tidak bisa diakhiri, jadi tidak ada yang dihapus. Coba lagi sebentar."
+],
+"del_off": [
+"Deleting accounts is not set up on this server yet.",
+"Das Löschen von Konten ist auf diesem Server noch nicht eingerichtet.",
+"Penghapusan akun belum disiapkan di server ini."
+],
+"del_offline": [
+"You need the internet to delete your account.",
+"Zum Löschen deines Kontos brauchst du Internet.",
+"Kamu butuh internet untuk menghapus akun."
 ]
 }

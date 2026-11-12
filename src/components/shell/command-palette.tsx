@@ -179,13 +179,13 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[70] flex items-start justify-center bg-[rgba(10,11,13,.32)] px-3.5 pb-3.5 pt-[12vh]"
+      className="sheet-scrim fixed inset-0 z-[70] flex items-start justify-center bg-[rgba(10,11,13,.32)] px-3.5 pb-3.5 pt-[12vh]"
     >
       <div
         role="dialog"
         aria-label={t("copy.search")}
         onClick={(e) => e.stopPropagation()}
-        className="flex w-full max-w-[620px] flex-col overflow-hidden rounded-[14px] border border-line bg-card shadow-palette"
+        className="rise-in flex w-full max-w-[620px] flex-col overflow-hidden rounded-[14px] border border-line bg-card shadow-palette"
       >
         <div className="flex items-center gap-2.5 border-b border-line px-4">
           <Search size={18} strokeWidth={2} className="flex-none text-mut2" />

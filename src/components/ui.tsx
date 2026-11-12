@@ -81,7 +81,7 @@ export function Segmented<T extends string | number>({
   );
 }
 
-/** Small owner pill: "Rialto", "Amnah", "Family". */
+/** Small owner pill: a member's name, or "Family". */
 export function OwnerPill({ member, fallback }: { member: Member | undefined; fallback?: string }) {
   const tm = useTranslations("money");
   const { bg, fg } = member ? avatarColors(member) : { bg: "var(--acc)", fg: "var(--onacc)" };
@@ -105,7 +105,7 @@ export function PrivateMark() {
 export function ProgressBar({ pct, color = "var(--acc)", height = 6 }: { pct: number; color?: string; height?: number }) {
   return (
     <div className="overflow-hidden rounded-full bg-soft2" style={{ height }}>
-      <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: color }} />
+      <div className="bar-fill h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: color }} />
     </div>
   );
 }

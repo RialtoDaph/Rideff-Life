@@ -156,3 +156,203 @@ button {
     display: none;
   }
 }
+
+/* Motion ---------------------------------------------------------------------
+   Durations and curves come from tokens.css. Everything here is switched off
+   by the reduced-motion rule at the end of the file. */
+
+/* A tap is felt: buttons give a little under the finger. `scale` (not transform),
+   so it never fights a translate that positions the element. */
+@layer base {
+  button,
+  .press {
+    transition:
+      scale var(--dur-1) var(--ease-out),
+      background-color var(--dur-1) ease-out,
+      border-color var(--dur-1) ease-out,
+      opacity var(--dur-1) ease-out;
+  }
+  button:active:not(:disabled),
+  .press:active {
+    scale: 0.98;
+  }
+}
+
+/* Sheets: slide up on phones, rise into place from 900px. */
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes scrim-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+@keyframes pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+.sheet-scrim {
+  animation: scrim-in var(--dur-2) ease-out;
+}
+.sheet-scrim[data-closing] {
+  animation: scrim-out var(--dur-2) ease-in forwards;
+}
+.sheet-panel {
+  animation: sheet-in var(--dur-sheet) var(--ease-sheet);
+  will-change: transform;
+}
+.sheet-panel[data-closing] {
+  animation: sheet-out var(--dur-2) var(--ease-in) forwards;
+}
+@media (min-width: 900px) {
+  .sheet-panel {
+    animation: pop-in var(--dur-2) var(--ease-out);
+  }
+  .sheet-panel[data-closing] {
+    animation: pop-out var(--dur-1) var(--ease-in) forwards;
+  }
+}
+
+/* Toasts drop in from the top and leave the same way. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+}
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+}
+.toast {
+  animation: toast-in var(--dur-2) var(--ease-out);
+}
+.toast[data-leaving] {
+  animation: toast-out var(--dur-1) var(--ease-in) forwards;
+}
+
+/* Skeletons: the shape of what is coming, with a slow sweep of light. */
+@keyframes skeleton-sweep {
+  to {
+    background-position: -200% 0;
+  }
+}
+@utility skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--soft2) 0%, var(--soft2) 40%, var(--line) 50%, var(--soft2) 60%, var(--soft2) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s linear infinite;
+}
+
+/* Progress bars fill from the left when they appear, and glide when the number changes. */
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+@utility bar-fill {
+  transform-origin: left center;
+  animation: bar-fill 600ms var(--ease-out) both;
+  transition: width var(--dur-2) var(--ease-out);
+}
+
+/* A tick that is drawn, not switched on. */
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+}
+@utility check-draw {
+  & path,
+  & polyline {
+    stroke-dasharray: 24;
+    animation: check-draw var(--dur-2) var(--ease-out) both;
+  }
+}
+
+/* Content that arrives after loading rises into place. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@utility rise-in {
+  animation: rise-in var(--dur-2) var(--ease-out) both;
+}
+
+/* Moving between screens: the old one fades out quickly, the new one rises in. */
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+::view-transition-old(.page) {
+  animation: page-out 120ms var(--ease-in) both;
+}
+::view-transition-new(.page) {
+  animation: page-in var(--dur-2) var(--ease-out) 80ms both;
+}
+
+/* The round + button steps aside while reading down a page. */
+.fab {
+  transition:
+    translate var(--dur-2) var(--ease-out),
+    opacity var(--dur-2) ease-out,
+    scale var(--dur-1) var(--ease-out),
+    background-color var(--dur-1) ease-out;
+}
+.fab[data-away] {
+  translate: 0 96px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  button:active:not(:disabled),
+  .press:active {
+    scale: 1;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

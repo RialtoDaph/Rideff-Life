@@ -176,11 +176,13 @@ export function buildMap(input: {
     });
   }
 
+  // An edge is drawn as a stream from its first node to its second, so the order means something:
+  // each area feeds the score, an area reaches out to its items, and money flows on to goals.
   const edges: [string, string][] = [];
   for (const n of nodes) {
-    if (n.kind === "hub") edges.push(["core", n.id]);
+    if (n.kind === "hub") edges.push([n.id, "core"]);
     else if (n.kind !== "core") edges.push([`h-${n.hub}`, n.id]);
   }
-  HUBS.forEach((k, i) => edges.push([`h-${k}`, `h-${HUBS[(i + 1) % HUBS.length]}`]));
+  edges.push(["h-money", "h-time"], ["h-time", "h-health"], ["h-health", "h-goals"], ["h-money", "h-goals"]);
   return { nodes, edges };
 }

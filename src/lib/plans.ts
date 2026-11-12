@@ -19,11 +19,19 @@ export const planForLevel = (level: number): PlanKey => (level > 1 ? "together" 
 
 export type Billing = { plan: PlanKey; interval: BillInterval; status: BillStatus; seats: number; current_period_end: string | null };
 
-/** No row yet reads as the trial's default, the same as private.ai_plan(). */
+/** What the app shows before the billing row has loaded. */
 export const BILLING_START: Billing = { plan: "together", interval: "month", status: "trial", seats: 4, current_period_end: null };
 
-/** A cancelled plan falls back to Life, also the rule for the assistant's quota. */
-export const activePlan = (b: Pick<Billing, "plan" | "status">): PlanKey => (b.status === "cancelled" ? "life" : b.plan);
+/** A trial whose 14 days are over. */
+export const trialOver = (b: Pick<Billing, "status" | "current_period_end">, now: number): boolean =>
+  b.status === "trial" && !!b.current_period_end && new Date(b.current_period_end).getTime() < now;
+
+/**
+ * A cancelled plan or a finished trial falls back to Life: the same rule as private.ai_plan()
+ * in the database. `now` is passed in, because a component may not read the clock while it draws.
+ */
+export const activePlan = (b: Pick<Billing, "plan" | "status" | "current_period_end">, now: number): PlanKey =>
+  b.status === "cancelled" || trialOver(b, now) ? "life" : b.plan;
 
 /** The plan a screen needs, or null when this plan opens it. `path` has no locale. */
 export function lockedBy(path: string, plan: PlanKey): PlanKey | null {

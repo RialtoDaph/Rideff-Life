@@ -4,11 +4,116 @@
 import type * as Three from "three";
 import type { MapGraph, MapNode } from "./life-map";
 
+export type Tier = "high" | "medium" | "low";
+
+/** How much each tier draws. A slow phone starts lower, and a scene that runs slowly steps down by itself. */
+const TIERS: Record<Tier, { dpr: number; density: number; stream: number; twinkle: number; dof: number }> = {
+  high: { dpr: 2, density: 1, stream: 54, twinkle: 1, dof: 1 },
+  medium: { dpr: 1.5, density: 0.6, stream: 30, twinkle: 1, dof: 0.7 },
+  low: { dpr: 1, density: 0.35, stream: 14, twinkle: 0, dof: 0 },
+};
+const STEP_DOWN: Record<Tier, Tier | null> = { high: "medium", medium: "low", low: null };
+
+/** A first guess from what the browser tells us about the device. */
+export function startTier(nav: { deviceMemory?: number; hardwareConcurrency?: number }, coarse: boolean): Tier {
+  const mem = nav.deviceMemory ?? 8;
+  const cores = nav.hardwareConcurrency ?? 8;
+  if (mem <= 2 || cores <= 2) return "low";
+  if (mem <= 4 || cores <= 4 || coarse) return "medium";
+  return "high";
+}
+
+// Soft round particles that twinkle, blur a little away from the point the camera
+// looks at (a light depth of field), and fade into the distance (fog).
+const POINT_VERT = /* glsl */ `
+  attribute float aSeed;
+  uniform float uTime;
+  uniform float uSize;
+  uniform float uScale;
+  uniform float uFocus;
+  uniform float uDof;
+  uniform float uTwinkle;
+  varying float vAlpha;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float dist = max(1.0, -mv.z);
+    float tw = 1.0 + uTwinkle * 0.35 * sin(uTime * (1.2 + aSeed * 2.0) + aSeed * 40.0);
+    float blur = clamp(abs(dist - uFocus) / uFocus, 0.0, 1.5) * uDof;
+    gl_PointSize = max(1.5, uSize * uScale * tw * (1.0 + blur * 1.6) / dist);
+    vAlpha = (0.6 + 0.4 * tw) / (1.0 + blur * 2.2) * smoothstep(uFocus * 2.6, uFocus * 1.15, dist);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+const POINT_FRAG = /* glsl */ `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  varying float vAlpha;
+  void main() {
+    float d = length(gl_PointCoord - 0.5);
+    float a = smoothstep(0.5, 0.1, d);
+    gl_FragColor = vec4(uColor, a * vAlpha * uOpacity);
+  }
+`;
+// One large, very soft disc behind each node: the glow, without a post-processing pass.
+const HALO_VERT = /* glsl */ `
+  attribute float aSize;
+  attribute vec3 aColor;
+  attribute float aAlpha;
+  uniform float uScale;
+  varying vec3 vColor;
+  varying float vAlpha;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = min(512.0, aSize * uScale / max(1.0, -mv.z));
+    vColor = aColor;
+    vAlpha = aAlpha;
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+const HALO_FRAG = /* glsl */ `
+  varying vec3 vColor;
+  varying float vAlpha;
+  void main() {
+    float d = length(gl_PointCoord - 0.5) * 2.0;
+    float a = pow(max(0.0, 1.0 - d), 2.2);
+    gl_FragColor = vec4(vColor, a * vAlpha);
+  }
+`;
+// Stream particles carry their own colour and a brightness that rises towards where they are going.
+const STREAM_VERT = /* glsl */ `
+  attribute vec3 aColor;
+  attribute float aHead;
+  uniform float uSize;
+  uniform float uScale;
+  uniform float uFocus;
+  varying vec3 vColor;
+  varying float vAlpha;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float dist = max(1.0, -mv.z);
+    gl_PointSize = max(1.5, uSize * uScale * (0.6 + 0.8 * aHead) / dist);
+    vColor = aColor;
+    vAlpha = (0.25 + 0.75 * aHead) * smoothstep(uFocus * 2.6, uFocus * 1.15, dist);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+const STREAM_FRAG = /* glsl */ `
+  uniform float uOpacity;
+  varying vec3 vColor;
+  varying float vAlpha;
+  void main() {
+    float d = length(gl_PointCoord - 0.5);
+    gl_FragColor = vec4(vColor, smoothstep(0.5, 0.1, d) * vAlpha * uOpacity);
+  }
+`;
+
 export type LifeMapScene = {
   setGraph: (graph: MapGraph) => void;
   setSelected: (id: string | null) => void;
   setSpin: (on: boolean) => void;
   fit: () => void;
+  /** The tier in use now; it can drop while the scene runs. */
+  tier: () => Tier;
   /** Re-reads the theme's colours. */
   repaint: () => void;
   dispose: () => void;
@@ -22,8 +127,10 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const rect = host.getBoundingClientRect();
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  let tier = startTier(navigator as { deviceMemory?: number; hardwareConcurrency?: number }, window.matchMedia("(pointer: coarse)").matches);
+  let cfg = TIERS[tier];
+  const renderer = new THREE.WebGLRenderer({ antialias: tier !== "low", alpha: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cfg.dpr));
   renderer.setSize(rect.width, rect.height);
   renderer.setClearColor(0x000000, 0);
   const canvas = renderer.domElement;
@@ -52,7 +159,20 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
 
   let byId: Record<string, MapNode> = {};
   let meshes: Record<string, Three.Mesh> = {};
-  let glows: Record<string, Three.Mesh> = {};
+  /** 0 = an area's items rest close to it, 1 = they have opened out to their places. */
+  let openness: Record<string, number> = {};
+  let order: Record<string, number> = {};
+  let halo: Three.Points | null = null;
+  let haloPos = new Float32Array(0);
+  let haloAlpha = new Float32Array(0);
+  let dark = false;
+  let focusAt = 0;
+  const born = performance.now();
+  // Measured speed: a scene that cannot keep up steps down a tier.
+  let frames = 0;
+  let slow = 0;
+  let lastFrame = 0;
+  const shared = { uTime: { value: 0 }, uScale: { value: 1 }, uFocus: { value: 250 }, uDof: { value: cfg.dof }, uTwinkle: { value: reduced ? 0 : cfg.twinkle } };
   let tags: Record<string, HTMLDivElement & { show?: boolean; x?: number; y?: number }> = {};
   let ring: Three.Mesh | null = null;
   let lines: Three.LineSegments | null = null;
@@ -62,7 +182,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   let streamPos = new Float32Array(0);
   let streamPhase = new Float32Array(0);
   let streamJitter = new Float32Array(0);
-  const STREAM = 54;
+  let streamHead = new Float32Array(0);
+  const STREAM = TIERS.high.stream;
 
   function clear() {
     for (const o of [...scene.children]) {
@@ -81,7 +202,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     const css = getComputedStyle(document.documentElement);
     const token = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
     const bg = new THREE.Color(token("--bg", "#ffffff"));
-    const dark = bg.r * 0.2126 + bg.g * 0.7152 + bg.b * 0.0722 < 0.4;
+    dark = bg.r * 0.2126 + bg.g * 0.7152 + bg.b * 0.0722 < 0.4;
     const blending = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
     const colors: Record<string, string> = {
       acc: token("--acc", "#3355FF"),
@@ -93,67 +214,102 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     const { nodes, edges } = graph;
     byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
     meshes = {};
-    glows = {};
     focusHub = undefined;
+    const wasOpen = openness;
+    openness = {};
+    order = {};
+    const seen: Record<string, number> = {};
 
-    for (const n of nodes) {
+    haloPos = new Float32Array(nodes.length * 3);
+    haloAlpha = new Float32Array(nodes.length);
+    const haloSize = new Float32Array(nodes.length);
+    const haloCol = new Float32Array(nodes.length * 3);
+
+    nodes.forEach((n, i) => {
       const col = new THREE.Color(colors[n.st] ?? colors.neu);
+      const leaf = n.kind !== "core" && n.kind !== "hub";
+      openness[n.id] = leaf ? (wasOpen[n.id] ?? 0) : 1;
+      if (leaf && n.hub) order[n.id] = seen[n.hub] = (seen[n.hub] ?? -1) + 1;
       // The mesh is the invisible tap target; the particles are what you see.
-      const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 1, visible: false });
-      const mesh = new THREE.Mesh(sphere, mat);
+      const mesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ visible: false }));
       mesh.scale.setScalar(n.r);
       mesh.position.set(...n.pos);
       mesh.userData.id = n.id;
       scene.add(mesh);
       meshes[n.id] = mesh;
 
-      const count = n.kind === "core" ? 1200 : n.kind === "hub" ? 560 : 150;
+      const count = n.kind === "core" ? 1400 : n.kind === "hub" ? 620 : 170;
       const pa = new Float32Array(count * 3);
+      const seed = new Float32Array(count);
       for (let q = 0; q < count; q++) {
         const u = Math.random() * 2 - 1;
         const th = Math.random() * Math.PI * 2;
+        // The core is a shell (the score sits inside it); areas and items are denser towards the middle.
         const rr = n.kind === "core" ? 1.25 + (Math.random() - 0.5) * 0.35 : Math.pow(Math.random(), 1.5) * 1.5;
         const sq = Math.sqrt(1 - u * u);
         pa.set([Math.cos(th) * sq * rr, u * rr, Math.sin(th) * sq * rr], q * 3);
+        seed[q] = Math.random();
       }
       const pg = new THREE.BufferGeometry();
       pg.setAttribute("position", new THREE.BufferAttribute(pa, 3));
+      pg.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
+      pg.setDrawRange(0, Math.ceil(count * cfg.density));
       const pts = new THREE.Points(
         pg,
-        new THREE.PointsMaterial({
-          color: col,
-          size: n.kind === "core" ? 0.055 : n.kind === "hub" ? 0.085 : 0.18,
-          sizeAttenuation: true,
+        new THREE.ShaderMaterial({
+          vertexShader: POINT_VERT,
+          fragmentShader: POINT_FRAG,
+          uniforms: {
+            ...shared,
+            uColor: { value: col },
+            uOpacity: { value: 0 },
+            uSize: { value: n.kind === "core" ? 1.1 : n.kind === "hub" ? 1.0 : 0.85 },
+          },
           transparent: true,
-          opacity: 0.9,
           depthWrite: false,
           blending,
         }),
       );
+      pts.frustumCulled = false;
+      pts.userData.count = count;
+      // Additive light adds up fast where particles are dense, so the core stays faint enough to read the score in it.
+      pts.userData.gain = dark ? (n.kind === "core" ? 0.3 : n.kind === "hub" ? 0.55 : 0.7) : n.kind === "core" ? 0.45 : 0.85;
       mesh.add(pts);
       mesh.userData.pts = pts;
 
-      const glow = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: dark ? 0.07 : 0.06, blending, depthWrite: false }));
-      glow.scale.setScalar(n.r * (n.kind === "core" ? 2.6 : 2));
-      glow.position.copy(mesh.position);
-      scene.add(glow);
-      glows[n.id] = glow;
-    }
+      haloSize[i] = n.r * (n.kind === "core" ? 9 : n.kind === "hub" ? 8 : 6.5);
+      haloCol.set([col.r, col.g, col.b], i * 3);
+    });
 
-    ring = new THREE.Mesh(new THREE.TorusGeometry(10.5, 0.45, 10, 80), new THREE.MeshBasicMaterial({ color: new THREE.Color(colors.acc) }));
+    const hg = new THREE.BufferGeometry();
+    hg.setAttribute("position", new THREE.BufferAttribute(haloPos, 3));
+    hg.setAttribute("aSize", new THREE.BufferAttribute(haloSize, 1));
+    hg.setAttribute("aColor", new THREE.BufferAttribute(haloCol, 3));
+    hg.setAttribute("aAlpha", new THREE.BufferAttribute(haloAlpha, 1));
+    halo = new THREE.Points(
+      hg,
+      new THREE.ShaderMaterial({ vertexShader: HALO_VERT, fragmentShader: HALO_FRAG, uniforms: { uScale: shared.uScale }, transparent: true, depthWrite: false, blending }),
+    );
+    halo.frustumCulled = false;
+    halo.renderOrder = -1;
+    scene.add(halo);
+
+    ring = new THREE.Mesh(new THREE.TorusGeometry(10.5, 0.3, 10, 96), new THREE.MeshBasicMaterial({ color: new THREE.Color(colors.acc), transparent: true, opacity: 0.85 }));
     scene.add(ring);
 
     linePos = new Float32Array(edges.length * 6);
     const lg = new THREE.BufferGeometry();
     lg.setAttribute("position", new THREE.BufferAttribute(linePos, 3));
-    lineBase = dark ? 0.12 : 0.35;
+    lineBase = dark ? 0.1 : 0.3;
     lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(dark ? colors.acc : token("--line2", "#CDD1D8")), transparent: true, opacity: lineBase }));
     lines.frustumCulled = false;
     scene.add(lines);
 
+    // Streams run from the first node of an edge to the second, in the colour of where they arrive.
     streamPhase = Float32Array.from({ length: edges.length * STREAM }, () => Math.random());
     streamJitter = Float32Array.from({ length: edges.length * STREAM * 3 }, () => (Math.random() - 0.5) * 1.6);
     streamPos = new Float32Array(edges.length * STREAM * 3);
+    streamHead = new Float32Array(edges.length * STREAM);
     const streamCol = new Float32Array(edges.length * STREAM * 3);
     edges.forEach(([, b], i) => {
       const c = new THREE.Color(colors[byId[b]?.st] ?? colors.acc);
@@ -161,8 +317,19 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     });
     const sg = new THREE.BufferGeometry();
     sg.setAttribute("position", new THREE.BufferAttribute(streamPos, 3));
-    sg.setAttribute("color", new THREE.BufferAttribute(streamCol, 3));
-    streams = new THREE.Points(sg, new THREE.PointsMaterial({ size: 0.42, vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false, blending }));
+    sg.setAttribute("aColor", new THREE.BufferAttribute(streamCol, 3));
+    sg.setAttribute("aHead", new THREE.BufferAttribute(streamHead, 1));
+    streams = new THREE.Points(
+      sg,
+      new THREE.ShaderMaterial({
+        vertexShader: STREAM_VERT,
+        fragmentShader: STREAM_FRAG,
+        uniforms: { uScale: shared.uScale, uFocus: shared.uFocus, uSize: { value: 1.5 }, uOpacity: { value: dark ? 0.9 : 0.75 } },
+        transparent: true,
+        depthWrite: false,
+        blending,
+      }),
+    );
     streams.frustumCulled = false;
     scene.add(streams);
 
@@ -262,15 +429,52 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     camera.aspect = r.width / r.height;
     camera.updateProjectionMatrix();
     renderer.setSize(r.width, r.height);
+    rescale();
   });
   resize.observe(host);
 
+  /** Point sizes are in world units; this turns them into pixels at distance 1. */
+  function rescale() {
+    shared.uScale.value = renderer.getDrawingBufferSize(v2).y * 0.5 * camera.projectionMatrix.elements[5];
+  }
+  rescale();
+
+  function applyTier(next: Tier) {
+    tier = next;
+    cfg = TIERS[next];
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cfg.dpr));
+    shared.uDof.value = cfg.dof;
+    shared.uTwinkle.value = reduced ? 0 : cfg.twinkle;
+    for (const m of Object.values(meshes)) {
+      const pts = m.userData.pts as Three.Points;
+      pts.geometry.setDrawRange(0, Math.ceil((pts.userData.count as number) * cfg.density));
+    }
+    rescale();
+  }
+
+  const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
+
   function frame(t: number) {
-    if (!graph || !lines || !ring) return;
+    if (!graph || !lines || !ring || !halo) return;
     const { nodes, edges } = graph;
     const now = performance.now();
     const sel = selected ? byId[selected] : undefined;
     const ease = reduced ? 1 : 0.08;
+
+    // After the fly-in, watch the frame time for a few seconds and draw less if it is too slow.
+    if (lastFrame && now - born > 2200 && frames < 150 && document.visibilityState === "visible") {
+      frames++;
+      if (now - lastFrame > 30) slow++;
+      if (frames === 150 && slow > 60) {
+        const down = STEP_DOWN[tier];
+        if (down) applyTier(down);
+        frames = slow = 0;
+      }
+    }
+    lastFrame = now;
+
+    // Fly in once: from far and to the side, settling where the map rests.
+    const intro = reduced ? 1 : easeOut(Math.min(1, (now - born) / 1800));
 
     if (spin && now - lastTouch > 3500 && !sel) orbit.th += 0.0016;
 
@@ -286,6 +490,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
 
     // Keep the chosen node clear of the panel: beside it when wide, above it on a phone.
     const wide = canvas.clientWidth > WIDE;
+    const camR = orbit.r * (1 + 1.3 * (1 - intro));
+    const camTh = orbit.th - 1.4 * (1 - intro);
     if (sel) {
       tmp.copy(meshes[sel.id].position);
       if (wide) tmp.add(tmp2.set(Math.sin(orbit.th), 0, -Math.cos(orbit.th)).multiplyScalar(-orbit.r * 0.22));
@@ -294,33 +500,51 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     look.lerp(tmp, ease);
 
     camera.position.set(
-      look.x + orbit.r * Math.sin(orbit.ph) * Math.cos(orbit.th),
-      look.y + orbit.r * Math.cos(orbit.ph),
-      look.z + orbit.r * Math.sin(orbit.ph) * Math.sin(orbit.th),
+      look.x + camR * Math.sin(orbit.ph) * Math.cos(camTh),
+      look.y + camR * Math.cos(orbit.ph),
+      look.z + camR * Math.sin(orbit.ph) * Math.sin(camTh),
     );
     camera.lookAt(look);
 
     const tt = reduced ? 0 : t / 1000;
+    shared.uTime.value = tt;
+    shared.uFocus.value = camR;
     const inFocus = (n: MapNode) => !hub || n.id === sel?.id || n.id === hub.id || (n.hub === hub.hub && n.kind !== "hub");
     if (focusHub !== (hub?.id ?? null)) {
       focusHub = hub?.id ?? null;
-      for (const n of nodes) {
-        const on = inFocus(n);
-        const pts = meshes[n.id].userData.pts as Three.Points;
-        (pts.material as Three.PointsMaterial).opacity = on ? 0.9 : 0.08;
-        glows[n.id].visible = on;
-      }
+      focusAt = now;
       (lines.material as Three.LineBasicMaterial).opacity = hub ? 0.25 : lineBase;
     }
 
-    for (const n of nodes) {
+    nodes.forEach((n, i) => {
       const me = meshes[n.id];
-      if (n.kind !== "core" && n.kind !== "hub") me.position.set(n.pos[0], n.pos[1] + Math.sin(tt * 0.8 + n.ph) * 1.2, n.pos[2]);
-      glows[n.id].position.copy(me.position);
+      const leaf = n.kind !== "core" && n.kind !== "hub";
+      const on = inFocus(n);
+      if (leaf) {
+        // An area's items open out one after another when it is chosen, and fold back when it is left.
+        const want = hub && n.hub === hub.hub ? 1 : 0;
+        const wait = want ? (order[n.id] ?? 0) * 45 : 0;
+        if (reduced) openness[n.id] = want;
+        else if (now - focusAt >= wait) openness[n.id] += (want - openness[n.id]) * 0.1;
+        const o = openness[n.id];
+        const h = byId[`h-${n.hub}`];
+        const k = 0.5 + 0.5 * o;
+        me.position.set(h.pos[0] + (n.pos[0] - h.pos[0]) * k, h.pos[1] + (n.pos[1] - h.pos[1]) * k + Math.sin(tt * 0.8 + n.ph) * 1.2, h.pos[2] + (n.pos[2] - h.pos[2]) * k);
+      }
+      const o = openness[n.id];
       const pulse = n.st === "bad" ? 1 + Math.sin(tt * 3 + n.ph) * 0.12 : 1;
-      me.scale.setScalar(n.r * pulse * (hover === n.id || selected === n.id ? 1.35 : 1));
-      (me.userData.pts as Three.Points).rotation.y = tt * 0.2 + n.ph;
-    }
+      me.scale.setScalar(n.r * pulse * (leaf ? 0.7 + 0.3 * o : 1) * (hover === n.id || selected === n.id ? 1.35 : 1));
+      const pts = me.userData.pts as Three.Points;
+      pts.rotation.y = tt * 0.2 + n.ph;
+      const u = (pts.material as Three.ShaderMaterial).uniforms.uOpacity;
+      const wantA = (on ? (pts.userData.gain as number) : 0.06) * intro;
+      u.value += (wantA - u.value) * (reduced ? 1 : 0.12);
+      haloPos.set([me.position.x, me.position.y, me.position.z], i * 3);
+      const glow = (on ? (dark ? 0.2 : 0.1) : 0) * intro * (n.kind === "core" ? 1.3 : 1) * (selected === n.id || hover === n.id ? 1.6 : 1);
+      haloAlpha[i] += (glow - haloAlpha[i]) * (reduced ? 1 : 0.12);
+    });
+    halo.geometry.attributes.position.needsUpdate = true;
+    halo.geometry.attributes.aAlpha.needsUpdate = true;
 
     ring.visible = !hub;
     ring.lookAt(camera.position);
@@ -333,7 +557,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       const show = !hub || (inFocus(byId[a]) && inFocus(byId[b]));
       for (let q = 0; q < STREAM; q++) {
         const o = (i * STREAM + q) * 3;
-        if (!show) {
+        if (!show || q >= cfg.stream) {
           streamPos[o] = streamPos[o + 1] = streamPos[o + 2] = 1e5;
           continue;
         }
@@ -342,27 +566,48 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         streamPos[o] = A.x + (B.x - A.x) * p + streamJitter[o] * w;
         streamPos[o + 1] = A.y + (B.y - A.y) * p + streamJitter[o + 1] * w;
         streamPos[o + 2] = A.z + (B.z - A.z) * p + streamJitter[o + 2] * w;
+        // Brighter and larger towards the end it is heading for: the direction can be read.
+        streamHead[i * STREAM + q] = p * p * intro;
       }
     });
     lines.geometry.attributes.position.needsUpdate = true;
-    if (streams) streams.geometry.attributes.position.needsUpdate = true;
+    if (streams) {
+      streams.geometry.attributes.position.needsUpdate = true;
+      streams.geometry.attributes.aHead.needsUpdate = true;
+    }
 
     renderer.render(scene, camera);
 
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     const close = !sel && orbit.r < 150;
+    const px = (h / 2) * camera.projectionMatrix.elements[5]; // world units to pixels at distance 1
+    const core = meshes.core;
+    const coreDist = core ? camera.position.distanceTo(core.position) : 0;
+    const coreP = core ? tmp2.copy(core.position).project(camera) : null;
+    const coreX = coreP ? ((coreP.x + 1) / 2) * w : 0;
+    const coreY = coreP ? ((1 - coreP.y) / 2) * h : 0;
+    const coreR = core ? (byId.core.r * 1.45 * px) / Math.max(1, coreDist) : 0;
+    const fade: Record<string, number> = {};
     for (const n of nodes) {
       const d = tags[n.id];
-      const p = tmp.copy(meshes[n.id].position).project(camera);
+      const pos = meshes[n.id].position;
+      const dist = camera.position.distanceTo(pos);
+      const p = tmp.copy(pos).project(camera);
       if (p.z > 1) {
         d.show = false;
         continue;
       }
-      d.x = ((p.x + 1) / 2) * w;
-      d.y = ((1 - p.y) / 2) * h + (n.kind === "core" ? 0 : (n.r * 380) / orbit.r + 12);
+      const sx = ((p.x + 1) / 2) * w;
+      const sy = ((1 - p.y) / 2) * h;
+      d.x = sx;
+      d.y = sy + (n.kind === "core" ? 0 : (meshes[n.id].scale.x * 1.5 * px) / dist + 14);
       d.style.transform = `translate(${d.x.toFixed(1)}px,${d.y.toFixed(1)}px) translate(-50%,-50%)`;
-      d.show = hub ? inFocus(n) : n.kind === "core" || n.kind === "hub" || hover === n.id || close;
+      // A label whose node sits behind the core would be read through it: hide it.
+      const behindCore = n.kind !== "core" && dist > coreDist && Math.hypot(sx - coreX, d.y - coreY) < coreR + 18;
+      d.show = !behindCore && intro > 0.85 && (hub ? inFocus(n) : n.kind === "core" || n.kind === "hub" || hover === n.id || close);
+      // Further away reads fainter, so depth shows in the labels too.
+      fade[n.id] = n.kind === "core" || n.id === selected ? 1 : Math.max(0.45, Math.min(1, 1.25 - (dist - camR) / (camR * 0.9)));
     }
 
     // Biggest labels first; anything that would overlap one already placed stays hidden.
@@ -374,13 +619,14 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         d.style.opacity = "0";
         continue;
       }
-      const R = { l: d.x! - d.offsetWidth / 2, r: d.x! + d.offsetWidth / 2, t: d.y! - d.offsetHeight / 2, b: d.y! + d.offsetHeight / 2 };
+      const pad = 4;
+      const R = { l: d.x! - d.offsetWidth / 2 - pad, r: d.x! + d.offsetWidth / 2 + pad, t: d.y! - d.offsetHeight / 2 - pad, b: d.y! + d.offsetHeight / 2 + pad };
       if (n.id !== selected && placed.some((q) => R.l < q.r && R.r > q.l && R.t < q.b && R.b > q.t)) {
         d.style.opacity = "0";
         continue;
       }
       placed.push(R);
-      d.style.opacity = "1";
+      d.style.opacity = fade[n.id].toFixed(2);
     }
   }
 
@@ -401,6 +647,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       zoom = fitZoom();
       orbit.ph = 1.15;
     },
+    tier: () => tier,
     repaint: build,
     dispose() {
       renderer.setAnimationLoop(null);

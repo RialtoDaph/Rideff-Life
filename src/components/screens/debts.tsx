@@ -13,6 +13,7 @@ import { AppIcon } from "@/lib/icons";
 import { eur } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const STAT = "rounded-xl border border-line bg-card px-[18px] py-4";
 const STAT_NUM = "mt-1 font-serif text-[42px] font-normal tabular-nums tracking-[-0.01em]";
@@ -38,6 +39,15 @@ export function DebtsScreen() {
   const savedMonths = Number.isFinite(base.months) && canFinish ? base.months - plan.months : 0;
   const paidPct = original > 0 ? Math.round(((original - total) / original) * 100) : 0;
   const payoffOf = new Map(plan.order.map((o) => [o.id, o.month]));
+
+  if (!loaded) {
+    return (
+      <>
+        <ModuleHeader module="money" active="debts" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (loaded && !debts.length) {
     return (
@@ -116,7 +126,7 @@ export function DebtsScreen() {
                 </span>
                 <div className="h-2.5 overflow-hidden rounded-full bg-soft2">
                   <div
-                    className="h-full rounded-full"
+                    className="bar-fill h-full rounded-full"
                     style={{ width: `${(o.month / Math.max(1, plan.months)) * 100}%`, background: i === 0 ? "var(--acc)" : "var(--acc2)" }}
                   />
                 </div>
@@ -165,7 +175,7 @@ export function DebtsScreen() {
               </span>
               <span className="flex w-full items-center gap-2.5">
                 <span className="block h-1.5 flex-1 overflow-hidden rounded-full bg-soft2">
-                  <span className="block h-full rounded-full bg-ink" style={{ width: `${paid}%` }} />
+                  <span className="bar-fill block h-full rounded-full bg-ink" style={{ width: `${paid}%` }} />
                 </span>
                 <span className="min-w-[72px] text-right font-mono text-[11.5px] text-mut">{tm("pct_paid", { pct: paid })}</span>
                 <OwnerPill member={members.find((m) => m.id === d.member_id)} />

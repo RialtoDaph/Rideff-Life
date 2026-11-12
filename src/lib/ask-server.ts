@@ -64,7 +64,7 @@ export async function loadAskRows(sb: SupabaseClient, userId: string): Promise<A
 }
 
 /**
- * A question (counts against the plan's messages) or today's briefing (free).
+ * A question (counts against the plan's messages) or today's briefing (free, a few a day).
  * `scope` is a member id or "family", for the briefing only.
  */
 export async function askAnswer(
@@ -83,6 +83,9 @@ export async function askAnswer(
   if (mode === "ask") {
     const { error: quota } = await sb.rpc("ai_message_used");
     if (quota?.message.includes("ai_quota")) return { error: "quota", code: "ai_quota", status: 402 };
+  } else {
+    const { error: quota } = await sb.rpc("ai_use", { p_kind: "briefing" });
+    if (quota) return { error: "quota", code: "ai_quota", status: 429 };
   }
 
   const rows = await loadAskRows(sb, userId);

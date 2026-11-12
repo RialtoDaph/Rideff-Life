@@ -31,6 +31,7 @@ import {
 } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 /** Calendar colour: first person blue, second orange, Together green (same in every theme palette). */
 export function whoColors(members: Member[], who: string | null) {
@@ -74,6 +75,15 @@ export function WeekScreen() {
     try {
       localStorage.setItem(VIEW_KEY, v);
     } catch {}
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="time" active="week" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !time.events.length && !time.priorities.length) {

@@ -77,7 +77,7 @@ export function SetupScreen() {
           <span className="text-[13px] text-mut2">{t("su_time")}</span>
         </div>
         <div className="h-2.5 overflow-hidden rounded-full bg-soft2">
-          <div className="h-full rounded-full bg-acc" style={{ width: `${(done / steps.length) * 100}%` }} />
+          <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${(done / steps.length) * 100}%` }} />
         </div>
       </section>
       <section className="rounded-[18px] border border-line bg-card px-5 py-1">

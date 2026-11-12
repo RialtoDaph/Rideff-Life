@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activePlan, billStatus, lockedBy, planOfPrice, priceEnv } from "./plans";
+import { activePlan, billStatus, lockedBy, planOfPrice, priceEnv, trialOver } from "./plans";
 
 describe("plans", () => {
   it("locks screens above the plan", () => {
@@ -11,8 +11,19 @@ describe("plans", () => {
   });
 
   it("falls back to Life when cancelled", () => {
-    expect(activePlan({ plan: "together", status: "cancelled" })).toBe("life");
-    expect(activePlan({ plan: "plus", status: "past_due" })).toBe("plus");
+    expect(activePlan({ plan: "together", status: "cancelled", current_period_end: null }, 0)).toBe("life");
+    expect(activePlan({ plan: "plus", status: "past_due", current_period_end: null }, 0)).toBe("plus");
+  });
+
+  it("a finished trial counts as Life, a running one keeps its plan", () => {
+    const now = Date.parse("2026-11-12T10:00:00Z");
+    const trial = (end: string | null) => ({ plan: "together" as const, status: "trial" as const, current_period_end: end });
+    expect(activePlan(trial("2026-11-11T10:00:00Z"), now)).toBe("life");
+    expect(trialOver(trial("2026-11-11T10:00:00Z"), now)).toBe(true);
+    expect(activePlan(trial("2026-11-20T10:00:00Z"), now)).toBe("together");
+    expect(activePlan(trial(null), now)).toBe("together");
+    // A paid plan is never cut by its period end here: Stripe decides that.
+    expect(activePlan({ plan: "plus", status: "active", current_period_end: "2026-01-01T00:00:00Z" }, now)).toBe("plus");
   });
 
   it("reads Stripe's status and prices", () => {

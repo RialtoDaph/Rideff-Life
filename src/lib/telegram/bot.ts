@@ -154,7 +154,7 @@ async function readFile(ctx: Ctx, kind: ReadKind, fileId: string, mime: string) 
   const bytes = await download(fileId);
   if (!bytes) return void (await send(chatId, say("failed", l)));
   const today = berlinToday().iso;
-  const read = await readWithAi(sb, kind, bytes, mime, today);
+  const read = await readWithAi(sb, kind, bytes, mime, today, m.display_name);
   if ("error" in read) return void (await send(chatId, read.error));
 
   if (kind === "statement") {

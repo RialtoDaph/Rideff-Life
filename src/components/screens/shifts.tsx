@@ -18,6 +18,7 @@ import { eur } from "@/lib/money";
 import { afterMidnightHours, clashes, freeEvenings, hm, monthShifts, shiftBonus, shiftHours, shiftTags, timeRange, weekDays, weekStart, type CalEvent } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
 import { ModuleHeader } from "./module-tabs";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 type Found = { date: string; start: string; end: string; note: string; keep: boolean; exists: boolean };
 
@@ -78,7 +79,7 @@ export function ShiftsScreen() {
   }
 
   async function saveFound() {
-    const rows = keep.map((f) => ({ kind: "shift", title: tt("bar_shift"), date: f.date, start_time: f.start, end_time: f.end || null, who: userId, source: "roster", note: f.note || null }));
+    const rows = keep.map((f) => ({ kind: "shift", title: tt("work_shift"), date: f.date, start_time: f.start, end_time: f.end || null, who: userId, source: "roster", note: f.note || null }));
     if (!rows.length) return setFound(null);
     const { added: n, error } = await time.insertMany("events", rows);
     if (error) return toast(error);
@@ -87,6 +88,15 @@ export function ShiftsScreen() {
     const planned = rows.map((r, i) => ({ id: String(i), owner_id: userId, kind: "shift", date: r.date, start_time: r.start_time, end_time: r.end_time, who: userId }) as CalEvent);
     setAdded({ n, days: freeEvenings([...time.events, ...planned], members.map((m) => m.id), week) });
     setFound(null);
+  }
+
+  if (!time.loaded) {
+    return (
+      <>
+        <ModuleHeader module="time" active="shifts" />
+        <ScreenSkeleton />
+      </>
+    );
   }
 
   if (time.loaded && !mine.length && !found && !reading && !added) {

@@ -279,7 +279,7 @@ select id from public.households order by created_at limit 1;
 insert into public.businesses (household_id, owner_id, name, member_id, vat_mode, sort)
 select m.household_id, m.id, b.name, case when b.sort = 1 then m.id end, 'none', b.sort
 from (select id, household_id from public.members order by sort limit 1) m
-cross join (values ('Rialto Studio', 1), ('Amnah Atelier', 2)) as b(name, sort);
+cross join (values ('Studio', 1), ('Atelier', 2)) as b(name, sort);
 
 insert into public.tax_deadlines (household_id, owner_id, title, due_date, kind)
 select m.household_id, m.id, 'Income tax return 2026 (joint)', date '2027-07-31', 'return'

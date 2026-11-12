@@ -8,11 +8,14 @@ import { useAiName, useAppData, type Member } from "@/components/app-data";
 import { useLock } from "@/components/lock";
 import { useInstall, useOnline, useStorageEstimate } from "@/components/pwa";
 import { InviteSheet, ShareToggles } from "@/components/invite";
+import { LegalLinks } from "@/components/legal-links";
 import { FormSheet, Sheet, Switch } from "@/components/sheet";
 import { Avatar } from "@/components/shell/avatar";
 import { LanguagePicker, PalettePicker } from "@/components/look-pickers";
 import { THEME_OPTIONS, useTheme } from "@/components/theme";
 import { useToast } from "@/components/toast";
+import { successor } from "@/lib/account";
+import { authedPost } from "@/lib/assistant-client";
 import { enablePush, pushState, sendTestPush, type PushState } from "@/lib/push";
 import { PLANS } from "@/lib/plans";
 import { pending, QUEUE_EVENT } from "@/lib/offline-queue";
@@ -141,6 +144,7 @@ export function SettingsScreen() {
             <>
               <DataSection />
               <OfflineSection />
+              <DeleteAccountSection />
             </>
           )}
           {group === "help" && (
@@ -166,6 +170,7 @@ export function SettingsScreen() {
                 </div>
                 <span className="font-bold text-acct">→</span>
               </Link>
+              <LegalLinks className="px-1 [grid-column:1/-1]" />
             </>
           )}
         </div>
@@ -251,7 +256,7 @@ function AssistantSection() {
 
 /* Your data: export / import ---------------------------------------------- */
 
-const BACKUP_APP = "effendy-family";
+const BACKUP_APP = "rideff-life";
 
 type Memory = { id: string; text: string; scope: "private" | "shared"; owner_id: string; source: "voice" | "chat" | "manual"; created_at: string };
 
@@ -418,7 +423,8 @@ function DataSection() {
       setMsg(t("backup_bad"));
       return;
     }
-    if (data.app !== BACKUP_APP) {
+    // Version 1 backups were made before the app had its public name; they still import.
+    if (data.app !== BACKUP_APP && data.version !== 1) {
       setMsg(t("backup_bad"));
       return;
     }
@@ -478,6 +484,85 @@ function DataSection() {
         {armed ? t("reset_sure") : t("reset")}
       </button>
       <div className="text-xs text-mut2">{t("reset_note")}</div>
+    </Section>
+  );
+}
+
+/* Delete account: the person, and the household when they are the last one in it ---- */
+
+const DELETE_WORD = "DELETE";
+
+function DeleteAccountSection() {
+  const t = useTranslations("settings");
+  const { me, members, signOut } = useAppData();
+  const toast = useToast();
+  const online = useOnline();
+  const [open, setOpen] = useState(false);
+  const [word, setWord] = useState("");
+  const [busy, setBusy] = useState(false);
+  const others = members.filter((m) => m.id !== me?.id);
+  const heir = me?.role === "owner" ? successor(others) : null;
+
+  async function remove() {
+    setBusy(true);
+    const res = await authedPost<{ code?: string }>("/api/account/delete", { confirm: DELETE_WORD });
+    if (!res.ok) {
+      setBusy(false);
+      const code = res.data?.code;
+      toast(code === "billing_failed" ? t("del_billing_failed") : code === "not_configured" ? t("del_off") : t("del_failed"));
+      return;
+    }
+    // The account is gone on the server; forget it on this phone too, even if the sign-out call is refused.
+    await signOut().catch(() => {});
+    await supabase().auth.signOut({ scope: "local" }).catch(() => {});
+    // A full reload empties every data provider; with no session the app shows the sign-in page.
+    window.location.reload();
+  }
+
+  return (
+    <Section title={t("del_title")} sub={t("del_sub")}>
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="min-h-11 rounded-[18px] border border-line bg-card px-4 text-[13.5px] font-bold text-bad">
+          {t("del_open")}
+        </button>
+      ) : (
+        <>
+          <div className="text-[13.5px] leading-snug">
+            {!others.length ? t("del_last") : heir ? t("del_owner", { name: heir.display_name }) : t("del_member")}
+          </div>
+          <label className="flex flex-col gap-1.5 text-[12.5px] font-bold text-mut">
+            {t("del_type", { word: DELETE_WORD })}
+            <input
+              value={word}
+              onChange={(e) => setWord(e.target.value)}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              className="h-12 rounded-[10px] border border-line bg-card px-3.5 font-mono text-base text-ink outline-none focus:border-line2"
+            />
+          </label>
+          {!online && <div className="text-[12.5px] font-bold text-bad">{t("del_offline")}</div>}
+          <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))]">
+            <button
+              onClick={remove}
+              disabled={busy || !online || word.trim().toUpperCase() !== DELETE_WORD}
+              className="min-h-11 rounded-[10px] border-0 bg-bad px-4 text-[13.5px] font-extrabold text-white disabled:opacity-40"
+            >
+              {busy ? t("del_wait") : t("del_go")}
+            </button>
+            <button
+              onClick={() => {
+                setOpen(false);
+                setWord("");
+              }}
+              disabled={busy}
+              className={secondaryBtn}
+            >
+              {t("del_keep")}
+            </button>
+          </div>
+        </>
+      )}
     </Section>
   );
 }

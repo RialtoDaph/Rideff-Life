@@ -4,10 +4,11 @@ import { Check } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useAppData } from "@/components/app-data";
+import { LegalLinks } from "@/components/legal-links";
 import { useToast } from "@/components/toast";
 import { Segmented } from "@/components/ui";
 import { authedPost } from "@/lib/assistant-client";
-import { BILLING_START, PLAN_ORDER, PLANS, type BillInterval, type PlanKey } from "@/lib/plans";
+import { BILLING_START, PLAN_ORDER, PLANS, trialOver as isTrialOver, type BillInterval, type PlanKey } from "@/lib/plans";
 import { supabase } from "@/lib/supabase";
 import { useDates } from "@/lib/use-dates";
 import { useEuro } from "@/lib/use-euro";
@@ -20,6 +21,7 @@ export function PlanScreen() {
   const t = useTranslations("t");
   const ts = useTranslations("settings");
   const tp = useTranslations("plans");
+  const tu = useTranslations("ui");
   const locale = useLocale();
   const dates = useDates();
   const euro = useEuro();
@@ -31,8 +33,9 @@ export function PlanScreen() {
   const owner = me?.role === "owner";
   const P = PLANS[plan];
   const end = bill.current_period_end?.slice(0, 10);
+  // The clock is read only once the billing row is in, never while the page is prerendered.
   // eslint-disable-next-line react-hooks/purity
-  const trialOver = bill.status === "trial" && !!bill.current_period_end && new Date(bill.current_period_end).getTime() < Date.now();
+  const trialOver = !!bill.current_period_end && isTrialOver(bill, Date.now());
 
   useEffect(() => {
     const month = new Date().toLocaleDateString("sv", { timeZone: "Europe/Berlin" }).slice(0, 7);
@@ -120,7 +123,7 @@ export function PlanScreen() {
           <div className="mt-1 text-2xl font-bold">{P.ai ? `${aiUsed} / ${P.ai}` : t("unlimited")}</div>
           {!!P.ai && (
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/15">
-              <div className="h-full rounded-full bg-acc2" style={{ width: `${Math.min(100, (aiUsed / P.ai) * 100)}%` }} />
+              <div className="bar-fill h-full rounded-full bg-acc2" style={{ width: `${Math.min(100, (aiUsed / P.ai) * 100)}%` }} />
             </div>
           )}
           <div className="mt-1.5 text-xs text-white/55">{P.voiceMin ? ts("voice_left", { used: voiceUsed, total: P.voiceMin }) : ts("voice_none")}</div>
@@ -187,6 +190,10 @@ export function PlanScreen() {
         })}
       </div>
 
+      <div>
+        <div className="text-[13px] text-mut">{tu("checkout_legal")}</div>
+        <LegalLinks />
+      </div>
       {!owner && <div className="text-[13px] text-mut">{ts("owner_only")}</div>}
       <MembersSection />
       {bill.seats === 1 && <div className="text-[13px] text-mut">{t("membersNote")}</div>}

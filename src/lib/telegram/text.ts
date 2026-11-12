@@ -50,7 +50,7 @@ export const T = {
   ),
   no_shifts: L("I found no shifts on this.", "Ich habe keine Schichten gefunden.", "Aku tidak menemukan shift di sini."),
   shifts_q: L("Save {n} shifts?", "{n} Schichten speichern?", "Simpan {n} shift?"),
-  shift_title: L("Bar shift", "Barschicht", "Shift bar"),
+  shift_title: L("Work shift", "Arbeitsschicht", "Shift kerja"),
   statement: L(
     "{bank}: {n} transactions, {from} – {to}\nIn {in} · Out {out}\n\nTo check and save them, open Bank import in the app.",
     "{bank}: {n} Buchungen, {from} – {to}\nEin {in} · Aus {out}\n\nZum Prüfen und Speichern öffne den Bankimport in der App.",

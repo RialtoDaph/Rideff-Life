@@ -18,7 +18,6 @@ import { buildMap, HUBS, type MapGraph, type MapNode } from "@/lib/life-map";
 import { createLifeMapScene, type LifeMapScene } from "@/lib/life-map-scene";
 import { lifeScore, scoreState, type LifeScore, type PillarKey, type ScoreLine } from "@/lib/life-score";
 import { eur } from "@/lib/money";
-import { supabase } from "@/lib/supabase";
 import { useDates } from "@/lib/use-dates";
 import { useErrorText } from "./ask";
 import { useFreshSteps } from "./home";
@@ -99,6 +98,48 @@ function useLifeData() {
   return { score, graph };
 }
 
+/** The map without 3D, for a device that cannot draw it: the score, the four areas, and each area's items. */
+function StaticMap({ graph, note, selected, onSelect }: { graph: MapGraph; note: string; selected: string | null; onSelect: (id: string | null) => void }) {
+  const core = graph.nodes.find((n) => n.kind === "core");
+  const hubs = graph.nodes.filter((n) => n.kind === "hub");
+  return (
+    <div className="absolute inset-0 z-[1] overflow-y-auto px-3.5 pb-[150px] pt-[calc(env(safe-area-inset-top)+128px)]">
+      <div className="mx-auto flex max-w-[720px] flex-col gap-3">
+        <div className="text-center">
+          <div className="font-serif text-[64px] leading-none">{core?.val ?? "—"}</div>
+          <div className="eyebrow mt-1">{core?.label}</div>
+          <p className="m-0 mt-2 text-[12.5px] text-mut">{note}</p>
+        </div>
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
+          {hubs.map((h) => (
+            <div key={h.id} className={`flex flex-col gap-2.5 rounded-[18px] border-[1.5px] bg-card p-4 ${selected === h.id ? "border-acc" : "border-line"}`}>
+              <button onClick={() => onSelect(h.id)} className="flex items-center gap-2 border-0 bg-transparent p-0 text-left text-ink">
+                <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: DOT[h.st] }} />
+                <span className="flex-1 text-[15px] font-bold">{h.label}</span>
+                <span className="font-mono text-[13px] font-bold text-mut">{h.val ?? "—"}</span>
+              </button>
+              <div className="flex flex-wrap gap-1.5">
+                {graph.nodes
+                  .filter((n) => n.hub === h.hub && n.kind !== "hub")
+                  .map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => onSelect(n.id)}
+                      className={`flex min-h-9 items-center gap-1.5 rounded-full border bg-soft px-3 text-[12.5px] font-bold text-ink ${selected === n.id ? "border-acc" : "border-line"}`}
+                    >
+                      <span className="h-1.5 w-1.5 flex-none rounded-full" style={{ background: DOT[n.st] }} />
+                      <span className="max-w-[180px] truncate">{n.label}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LifeMap() {
   const t = useTranslations("home");
   const tt = useTranslations("t");
@@ -117,7 +158,8 @@ function LifeMap() {
   const [spinChoice, setSpin] = useState<boolean | null>(null);
   const spin = spinChoice ?? !reduced;
   const [talking, setTalking] = useState(false);
-  const [locked, setLocked] = useState(false);
+  // The map belongs to Life Plus and Together; a finished trial counts as Life.
+  const locked = useAppData().plan === "life";
 
   useEffect(() => {
     let alive = true;
@@ -145,15 +187,6 @@ function LifeMap() {
   }, [graph]);
   useEffect(() => scene.current?.setSelected(selected), [selected]);
   useEffect(() => scene.current?.setSpin(spin), [spin]);
-
-  // The map belongs to Life Plus and Together. Plans themselves arrive in Phase 7.
-  useEffect(() => {
-    supabase()
-      .from("subscriptions_billing")
-      .select("plan")
-      .maybeSingle()
-      .then(({ data }) => setLocked(data?.plan === "life"));
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -228,7 +261,7 @@ function LifeMap() {
         </div>
       </div>
 
-      {failed && <p className="absolute inset-x-6 top-1/2 z-[2] m-0 -translate-y-1/2 text-center text-sm text-mut">{t("map_failed")}</p>}
+      {failed && <StaticMap graph={graph} note={t("map_failed")} selected={selected} onSelect={setSelected} />}
 
       <div className="pointer-events-none absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] left-3.5 right-[118px] z-[2] flex flex-col gap-1.5">
         {!talking && !node && <div className="text-xs text-mut2">{tt("mapHint")}</div>}

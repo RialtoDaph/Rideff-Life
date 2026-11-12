@@ -21,7 +21,7 @@ describe("Web Push", () => {
   it("signs a VAPID token for the push service", async () => {
     const keys = await generateVapidKeys();
     expect(unb64url(keys.publicKey)).toHaveLength(65);
-    const h = await vapidHeader("https://fcm.googleapis.com/fcm/send/abc", keys, "https://effendyfamily.vercel.app");
+    const h = await vapidHeader("https://fcm.googleapis.com/fcm/send/abc", keys, "https://rideff-life.example.app");
     const [, t, k] = h.match(/^vapid t=([^,]+), k=(.+)$/)!;
     const [head, claims, sig] = t.split(".");
     const pub = await crypto.webcrypto.subtle.importKey("raw", unb64url(k), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);

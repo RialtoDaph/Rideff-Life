@@ -14,6 +14,7 @@ import { eur } from "@/lib/money";
 import { SCENARIO_RATES, assetClass, simulate, type AssetClass, type Scenario } from "@/lib/plan";
 import { ModuleHeader, ModuleTabs } from "./module-tabs";
 import { PageHeader } from "./page-header";
+import { ScreenSkeleton } from "@/components/skeleton";
 
 const SCENARIOS: Scenario[] = ["cautious", "middle", "hopeful"];
 const YEARS = [0, 1, 3, 5, 10];
@@ -39,6 +40,15 @@ export function SimScreen() {
     { label: ts("si_keep", { amount: eur(saving) }), sub: ts("si_keep_sub"), on: keepSaving, set: () => setKeepSaving((v) => !v) },
     { label: ts("si_idr"), sub: ts("si_idr_sub"), on: includeIdr, set: () => setIncludeIdr((v) => !v) },
   ];
+
+  if (!loaded) {
+    return (
+      <>
+        <ModuleHeader module="invest" active="sim" />
+        <ScreenSkeleton />
+      </>
+    );
+  }
 
   if (loaded && !assets.length) {
     return (

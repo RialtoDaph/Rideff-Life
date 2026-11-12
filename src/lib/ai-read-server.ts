@@ -11,8 +11,15 @@ export type ReadOutcome = { result: unknown } | { error: string; status: number 
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 
-/** `today` is YYYY-MM-DD, for rosters that print no year. */
-export async function readWithAi(sb: SupabaseClient, kind: ReadKind, bytes: Uint8Array, mime: string, today: string): Promise<ReadOutcome> {
+/** `today` is YYYY-MM-DD, for rosters that print no year; `person` is whose roster it is. */
+export async function readWithAi(
+  sb: SupabaseClient,
+  kind: ReadKind,
+  bytes: Uint8Array,
+  mime: string,
+  today: string,
+  person?: string,
+): Promise<ReadOutcome> {
   const data = Buffer.from(bytes).toString("base64");
 
   let source: Anthropic.Beta.BetaContentBlockParam;
@@ -24,6 +31,14 @@ export async function readWithAi(sb: SupabaseClient, kind: ReadKind, bytes: Uint
     const type = IMAGE_TYPES.find((t) => t === mime);
     if (!type) return { error: "Please choose a photo or screenshot (JPEG or PNG).", status: 415 };
     source = { type: "image", source: { type: "base64", media_type: type, data } };
+  }
+
+  // A cap per person per day (public.ai_use), so one account cannot run up the bill.
+  const { error: quota } = await sb.rpc("ai_use", { p_kind: "read" });
+  if (quota) {
+    return quota.message.includes("ai_quota")
+      ? { error: "That is all the files Clopar can read for you today. Try again tomorrow.", status: 429 }
+      : { error: "Could not check your plan. Try again.", status: 502 };
   }
 
   let task: { system: string; schema: Record<string, unknown>; text: string; maxTokens: number; effort: "low" | "medium" };
@@ -39,7 +54,7 @@ export async function readWithAi(sb: SupabaseClient, kind: ReadKind, bytes: Uint
       effort: "low",
     };
   } else if (kind === "roster") {
-    task = { system: ROSTER_PROMPT, schema: rosterSchema(), text: `Today is ${today}. Read every shift shown.`, maxTokens: 16000, effort: "low" };
+    task = { system: ROSTER_PROMPT, schema: rosterSchema(), text: `Today is ${today}.${person ? ` The person is called ${person.slice(0, 60)}.` : ""} Read the shifts.`, maxTokens: 16000, effort: "low" };
   } else {
     task = {
       system: STATEMENT_PROMPT,
