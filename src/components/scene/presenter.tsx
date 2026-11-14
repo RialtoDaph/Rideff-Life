@@ -13,12 +13,12 @@ const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isConte
 
 /**
  * The presenter's keys (only with ?stage=1): . or → for the next beat, , or ← for the one before,
- * 1-6 to jump, B to freeze or thaw the scene. A beat opens its screen, flies the camera and, for the
+ * 1-6 to jump, B to freeze or thaw the scene, and I, D or E to choose the language spoken to Clopar (Indonesian, German, English). A beat opens its screen, flies the camera and, for the
  * last one, wakes Clopar. The person on stage keeps the tempo; nothing runs on a timer.
  */
 export function Presenter({ scene }: { scene: LifeMapScene }) {
   const router = useRouter();
-  const { startVoice } = useAssistant();
+  const { startVoice, stop, voiceLang, setVoiceLang } = useAssistant();
   const [beat, setBeat] = useState(0);
   const run = useRef(0);
   const at = useRef({ beat: 0 });
@@ -53,6 +53,12 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
         else scene.resume();
         return;
       }
+      const lang = ({ i: "id", d: "de", e: "en" } as Record<string, string>)[e.key.toLowerCase()];
+      if (lang) {
+        stop(); // a conversation in the old language ends; the next tap on Clopar starts one in the new
+        setVoiceLang(lang);
+        return;
+      }
       const next = beatForKey(at.current.beat, e.key);
       if (next !== null) {
         e.preventDefault();
@@ -61,11 +67,11 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, scene]);
+  }, [go, scene, setVoiceLang, stop]);
 
   return (
     <div data-noprint className="pointer-events-none fixed bottom-2 left-[170px] z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
-      {beat + 1}/{TOUR.length} · {TOUR[beat].id} · . ,
+      {beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()} · . , I D E
     </div>
   );
 }

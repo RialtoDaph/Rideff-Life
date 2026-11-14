@@ -11,12 +11,12 @@ const CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 export type SessionInfo = { token: string; session_id: string; plan: string; voice_left: number; ai_left: number | null };
 export type SessionFail = { code: "not_configured" | "voice_quota" | "ai_quota" | "failed" };
 
-export async function authedPost<T>(path: string, body: unknown, keepalive = false): Promise<{ ok: boolean; status: number; data: T | null }> {
+export async function authedPost<T>(path: string, body: unknown, keepalive = false, timeoutMs?: number): Promise<{ ok: boolean; status: number; data: T | null }> {
   const { data } = await supabase().auth.getSession();
   const token = data.session?.access_token;
   if (!token) return { ok: false, status: 401, data: null };
   try {
-    const res = await fetch(path, { method: "POST", keepalive, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch(path, { method: "POST", keepalive, signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     return { ok: res.ok, status: res.status, data: (await res.json().catch(() => null)) as T | null };
   } catch {
     return { ok: false, status: 0, data: null };
@@ -76,20 +76,34 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
       } catch {}
     };
     const opened = new Promise<void>((resolve, reject) => {
-      channel.onopen = () => resolve();
-      setTimeout(() => reject(new Error("timeout")), CONNECT_MS);
+      const timer = setTimeout(() => reject(new Error("timeout")), CONNECT_MS);
+      channel.onopen = () => {
+        clearTimeout(timer);
+        resolve();
+      };
     });
+    // If the offer fails first, this must not surface later as an unhandled rejection.
+    opened.catch(() => {});
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    const res = await fetch(CALLS_URL, { method: "POST", body: offer.sdp, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/sdp" } });
+    const res = await fetch(CALLS_URL, { method: "POST", body: offer.sdp, signal: AbortSignal.timeout(CONNECT_MS), headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/sdp" } });
     if (!res.ok) throw new Error(`calls ${res.status}`);
     await pc.setRemoteDescription({ type: "answer", sdp: await res.text() });
     await opened;
 
     let closed = false;
+    let wait: ReturnType<typeof setTimeout> | undefined;
     pc.onconnectionstatechange = () => {
-      if (!closed && ["failed", "disconnected", "closed"].includes(pc.connectionState)) onDrop();
+      if (closed) return;
+      clearTimeout(wait);
+      const state = pc.connectionState;
+      if (state === "failed" || state === "closed") onDrop();
+      // "disconnected" often mends by itself within a moment: only a link that stays down is a loss.
+      else if (state === "disconnected")
+        wait = setTimeout(() => {
+          if (!closed && pc.connectionState === "disconnected") onDrop();
+        }, 3000);
     };
     return {
       levels: () => ({ mic: heard(), out: out() }),
@@ -99,6 +113,7 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
       },
       close: () => {
         closed = true;
+        clearTimeout(wait);
         mic?.getTracks().forEach((t) => t.stop());
         channel.close();
         pc.close();

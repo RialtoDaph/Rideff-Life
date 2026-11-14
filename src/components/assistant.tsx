@@ -50,6 +50,9 @@ type Assistant = {
   tier: "realtime" | "browser" | null;
   /** The latest answers, newest last, with the tools behind each. */
   traces: TraceEntry[];
+  /** The language spoken to Clopar and spoken back. It starts as the app's language and can differ from it. */
+  voiceLang: string;
+  setVoiceLang: (lang: string) => void;
   send: (text: string, viaAsk?: boolean) => Promise<void>;
   startVoice: () => Promise<boolean>;
   stop: () => void;
@@ -90,6 +93,13 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const [quota, setQuota] = useState<Assistant["quota"]>({ voiceLeft: null, aiLeft: null });
   const [tier, setTier] = useState<Assistant["tier"]>(null);
   const [traces, setTraces] = useState<TraceEntry[]>([]);
+  const [voiceChoice, setVoiceChoice] = useState<string | null>(null);
+  const voiceLang = voiceChoice ?? locale;
+  const langRef = useRef(voiceLang);
+  useEffect(() => {
+    langRef.current = voiceLang;
+  }, [voiceLang]);
+  const dropRef = useRef<() => void>(() => {});
 
   const talkRef = useRef(TALK_START);
   const live = useRef<Live | null>(null);
@@ -169,7 +179,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     async (voice: boolean) => {
       setConnecting(true);
       setError(null);
-      const res = await authedPost<SessionInfo & { spoken: boolean; code?: string }>("/api/assistant/session", { mode: voice ? "voice" : "text", locale });
+      const res = await authedPost<SessionInfo & { spoken: boolean; code?: string }>("/api/assistant/session", { mode: voice ? "voice" : "text", locale: langRef.current }, false, 6000);
       if (!res.ok || !res.data?.token) {
         setConnecting(false);
         return { ok: false as const, code: (res.data?.code ?? "failed") as Exclude<AssistantError, null> };
@@ -177,7 +187,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       const info = res.data;
       setQuota({ voiceLeft: info.voice_left, aiLeft: info.ai_left });
       try {
-        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), stop);
+        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current());
         rt.setMuted(mutedRef.current);
         live.current = { rt, info, voice, turns: [], tools: [] };
         setConnecting(false);
@@ -190,7 +200,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         return { ok: false as const, code: (e instanceof DOMException ? "mic" : "failed") as Exclude<AssistantError, null> };
       }
     },
-    [locale, stop, touch],
+    [touch],
   );
 
   const runCalls = useCallback(
@@ -254,7 +264,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     if (!b.on) return;
     setTalk({ ...TALK_START, mode: "listen", live: true });
     b.stopListen = listenOnce(
-      locale,
+      langRef.current,
       (text) => {
         heardLast.current = text;
         void sendRef.current(text, true);
@@ -268,11 +278,31 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         setError(["not-allowed", "service-not-allowed", "audio-capture", "unsupported"].includes(reason) ? "mic" : "failed");
       },
     );
-  }, [locale, setTalk, stop]);
+  }, [setTalk, stop]);
 
   useEffect(() => {
     loopRef.current = listenLoop;
   }, [listenLoop]);
+
+  /** Hands the conversation to the browser's own voice. */
+  const beginBrowser = useCallback(() => {
+    browser.current.on = true;
+    setTier("browser");
+    setVoiceOn(true);
+    setError(null);
+    listenLoop();
+  }, [listenLoop]);
+
+  // A realtime link that is lost while talking is not a silent end: the browser voice takes over, or a card says what happened.
+  useEffect(() => {
+    dropRef.current = () => {
+      const wasVoice = live.current?.voice;
+      stop();
+      if (!wasVoice) return;
+      if (canListen()) beginBrowser();
+      else setError("failed");
+    };
+  }, [beginBrowser, stop]);
 
   const startVoice = useCallback(async () => {
     if (live.current?.voice || browser.current.on) return true;
@@ -281,11 +311,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     if (!res.ok) {
       // No realtime voice (no key, no connection): the browser can still listen and speak.
       if ((res.code === "not_configured" || res.code === "failed") && canListen()) {
-        browser.current.on = true;
-        setTier("browser");
-        setVoiceOn(true);
-        setError(null);
-        listenLoop();
+        beginBrowser();
         return true;
       }
       setError(res.code);
@@ -295,12 +321,17 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     setVoiceOn(true);
     setTalk({ ...TALK_START, mode: "listen", live: true });
     return true;
-  }, [listenLoop, open, setTalk, stop]);
+  }, [beginBrowser, open, setTalk, stop]);
 
   const send = useCallback(
     async (raw: string, viaAsk = false) => {
       const q = raw.trim();
-      if (!q || busy) return;
+      if (!q) return;
+      if (busy) {
+        // The browser voice is waiting for its next sentence: keep it listening.
+        if (viaAsk && browser.current.on) loopRef.current();
+        return;
+      }
       setError(null);
       const history = turns.filter((x) => x.text).map((x) => ({ role: x.role, text: x.text }));
       addTurn({ role: "user", text: q });
@@ -331,9 +362,10 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       }
 
       // No realtime key yet: answer through /api/ask. It reads, it never writes.
-      const { answer, error: failed } = await askClopar(q, history);
+      const { answer, error: failed } = await askClopar(q, history, langRef.current);
       setBusy(false);
       if (!answer) {
+        if (viaAsk) stop();
         setTalk(TALK_START);
         return setError(failed === "quota" ? "ai_quota" : "failed");
       }
@@ -342,13 +374,13 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       setTalk({ ...TALK_START, mode: "speak", reply: answer.text, live: browser.current.on });
       // Spoken aloud when the person talked; then back to listening.
       if (viaAsk && browser.current.on) {
-        browser.current.stopSpeak = speak(answer.text, locale, () => {
+        browser.current.stopSpeak = speak(answer.text, langRef.current, () => {
           if (!browser.current.on) return setTalk(TALK_START);
           listenLoop();
         });
       }
     },
-    [addTurn, busy, listenLoop, locale, open, setTalk, turns],
+    [addTurn, busy, listenLoop, open, setTalk, stop, turns],
   );
   useEffect(() => {
     sendRef.current = send;
@@ -442,8 +474,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? talk.heard || t("listening") : firstSentence(talk.reply);
 
   const value = useMemo<Assistant>(
-    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
-    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, send, startVoice, stop, setMuted, answerCard, editCard, clear],
+    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
+    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, voiceLang, setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

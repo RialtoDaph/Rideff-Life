@@ -7,7 +7,7 @@ import type { MapGraph } from "@/lib/life-map";
 import type { LifeScore } from "@/lib/life-score";
 import { hrefOf, MODULE_ORDER } from "@/lib/nav";
 import { sceneModeFor } from "@/lib/scene-camera";
-import { SHOW_EVENT } from "@/lib/show";
+import { parseShow, SHOW_EVENT } from "@/lib/show";
 import { voiceLevel } from "@/lib/voice-level";
 import { Presenter } from "./presenter";
 import { StageHud } from "./stage-hud";
@@ -52,14 +52,24 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
   const [failed, setFailed] = useState(false);
   const [stageMode, setStageMode] = useState(false);
   const router = useRouter();
+  const [epoch, setEpoch] = useState(0);
   const life = useLifeData();
 
   useEffect(() => {
     if (!wanted) return;
     let alive = true;
     let made: LifeMapScene | null = null;
-    const staged = new URLSearchParams(window.location.search).get("stage") === "1";
-    createLifeMapScene(stage.current!, labels.current!, (id) => onSelect.current(id))
+    // Presenter mode is chosen by ?stage=1 and kept for the tab: a reload or a link without the query must not drop it.
+    const asked = new URLSearchParams(window.location.search).get("stage");
+    let staged = false;
+    try {
+      if (asked === "1") sessionStorage.setItem("rideff-stage", "1");
+      else if (asked === "0") sessionStorage.removeItem("rideff-stage");
+      staged = sessionStorage.getItem("rideff-stage") === "1";
+    } catch {
+      staged = asked === "1";
+    }
+    createLifeMapScene(stage.current!, labels.current!, (id) => onSelect.current(id), () => setEpoch((n) => n + 1))
       .then((s) => {
         if (!alive) return s.dispose();
         made = s;
@@ -84,14 +94,15 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
       delete document.documentElement.dataset.stage;
       setScene(null);
     };
-  }, [wanted]);
+  }, [wanted, epoch]);
 
   // The scene draws the map on every live screen, so the host feeds it, not the map screen.
   useEffect(() => scene?.setGraph(life.graph), [scene, life.graph]);
   // "Show me": the assistant points at an area (the camera flies there) or a screen (it opens).
   useEffect(() => {
     const onShow = (e: Event) => {
-      const target = (e as CustomEvent<{ target?: string }>).detail?.target;
+      // Only a place that really is in the app: nothing the model says becomes an address.
+      const target = parseShow(JSON.stringify({ target: (e as CustomEvent<{ target?: string }>).detail?.target }));
       if (!target) return;
       if (target === "core" || (MODULE_ORDER as string[]).includes(target)) void scene?.flyTo(target, { ms: 900 });
       else router.push(hrefOf(target));
@@ -99,7 +110,11 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
     window.addEventListener(SHOW_EVENT, onShow);
     return () => window.removeEventListener(SHOW_EVENT, onShow);
   }, [scene, router]);
-  useEffect(() => scene?.setMode(mode), [scene, mode]);
+  useEffect(() => {
+    scene?.setMode(mode);
+    // These screens keep the scene running for no one to see: let it rest.
+    if (screen === "ask" || screen === "wrapped") scene?.pause();
+  }, [scene, mode, screen]);
   // The voice moves the scene too: what the assistant measures, the data "hears".
   useEffect(() => {
     if (!scene) return;

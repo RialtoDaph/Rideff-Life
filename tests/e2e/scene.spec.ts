@@ -114,6 +114,11 @@ test("the presenter's keys walk the tour: . goes to the map, 1 comes back, B fre
   await page.goto("/?stage=1");
   await settle(page);
   await expect(page.getByText("1/6 · home")).toBeVisible();
+  // The spoken language is its own choice, apart from the app's language.
+  await page.keyboard.press("i");
+  await expect(page.getByText(/· ID ·/)).toBeVisible();
+  await page.keyboard.press("d");
+  await expect(page.getByText(/· DE ·/)).toBeVisible();
   await page.keyboard.press(".");
   await page.waitForURL(/\/map$/, { timeout: 8000 });
   await expect(page.getByText("2/6 · map")).toBeVisible();

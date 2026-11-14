@@ -140,7 +140,7 @@ const clampZoom = (r: number) => Math.max(90, Math.min(640, r));
 
 let liveScenes = 0;
 
-export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement, onSelect: (id: string | null) => void): Promise<LifeMapScene> {
+export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement, onSelect: (id: string | null) => void, onLost?: () => void): Promise<LifeMapScene> {
   const THREE = await import("three");
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const rect = host.getBoundingClientRect();
@@ -153,6 +153,12 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   renderer.setClearColor(0x000000, 0);
   liveScenes++;
   const canvas = renderer.domElement;
+  // A projector cable pulled out or a laptop that slept can take the GPU context away: say so, so the host can draw again.
+  const onContextLost = (e: Event) => {
+    e.preventDefault();
+    onLost?.();
+  };
+  canvas.addEventListener("webglcontextlost", onContextLost);
   canvas.style.cssText = "position:absolute;inset:0;touch-action:none;outline:none";
   host.insertBefore(canvas, host.firstChild);
 
@@ -180,6 +186,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   let locked = false;
   let dprCap = Infinity;
   let fps = 60;
+  let voiceTarget = 0;
   let framesDrawn = 0;
   let pausedAt = 0;
   /** A flight in progress finishes before the scene freezes behind a screen. */
@@ -513,6 +520,9 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     }
     lastFrame = now;
 
+    // The voice eases in and out here, not only when a new level arrives, so it settles when the voice stops.
+    shared.uVoice.value += (voiceTarget - shared.uVoice.value) * 0.25;
+
     // A camera flight overrides the orbit until it lands.
     if (flight) {
       const k = flyEase((now - flight.t0) / flight.ms);
@@ -790,8 +800,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     stats: () => ({ fps: Math.round(fps), tier, dpr: renderer.getPixelRatio(), frames: framesDrawn, paused, live: liveScenes }),
     setVoice(v) {
       // Only the overall level is kept for now; the shaders that use it come with Clopar.
-      const target = Math.max(0, Math.min(1, v.level));
-      shared.uVoice.value += (target - shared.uVoice.value) * 0.4;
+      // The point size grows with this, so it is capped: loud speech must not cost the projector its frame rate.
+      voiceTarget = Math.max(0, Math.min(1, v.level)) * 0.5;
     },
     dispose() {
       document.removeEventListener("visibilitychange", onVisible);
@@ -808,6 +818,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       clear();
       sphere.dispose();
       liveScenes--;
+      canvas.removeEventListener("webglcontextlost", onContextLost);
       // Let go of the GPU context now, not whenever the garbage collector gets to it.
       renderer.forceContextLoss();
       renderer.dispose();

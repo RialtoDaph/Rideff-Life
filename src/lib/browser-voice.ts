@@ -77,10 +77,17 @@ export function speak(text: string, lang: string, onEnd: () => void): () => void
   };
   u.onend = finish;
   u.onerror = finish;
+  // Chrome sometimes never reports the end of a long sentence: do not wait for it forever.
+  const watchdog = setTimeout(finish, Math.max(4000, text.length * 90));
+  u.onend = () => {
+    clearTimeout(watchdog);
+    finish();
+  };
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
   return () => {
     done = true;
+    clearTimeout(watchdog);
     window.speechSynthesis.cancel();
   };
 }
