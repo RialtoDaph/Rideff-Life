@@ -11,7 +11,7 @@ export function StageHud({ scene }: { scene: LifeMapScene }) {
     return () => clearInterval(id);
   }, [scene]);
   return (
-    <div data-noprint className="pointer-events-none fixed bottom-2 left-2 z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
+    <div data-noprint data-stage-scale className="pointer-events-none fixed bottom-2 left-2 z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
       {s.fps} fps · {s.tier} · dpr {s.dpr}
     </div>
   );

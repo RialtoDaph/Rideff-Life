@@ -76,12 +76,14 @@ export function VoiceCaption() {
   const t = useTranslations("assistant");
   const aiName = useAiName();
   const errorText = useErrorText();
-  const { talk, error, tier, traces, voiceOn, busy, send, startVoice, stop } = useAssistant();
+  const { talk, error, tier, traces, liveSteps, voiceOn, busy, send, startVoice, stop } = useAssistant();
   const [trace, setTrace] = useState(false);
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
 
   const last = traces.at(-1);
+  // While an answer is being made the tools appear as they finish; afterwards the last answer's tools stay with it.
+  const cards = liveSteps.length ? liveSteps : talk.mode === "speak" ? (last?.steps ?? []) : [];
   const active = voiceOn || busy || talk.mode !== "calm";
   if (!active && !error && !typing) return null;
 
@@ -105,11 +107,21 @@ export function VoiceCaption() {
 
   return (
     <>
-      <div data-noprint aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-40 flex flex-col items-center gap-2 px-4 text-center">
+      <div data-noprint data-stage-scale aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-40 flex flex-col items-center gap-2 px-4 text-center">
         <div className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[.16em] text-mut">
           {status}
           {tier === "browser" && !error && <span className="rounded-full bg-tint px-2 py-0.5 text-acct">{t("trace_browser")}</span>}
         </div>
+        {cards.length > 0 && !error && (
+          <ul data-testid="tool-cards" className="m-0 flex max-w-full list-none flex-wrap justify-center gap-2 p-0">
+            {cards.slice(-3).map((c, i) => (
+              <li key={i} className="flex items-baseline gap-2 rounded-[12px] border border-line bg-card px-3 py-1.5 font-mono text-[12px]">
+                <span className="font-bold text-acc">{c.name}</span>
+                <span className="text-mut2">{c.ms} ms</span>
+              </li>
+            ))}
+          </ul>
+        )}
         {text && (
           <p className="m-0 max-w-[min(720px,100%)] font-serif text-[clamp(22px,4.2vw,38px)] font-normal leading-[1.15] tracking-[-0.01em] text-ink [text-shadow:0_2px_16px_var(--bg),0_0_3px_var(--bg)] [text-wrap:balance]">
             {text}

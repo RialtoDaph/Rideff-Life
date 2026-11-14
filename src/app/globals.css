@@ -364,6 +364,7 @@ button {
 }
 
 /* The presenter's size (?stage=1): the page drawn larger, for the back of a room. */
-html[data-stage] main {
+html[data-stage] main,
+html[data-stage] [data-stage-scale] {
   zoom: 1.2;
 }

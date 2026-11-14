@@ -77,7 +77,7 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
   }, [go, scene, setVoiceLang, stop]);
 
   return (
-    <div data-noprint className="pointer-events-none fixed bottom-2 left-[170px] z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
+    <div data-noprint data-stage-scale className="pointer-events-none fixed bottom-2 left-[170px] z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
       {demo ? "" : "NOT DEMO · "}{beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()} · . , I D E
     </div>
   );

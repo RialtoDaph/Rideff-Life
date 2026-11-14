@@ -50,6 +50,8 @@ type Assistant = {
   tier: "realtime" | "browser" | null;
   /** The latest answers, newest last, with the tools behind each. */
   traces: TraceEntry[];
+  /** The tools called for the answer that is being made right now, as they finish. */
+  liveSteps: ToolStep[];
   /** The language spoken to Clopar and spoken back. It starts as the app's language and can differ from it. */
   voiceLang: string;
   setVoiceLang: (lang: string) => void;
@@ -93,6 +95,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const [quota, setQuota] = useState<Assistant["quota"]>({ voiceLeft: null, aiLeft: null });
   const [tier, setTier] = useState<Assistant["tier"]>(null);
   const [traces, setTraces] = useState<TraceEntry[]>([]);
+  const [liveSteps, setLiveSteps] = useState<ToolStep[]>([]);
   const [voiceChoice, setVoiceChoice] = useState<string | null>(null);
   const voiceLang = voiceChoice ?? locale;
   const langRef = useRef(voiceLang);
@@ -215,6 +218,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         if (hub) dispatchShow(hub);
         const res = c.name === "show" ? { data: { output: { shown: hub ?? null } } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
         steps.current.push({ name: c.name, args: c.arguments, ms: Math.round(performance.now() - began), output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
+        setLiveSteps([...steps.current]);
         if (res.data?.card) {
           addTurn({ role: "assistant", text: "", card: res.data.card });
           setPendingCard(res.data.card);
@@ -252,6 +256,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         addTurn({ role: "assistant", text: reply });
         setTraces((x) => [...x.slice(-9), { id: newId(), heard: heardLast.current, steps: steps.current, answer: reply, tier: "realtime" }]);
         steps.current = [];
+        setLiveSteps([]);
       }
       if (s && !s.voice) touch();
       if (s && !s.info.spoken) setTalk({ ...talkRef.current, mode: s.voice ? "listen" : "calm" });
@@ -474,8 +479,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? talk.heard || t("listening") : firstSentence(talk.reply);
 
   const value = useMemo<Assistant>(
-    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
-    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, voiceLang, setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear],
+    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
+    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
