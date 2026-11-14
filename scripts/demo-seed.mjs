@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-// Fills the demo household "Sari & Tom Brandt, Leipzig" for the live talk.
+// Fills the demo household "Lena & Tom Brandt, Leipzig" for the live talk.
 //
 //   node scripts/demo-seed.mjs --dry-run     prints what would be written; no network, no login
 //   node scripts/demo-seed.mjs --check       signs in and reports the guards; writes nothing
 //   node scripts/demo-seed.mjs               signs in as the demo person and writes (resets their own rows first)
 //
-// It signs in as Sari with the publishable key, so Row Level Security applies exactly as in the app:
+// It signs in as Lena with the publishable key, so Row Level Security applies exactly as in the app:
 // no service role, nothing can reach another household. Credentials come from .env.demo.local
 // (git-ignored): DEMO_EMAIL, DEMO_PASSWORD, optionally DEMO_TOM_EMAIL.
 import { readFileSync, existsSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
-const HOUSEHOLD = "Sari & Tom Brandt"; // keep in step with DEMO_HOUSEHOLD in src/lib/tour.ts
+const HOUSEHOLD = "Lena & Tom Brandt"; // keep in step with DEMO_HOUSEHOLD in src/lib/tour.ts
 const args = new Set(process.argv.slice(2));
 const DRY = args.has("--dry-run");
 const CHECK = args.has("--check");
@@ -46,7 +46,7 @@ export function build(today, ids = {}) {
     categories,
     incomes: [
       { name: "Leipzig Verkehrsbetriebe · salary (Tom)", member_id: tom, kind: "Salary", monthly_amount: 2480 },
-      { name: "Sari Brandt Design", member_id: ids.me ?? null, kind: "Business", monthly_amount: 2900 },
+      { name: "Lena Brandt Design", member_id: ids.me ?? null, kind: "Business", monthly_amount: 2900 },
     ],
     recurring: [
       ["Rent · LWB Leipzig", "house", -920, "Rent & utilities", 1], ["Stadtwerke Leipzig · power", "house", -96, "Rent & utilities", 1],
@@ -77,7 +77,7 @@ export function build(today, ids = {}) {
       ["Disney+", 9.99, null], ["Fitness app (unused)", 13.99, null], ["Cloud storage 2 TB (unused)", 13.99, null],
     ].map(([name, monthly_price, for_whom]) => ({ name, monthly_price, for_whom })),
     // Storyline 3: the VAT pre-return in five days, 612 due, 540 set aside.
-    businesses: [{ name: "Sari Brandt Design", sort: 1, mine: true }],
+    businesses: [{ name: "Lena Brandt Design", sort: 1, mine: true }],
     business_months: [[1, 3150, 480, 190], [2, 2780, 455, 180], [3, 2950, 470, 170]].map(([ago, revenue, costs, tax_set_aside]) => ({ ago, month: monthKey(today, ago), revenue, costs, tax_set_aside })),
     tax_deadlines: [
       { title: "VAT pre-return", due_date: iso(addDays(today, 5)), amount: 612, kind: "vat" },
@@ -102,7 +102,7 @@ export function build(today, ids = {}) {
     gym_sessions: [["Strength", 0, "07:30"], ["Strength", -2, "10:00"], ["Cardio", -4, "07:30"], ["Strength", -6, "07:30"]].map(([type, d, time]) => ({ type, date: iso(addDays(today, d)), time })),
     // What Clopar already knows: the next session can start from it.
     ai_memories: [
-      { scope: "shared", kind: "plan", text: "Sari and Tom are saving 450 euros a month to reach a 15,000 euro emergency fund.", source: "voice" },
+      { scope: "shared", kind: "plan", text: "Lena and Tom are saving 450 euros a month to reach a 15,000 euro emergency fund.", source: "voice" },
       { scope: "shared", kind: "preference", text: "Prefers short answers with the number first.", source: "manual" },
     ],
   };

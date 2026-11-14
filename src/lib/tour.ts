@@ -11,7 +11,7 @@ export type Beat = {
 };
 
 /** The household the talk is given on. The tour refuses to run on any other, so real data is never shown. */
-export const DEMO_HOUSEHOLD = "Sari & Tom Brandt";
+export const DEMO_HOUSEHOLD = "Lena & Tom Brandt";
 
 export const TOUR: Beat[] = [
   { id: "home", route: "/", fly: ["core"] },

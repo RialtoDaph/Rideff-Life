@@ -23,7 +23,7 @@ en/de/id tanpa teks hardcode (scripts/messages-*.json lalu build-messages.mjs); 
 - Perangkat: laptop Chrome ke proyektor + hotspot sendiri.
 - OpenAI Realtime: Rialto menyatakan Clopar sudah terhubung; dibuktikan lewat /stage-check (belum terverifikasi dari kode lokal).
 - Scene Life Map persisten (Home ke Map tanpa putus), dengan jalan mundur ke overlay bila belum stabil akhir Hari 6.
-- Persona "Sari & Tom Brandt, Leipzig"; semua data contoh lama diganti.
+- Persona "Lena & Tom Brandt, Leipzig"; semua data contoh lama diganti.
 - Akun demo di database `rideff-life` (household terpisah), login dengan email dummy.
 - Deployment demo terpisah di Vercel (izin deploy diminta saat tiba).
 - Tingkat ubahan: rancang ulang total layout dan navigasi.
@@ -40,7 +40,7 @@ en/de/id tanpa teks hardcode (scripts/messages-*.json lalu build-messages.mjs); 
 ## CATATAN: rencana 10 hari di bawah DIGANTIKAN oleh `2026-11-14-layout-redesign-fable.md` (rancang ulang "Satu Ruang", fase F0-F6). Bagian lain dokumen ini tetap berlaku.
 
 ## Rencana (10 hari, versi lama)
-- H1 P0 Akun demo sungguhan (REVISI 2026-11-14, keputusan Rialto): satu akun login (email dummy, Rialto pilih email/password sendiri) + satu household demo di `rideff-life`, terisolasi lewat RLS dari data keluarga asli. Data dummy persona "Sari & Tom Brandt" dengan tanggal relatif, skrip reset (SQL), lencana "Demo". Penulisan ke DB hanya setelah izin eksplisit Rialto; data asli dan household lain tidak disentuh. Adapter klien dari Fable menjadi opsi cadangan, bukan jalur utama.
+- H1 P0 Akun demo sungguhan (REVISI 2026-11-14, keputusan Rialto): satu akun login (email dummy, Rialto pilih email/password sendiri) + satu household demo di `rideff-life`, terisolasi lewat RLS dari data keluarga asli. Data dummy persona "Lena & Tom Brandt" dengan tanggal relatif, skrip reset (SQL), lencana "Demo". Penulisan ke DB hanya setelah izin eksplisit Rialto; data asli dan household lain tidak disentuh. Adapter klien dari Fable menjadi opsi cadangan, bukan jalur utama.
 - H2 P1 Suara 3 tingkat (realtime, /api/ask + speechSynthesis, Replay pra-rekam) + /stage-check + tombol "Bangunkan Clopar".
 - H3-4 P2 Clopar hidup: AnalyserNode mic+output, setLevel, scene.setVoice, flyTo via tool `show`, jejak penalaran, transkrip besar.
 - H5-6 P3 Life Map panggung: scene persisten, ?stage=1, tur otomatis 3 menit, data padat (>=6 node/hub).
