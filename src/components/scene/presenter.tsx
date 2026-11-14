@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAssistant } from "@/components/assistant";
 import type { LifeMapScene } from "@/lib/life-map-scene";
-import { beatForKey, TOUR } from "@/lib/tour";
+import { useAppData } from "@/components/app-data";
+import { beatForKey, DEMO_HOUSEHOLD, TOUR } from "@/lib/tour";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** The screen the page is on right now, read from the address, without the language prefix. */
@@ -18,6 +19,12 @@ const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isConte
  */
 export function Presenter({ scene }: { scene: LifeMapScene }) {
   const router = useRouter();
+  const { household } = useAppData();
+  const demo = household?.name === DEMO_HOUSEHOLD;
+  const demoRef = useRef(demo);
+  useEffect(() => {
+    demoRef.current = demo;
+  }, [demo]);
   const { startVoice, stop, voiceLang, setVoiceLang } = useAssistant();
   const [beat, setBeat] = useState(0);
   const run = useRef(0);
@@ -60,7 +67,7 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
         return;
       }
       const next = beatForKey(at.current.beat, e.key);
-      if (next !== null) {
+      if (next !== null && demoRef.current) {
         e.preventDefault();
         void go(next);
       }
@@ -71,7 +78,7 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
 
   return (
     <div data-noprint className="pointer-events-none fixed bottom-2 left-[170px] z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
-      {beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()} · . , I D E
+      {demo ? "" : "NOT DEMO · "}{beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()} · . , I D E
     </div>
   );
 }

@@ -2061,7 +2061,9 @@
     "sc_fix_webrtc": "Das Netzwerk blockiert die Echtzeit-Verbindung. Probier einen Handy-Hotspot.",
     "sc_fix_fps": "Unter 50 Bildern pro Sekunde. Netzteil anschließen und andere Tabs schließen.",
     "sc_power": "Strom",
-    "sc_fix_power": "Im Akkubetrieb kann der Browser die Bildrate auf 30 pro Sekunde begrenzen. Schließ das Netzteil vor dem Auftritt an."
+    "sc_fix_power": "Im Akkubetrieb kann der Browser die Bildrate auf 30 pro Sekunde begrenzen. Schließ das Netzteil vor dem Auftritt an.",
+    "sc_household": "Demo-Haushalt",
+    "sc_fix_household": "Das ist nicht der Demo-Haushalt. Melde dich vor dem Auftritt als Sari oder Tom an: Die Tour läuft nicht mit echten Daten."
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

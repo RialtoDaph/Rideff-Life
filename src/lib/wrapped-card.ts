@@ -1,5 +1,6 @@
 // The Life Wrapped card as a picture: drawn on a canvas so it can be shared or saved as an image.
-// Numbers only (the score, its four parts, the money left): nothing private is on it.
+// The score, its four parts and the money left over. Names are optional and left empty by default,
+// so a card shared by a real household shows no names.
 
 export type WrappedData = {
   title: string;
@@ -70,6 +71,6 @@ export function drawWrapped(ctx: CanvasRenderingContext2D, d: WrappedData) {
 
   ctx.fillStyle = "#8D8A83";
   ctx.font = `700 28px ${mono}`;
-  ctx.fillText(d.names, CARD_W / 2, 1790);
+  if (d.names) ctx.fillText(d.names, CARD_W / 2, 1790);
   ctx.fillText(d.made.toUpperCase(), CARD_W / 2, 1840);
 }

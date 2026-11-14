@@ -2061,7 +2061,9 @@
     "sc_fix_webrtc": "The network blocks the realtime link. Try a phone hotspot.",
     "sc_fix_fps": "Below 50 frames a second. Plug in the charger and close other tabs.",
     "sc_power": "Power",
-    "sc_fix_power": "On battery the browser can cap the frame rate at 30 a second. Plug in the charger before you go on."
+    "sc_fix_power": "On battery the browser can cap the frame rate at 30 a second. Plug in the charger before you go on.",
+    "sc_household": "Demo household",
+    "sc_fix_household": "This is not the demo household. Sign in as Sari or Tom before the talk: the tour will not run on real data."
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

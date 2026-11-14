@@ -2,7 +2,7 @@
 // they are counted by hand from the repository, not measured at run time.
 export const BUILT_STATS = {
   rounds: 8,
-  tests: 192, // 171 unit + 21 end-to-end, 2026-11-14
+  tests: 196, // 171 unit + 25 end-to-end, 2026-11-14
   screens: 32,
 };
 

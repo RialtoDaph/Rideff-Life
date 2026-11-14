@@ -2061,7 +2061,9 @@
     "sc_fix_webrtc": "Jaringan memblokir koneksi realtime. Coba hotspot ponsel.",
     "sc_fix_fps": "Di bawah 50 frame per detik. Colokkan charger dan tutup tab lain.",
     "sc_power": "Daya",
-    "sc_fix_power": "Saat memakai baterai, browser bisa membatasi frame rate ke 30 per detik. Colokkan charger sebelum tampil."
+    "sc_fix_power": "Saat memakai baterai, browser bisa membatasi frame rate ke 30 per detik. Colokkan charger sebelum tampil.",
+    "sc_household": "Rumah tangga demo",
+    "sc_fix_household": "Ini bukan rumah tangga demo. Masuk sebagai Sari atau Tom sebelum tampil: tur tidak jalan di data asli."
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

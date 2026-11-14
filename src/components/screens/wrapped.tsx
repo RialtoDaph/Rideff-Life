@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useAppData } from "@/components/app-data";
 import { useMoney } from "@/components/money-data";
 import { useScene } from "@/components/scene/scene-host";
 import { drawWrapped, CARD_H, CARD_W, type WrappedData } from "@/lib/wrapped-card";
@@ -17,7 +16,6 @@ export function WrappedScreen() {
   const t = useTranslations("story");
   const tt = useTranslations("t");
   const dates = useDates();
-  const { members } = useAppData();
   const { today, budget } = useMoney();
   const { life } = useScene();
   const [busy, setBusy] = useState(false);
@@ -26,7 +24,7 @@ export function WrappedScreen() {
   const data: WrappedData = {
     title: t("w_title"),
     month: `${dates.monthLong(today.m)} ${today.y}`,
-    names: members.map((m) => m.display_name).join(" & "),
+    names: "",
     scoreLabel: t("w_score"),
     score: life.score.total,
     pillars: PILLARS.map((k) => ({ label: tt(`p_${k}`), score: life.score.pillars.find((p) => p.k === k)?.score ?? null })),
@@ -98,8 +96,7 @@ export function WrappedScreen() {
         <div className="border-t border-line pt-4 text-center">
           <div className="font-serif text-[46px] leading-none tabular-nums">{data.left}</div>
           <div className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[.14em] text-mut">{data.leftLabel}</div>
-          <div className="mt-4 font-mono text-[8px] font-bold uppercase tracking-[.12em] text-mut2">{data.names}</div>
-          <div className="font-mono text-[8px] font-bold uppercase tracking-[.12em] text-mut2">{data.made}</div>
+          <div className="mt-4 font-mono text-[8px] font-bold uppercase tracking-[.12em] text-mut2">{data.made}</div>
         </div>
       </div>
       {have && (

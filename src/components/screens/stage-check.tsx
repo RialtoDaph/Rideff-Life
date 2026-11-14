@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { useAiName } from "@/components/app-data";
+import { useAiName, useAppData } from "@/components/app-data";
 import { Slab } from "@/components/ds/slab";
 import { useScene } from "@/components/scene/scene-host";
+import { DEMO_HOUSEHOLD } from "@/lib/tour";
 import { authedPost, connectRealtime, type SessionInfo } from "@/lib/assistant-client";
 import { canListen, canSpeak } from "@/lib/browser-voice";
 import { PageHeader } from "./page-header";
@@ -25,6 +26,8 @@ export function StageCheckScreen() {
   const aiName = useAiName();
   const { scene, failed } = useScene();
   const [online, setOnline] = useState(true);
+  const { household } = useAppData();
+  const isDemo = household?.name === DEMO_HOUSEHOLD;
   const [fps, setFps] = useState<number | null>(null);
   const [woken, setWoken] = useState<Partial<Record<"mic" | "audio" | "session" | "webrtc", Row>>>({});
   const [running, setRunning] = useState(false);
@@ -119,6 +122,7 @@ export function StageCheckScreen() {
   const w = (k: keyof typeof woken, key: string): Row => woken[k] ?? { key, state: "wait" };
   const rows: Row[] = [
     { key: "sc_online", state: online ? "ok" : "bad" },
+    { key: "sc_household", state: isDemo ? "ok" : "bad", fix: isDemo ? undefined : t("sc_fix_household") },
     { key: "sc_webgl", state: failed ? "bad" : scene ? "ok" : "wait" },
     { key: "sc_power", state: charging === null ? "skip" : charging ? "ok" : "bad", fix: charging === false ? t("sc_fix_power") : undefined },
     { key: "sc_fps", state: fps === null ? "wait" : fps >= FPS_OK ? "ok" : "bad", fix: fps !== null && fps < FPS_OK ? t("sc_fix_fps") : undefined },
