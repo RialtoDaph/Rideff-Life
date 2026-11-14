@@ -7,11 +7,11 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 /**
  * A number that counts to its value: from zero when it first appears, and from the
  * old value when it changes. Only use it where the number arrives after loading,
- * because it starts at zero. People who asked for less motion get the value at once.
+ * because it starts at zero (or at `initial`, when the number is already known). People who asked for less motion get the value at once.
  */
-export function CountUp({ value, format, duration = 700 }: { value: number; format: (n: number) => string; duration?: number }) {
-  const [shown, setShown] = useState(0);
-  const from = useRef(0);
+export function CountUp({ value, format, duration = 700, initial = 0 }: { value: number; format: (n: number) => string; duration?: number; initial?: number }) {
+  const [shown, setShown] = useState(initial);
+  const from = useRef(initial);
 
   useEffect(() => {
     const start = from.current;

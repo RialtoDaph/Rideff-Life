@@ -4,7 +4,7 @@ export const STUB = "http://localhost:54399";
 export const LOCALES = ["en", "de", "id"] as const;
 export const SCREENS = [
   "", "map", "budget", "debts", "import", "recur", "remit", "biz", "tax", "week", "shifts", "ygoals", "learn", "invest", "sim", "career",
-  "gym", "together", "journal", "alerts", "report", "reports", "ask", "whatif", "setup", "settings", "plan", "help", "more",
+  "gym", "together", "journal", "alerts", "report", "reports", "ask", "whatif", "setup", "settings", "plan", "help", "more", "stage-check", "built", "wrapped",
 ];
 /** Module screens that open empty on a fresh account. */
 export const MODULES = ["budget", "debts", "recur", "remit", "biz", "tax", "week", "shifts", "ygoals", "learn", "invest", "sim", "career", "gym", "together", "journal", "report", "whatif"];

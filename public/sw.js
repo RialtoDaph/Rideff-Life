@@ -17,7 +17,7 @@ const pagesName = (locale) => `${VERSION}-pages-${locale}`;
 const PAGES = [
   "/", "/login", "/settings", "/more", "/map", "/plan", "/help",
   "/budget", "/debts", "/import", "/recur", "/subs", "/remit", "/biz", "/tax",
-  "/week", "/shifts", "/ygoals", "/learn",
+  "/week", "/shifts", "/ygoals", "/learn", "/built", "/wrapped",
   "/invest", "/sim", "/career",
   "/gym", "/together", "/journal",
   "/alerts", "/report", "/reports", "/ask", "/whatif", "/setup",

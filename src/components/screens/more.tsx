@@ -21,25 +21,22 @@ export function More() {
   const time = useTime();
   const alertCount = money.alerts.filter((a) => a.sev !== "info").length;
 
-  /** One short line per module, or null while its data loads. Empty modules say so instead of showing zeros. */
+  /** One short line per area, null while its data loads, undefined when there is nothing to say. Empty areas say so instead of showing zeros. */
   function status(k: ModuleKey): string | null | undefined {
     if (k === "money") {
-      if (!money.loaded) return null;
-      if (!money.categories.length) return h("more_not_started");
+      if (!money.loaded || !fin.loaded) return null;
+      if (!money.categories.length) return fin.assets.length || fin.debts.length ? h("more_invest_net", { net: eur(fin.worth.net) }) : h("more_not_started");
       return h("more_money_left", { left: eur(money.budget.flexLeft), perDay: eur(money.budget.perDay) });
     }
-    if (k === "time") {
+    if (k === "time") return undefined;
+    if (k === "health") {
       if (!time.loaded) return null;
-      const n = time.yearlyGoals.filter((g) => g.year === money.today.y).length;
-      return n ? h("more_time_goals", { n }) : h("more_not_started");
-    }
-    if (k === "invest") {
-      if (!fin.loaded) return null;
-      return fin.assets.length || fin.debts.length ? h("more_invest_net", { net: eur(fin.worth.net) }) : h("more_not_started");
+      const n = time.gym.filter((g) => g.date.startsWith(money.today.ym)).length;
+      return n ? h("more_life_gym", { n }) : h("more_not_started");
     }
     if (!time.loaded) return null;
-    const n = time.gym.filter((g) => g.date.startsWith(money.today.ym)).length;
-    return n ? h("more_life_gym", { n }) : h("more_not_started");
+    const n = time.yearlyGoals.filter((g) => g.year === money.today.y).length;
+    return n ? h("more_time_goals", { n }) : h("more_not_started");
   }
 
   return (
@@ -60,11 +57,7 @@ export function More() {
                 <m.icon size={18} strokeWidth={2} />
                 {label(m.key)}
               </span>
-              {s === null ? (
-                <Bone className="h-3.5 w-[60%]" />
-              ) : (
-                <span className="text-[13px] text-mut">{s}</span>
-              )}
+              {s === null ? <Bone className="h-3.5 w-[60%]" /> : s ? <span className="text-[13px] text-mut">{s}</span> : null}
             </Link>
           );
         })}

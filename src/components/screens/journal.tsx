@@ -46,7 +46,7 @@ export function JournalScreen() {
   if (!time.loaded) {
     return (
       <>
-        <ModuleHeader module="life" active="journal" />
+        <ModuleHeader module="health" active="journal" />
         <ScreenSkeleton />
       </>
     );
@@ -55,7 +55,7 @@ export function JournalScreen() {
   if (time.loaded && !entries.length) {
     return (
       <>
-        <ModuleHeader module="life" active="journal" />
+        <ModuleHeader module="health" active="journal" />
         <ModuleEmpty screen="journal" eyebrow={label("nav.journal")} onAction={() => openForm("journal")} />
       </>
     );
@@ -63,7 +63,7 @@ export function JournalScreen() {
 
   return (
     <>
-      <ModuleHeader module="life" active="journal" />
+      <ModuleHeader module="health" active="journal" />
       <div className="flex max-w-[820px] flex-col gap-4">
         <div className="flex items-center gap-2.5 rounded-[10px] border border-dashed border-line bg-card px-4 py-3">
           <Lock size={16} className="flex-none text-acc" />

@@ -74,7 +74,7 @@
     const c = document.createElement('canvas'); c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block';
     el.appendChild(c);
     const x = c.getContext('2d'), reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), per = opts.period || 6.5;
-    const E = { ang: 0, spin: 1, pulse: 0, rs: 1, al: 1, tgt: MODES.calm, mode: 'calm', hp: 0, ls: 0, th: 0, lx: 0, ly: 0 };
+    const E = { ang: 0, spin: 1, pulse: 0, rs: 1, al: 1, lv: 0, tgt: MODES.calm, mode: 'calm', hp: 0, ls: 0, th: 0, lx: 0, ly: 0 };
     let pal = PAL, comp = 'lighter', trail = 'rgba(0,0,0,.3)', fr = 0, dark = true;
     const theme = () => { const host = el.parentElement || el, cs = getComputedStyle(host), m = (cs.backgroundColor.match(/[\d.]+/g) || [0, 0, 0]).map(Number), a = m.length > 3 ? m[3] : 1, lum = (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255, v = k => cs.getPropertyValue(k).trim(); dark = a < .1 || lum < .4; const bg = a < .1 ? [0, 0, 0] : m; trail = 'rgba(' + bg[0] + ',' + bg[1] + ',' + bg[2] + ',.3)'; comp = dark ? 'lighter' : 'source-over'; pal = dark ? PAL : [v('--acc') || '#B4692B', '#3D6FD9', '#7B5BD6', v('--ok') || '#0E9F5B', v('--ink') || '#0B0D10', '#D9694A']; };
     let W = 1, H = 1, P = [], T = [], stages = opts.stages, key = JSON.stringify(stages), k = 0, sw = 0, t = 0, last = performance.now(), raf = 0, vis = true, mouse = null, pend = 0, rz = 0, dead = false;
@@ -89,7 +89,7 @@
       if (dead) return; const dt = Math.min(.1, (now - last) / 1000); last = now;
       if (!vis || document.hidden || W < 8 || H < 8 || !el.isConnected || el.offsetParent === null) { raf = requestAnimationFrame(frame); return; }
       t += dt; if (!reduce && opts.auto !== false && t - sw > per) go(k + 1);
-      const tg = E.tgt; E.spin += (tg[0] - E.spin) * .05; E.pulse += (tg[1] - E.pulse) * .08; E.rs += (tg[2] - E.rs) * .06; E.al += (tg[3] - E.al) * .06; E.ang += dt * .3 * E.spin;
+      const tg = E.tgt, lvT = !reduce && opts.level ? Math.max(0, Math.min(1, +opts.level() || 0)) : 0; E.lv += (lvT - E.lv) * .3; E.spin += (tg[0] - E.spin) * .05; E.pulse += (tg[1] + E.lv * .1 - E.pulse) * .08; E.rs += (tg[2] + E.lv * .22 - E.rs) * .06; E.al += (tg[3] - E.al) * .06; E.ang += dt * .3 * E.spin;
       { const md = E.mode, th = md === 'think', lxT = th ? .9 : mouse && isFinite(mouse[0]) ? Math.max(-1, Math.min(1, (mouse[0] / W - .5) * 2.4)) : Math.sin(t * .7) * .5, lyT = th ? -1 : mouse && isFinite(mouse[1]) ? Math.max(-1, Math.min(1, (mouse[1] / H - .5) * 2.4)) : Math.sin(t * .5) * .25; E.lx += (lxT - E.lx) * .08; E.ly += (lyT - E.ly) * .08; E.hp += ((md === 'confirm' ? 1 : 0) - E.hp) * .1; E.ls += ((md === 'listen' ? 1 : 0) - E.ls) * .1; E.th += ((th ? 1 : 0) - E.th) * .1; }
       const fn = T[k], el2 = t - sw, base = opts.sz || 1.1; if (!fn) { raf = requestAnimationFrame(frame); return; }
       if (fr++ % 30 === 0) theme();

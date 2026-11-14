@@ -105,6 +105,8 @@ const assistant = JSON.parse(fs.readFileSync(path.join(root, "scripts/messages-a
 const settings = JSON.parse(fs.readFileSync(path.join(root, "scripts/messages-settings.json"), "utf8"));
 // Tools, reports and the older Invest screens, same shape.
 const tools = JSON.parse(fs.readFileSync(path.join(root, "scripts/messages-tools.json"), "utf8"));
+// The build story and the Wrapped card, same shape.
+const story = JSON.parse(fs.readFileSync(path.join(root, "scripts/messages-story.json"), "utf8"));
 const FEATS = evaluate(literalAfter("const FEATS = {"));
 for (const l of LANGS) {
   out[l].ui = ui[l];
@@ -114,6 +116,7 @@ for (const l of LANGS) {
   out[l].assistant = Object.fromEntries(Object.entries(assistant).map(([k, v]) => [k, v[LANGS.indexOf(l)]]));
   out[l].settings = Object.fromEntries(Object.entries(settings).map(([k, v]) => [k, v[LANGS.indexOf(l)]]));
   out[l].plans = FEATS[l] ?? FEATS.en;
+  out[l].story = Object.fromEntries(Object.entries(story).map(([k, v]) => [k, v[LANGS.indexOf(l)]]));
   out[l].tools = Object.fromEntries(Object.entries(tools).map(([k, v]) => [k, v[LANGS.indexOf(l)]]));
   fs.writeFileSync(path.join(root, `src/messages/${l}.json`), `${JSON.stringify(out[l], null, 2)}\n`);
 }

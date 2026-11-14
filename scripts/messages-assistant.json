@@ -343,5 +343,170 @@
   "added by hand",
   "von Hand",
   "ditambah manual"
+ ],
+ "see_trace": [
+  "See trace",
+  "Ablauf ansehen",
+  "Lihat jejak"
+ ],
+ "trace_title": [
+  "How this answer was made",
+  "So kam die Antwort zustande",
+  "Bagaimana jawaban ini dibuat"
+ ],
+ "trace_heard": [
+  "Heard",
+  "Gehört",
+  "Didengar"
+ ],
+ "trace_called": [
+  "Called",
+  "Aufgerufen",
+  "Dipanggil"
+ ],
+ "trace_said": [
+  "Said",
+  "Gesagt",
+  "Dijawab"
+ ],
+ "trace_none": [
+  "No tools were needed.",
+  "Es waren keine Werkzeuge nötig.",
+  "Tidak perlu alat."
+ ],
+ "trace_realtime": [
+  "Realtime voice",
+  "Echtzeit-Stimme",
+  "Suara realtime"
+ ],
+ "trace_browser": [
+  "Browser voice",
+  "Browser-Stimme",
+  "Suara browser"
+ ],
+ "trace_ask": [
+  "Typed question",
+  "Getippte Frage",
+  "Pertanyaan ketikan"
+ ],
+ "err_retry": [
+  "Try again",
+  "Nochmal versuchen",
+  "Coba lagi"
+ ],
+ "sc_title": [
+  "Stage check",
+  "Bühnen-Check",
+  "Cek panggung"
+ ],
+ "sc_sub": [
+  "Run this a few minutes before you go on. Every light should be green.",
+  "Starte das ein paar Minuten vor dem Auftritt. Jedes Licht sollte grün sein.",
+  "Jalankan beberapa menit sebelum tampil. Semua lampu harus hijau."
+ ],
+ "sc_run": [
+  "Check again",
+  "Erneut prüfen",
+  "Cek lagi"
+ ],
+ "sc_wake": [
+  "Wake {name}",
+  "{name} wecken",
+  "Bangunkan {name}"
+ ],
+ "sc_wake_sub": [
+  "One tap lets the browser use the microphone and sound.",
+  "Ein Tipp erlaubt dem Browser Mikrofon und Ton.",
+  "Satu ketukan mengizinkan browser memakai mikrofon dan suara."
+ ],
+ "sc_online": [
+  "Internet connection",
+  "Internetverbindung",
+  "Koneksi internet"
+ ],
+ "sc_mic": [
+  "Microphone",
+  "Mikrofon",
+  "Mikrofon"
+ ],
+ "sc_audio": [
+  "Sound output",
+  "Tonausgabe",
+  "Keluaran suara"
+ ],
+ "sc_webrtc": [
+  "Realtime link (WebRTC)",
+  "Echtzeit-Verbindung (WebRTC)",
+  "Koneksi realtime (WebRTC)"
+ ],
+ "sc_session": [
+  "Realtime voice session",
+  "Echtzeit-Sprachsitzung",
+  "Sesi suara realtime"
+ ],
+ "sc_browser_voice": [
+  "Browser voice (backup)",
+  "Browser-Stimme (Reserve)",
+  "Suara browser (cadangan)"
+ ],
+ "sc_webgl": [
+  "3D map (WebGL)",
+  "3D-Karte (WebGL)",
+  "Peta 3D (WebGL)"
+ ],
+ "sc_fps": [
+  "Frame rate",
+  "Bildrate",
+  "Kecepatan frame"
+ ],
+ "sc_ok": [
+  "Ready",
+  "Bereit",
+  "Siap"
+ ],
+ "sc_bad": [
+  "Needs attention",
+  "Braucht Aufmerksamkeit",
+  "Perlu perhatian"
+ ],
+ "sc_wait": [
+  "Checking…",
+  "Prüfe…",
+  "Memeriksa…"
+ ],
+ "sc_skip": [
+  "Not available",
+  "Nicht verfügbar",
+  "Tidak tersedia"
+ ],
+ "sc_fix_mic": [
+  "Allow the microphone for this site in the browser's address bar.",
+  "Erlaube das Mikrofon für diese Seite in der Adressleiste.",
+  "Izinkan mikrofon untuk situs ini di bilah alamat browser."
+ ],
+ "sc_fix_session": [
+  "The voice key is missing or the quota is used up. The browser voice takes over.",
+  "Der Sprachschlüssel fehlt oder das Kontingent ist aufgebraucht. Die Browser-Stimme springt ein.",
+  "Kunci suara belum ada atau kuota habis. Suara browser yang mengambil alih."
+ ],
+ "sc_fix_webrtc": [
+  "The network blocks the realtime link. Try a phone hotspot.",
+  "Das Netzwerk blockiert die Echtzeit-Verbindung. Probier einen Handy-Hotspot.",
+  "Jaringan memblokir koneksi realtime. Coba hotspot ponsel."
+ ],
+ "sc_fix_fps": [
+  "Below 50 frames a second. Plug in the charger and close other tabs.",
+  "Unter 50 Bildern pro Sekunde. Netzteil anschließen und andere Tabs schließen.",
+  "Di bawah 50 frame per detik. Colokkan charger dan tutup tab lain."
+ ],
+ "sc_power": [
+  "Power",
+  "Strom",
+  "Daya"
+ ],
+ "sc_fix_power": [
+  "On battery the browser can cap the frame rate at 30 a second. Plug in the charger before you go on.",
+  "Im Akkubetrieb kann der Browser die Bildrate auf 30 pro Sekunde begrenzen. Schließ das Netzteil vor dem Auftritt an.",
+  "Saat memakai baterai, browser bisa membatasi frame rate ke 30 per detik. Colokkan charger sebelum tampil."
  ]
 }

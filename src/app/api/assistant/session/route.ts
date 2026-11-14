@@ -3,6 +3,7 @@
 
 import { createHash } from "node:crypto";
 import { TOOLS } from "@/lib/assistant-tools";
+import { SHOW_TOOL } from "@/lib/show";
 import { buildInstructions, memoriesFor, MAX_MEMORIES, type MemoryFact } from "@/lib/assistant-prompt";
 import { berlinToday } from "@/lib/money";
 import { AI_NAME } from "@/lib/nav";
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
         type: "realtime",
         model: MODEL,
         instructions,
-        tools: TOOLS,
+        tools: [...TOOLS, SHOW_TOOL],
         tool_choice: "auto",
         output_modalities: [spoken ? "audio" : "text"],
         audio: {

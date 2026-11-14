@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { voiceLevel } from "@/lib/voice-level";
 
 export type CloparMode = "calm" | "listen" | "think" | "speak" | "confirm";
 
@@ -18,7 +19,8 @@ declare global {
 const VARIANTS: Record<string, { stages: Stage[]; auto?: boolean; period?: number; n: number; sz: number; repel?: boolean }> = {
   sidebar: { stages: [{ t: "effi", e: 1.35 }], auto: false, n: 900, sz: 0.6 },
   hero: { stages: [{ t: "effi", e: 1 }], auto: false, n: 2200, sz: 0.9 },
-  tab: { stages: [{ t: "effi", e: 1.35 }, { t: "orb" }], period: 7, n: 1000, sz: 0.6 },
+  // The dock's orb stays under the pointer after a tap, so it must not push its own particles away.
+  tab: { stages: [{ t: "effi", e: 1.35 }, { t: "orb" }], period: 7, n: 1000, sz: 0.6, repel: false },
   map: { stages: [{ t: "effi", e: 1.25 }], auto: false, n: 3200, sz: 0.7, repel: false },
 };
 
@@ -59,7 +61,8 @@ export function Clopar({ variant, mode = "calm" }: { variant: keyof typeof VARIA
     loadEngine()
       .then((e) => {
         if (!alive || !host.current) return;
-        handle.current = e.create(host.current, VARIANTS[variant]);
+        // The loudness of the voice moves the character while it listens or speaks.
+        handle.current = e.create(host.current, { ...VARIANTS[variant], level: () => voiceLevel.get().level });
         const m = latestMode.current;
         handle.current.setMode(reducedMotion() && m !== "confirm" ? "calm" : m);
       })

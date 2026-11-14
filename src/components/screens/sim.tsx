@@ -44,7 +44,7 @@ export function SimScreen() {
   if (!loaded) {
     return (
       <>
-        <ModuleHeader module="invest" active="sim" />
+        <ModuleHeader module="money" active="sim" />
         <ScreenSkeleton />
       </>
     );
@@ -53,7 +53,7 @@ export function SimScreen() {
   if (loaded && !assets.length) {
     return (
       <>
-        <ModuleHeader module="invest" active="sim" />
+        <ModuleHeader module="money" active="sim" />
         <ScreenEmpty eyebrow={label("nav.10_year_simulation")} title={t("t.e_sim")} action={t("t.b_asset")} onAction={() => openForm("asset")} />
       </>
     );
@@ -63,7 +63,7 @@ export function SimScreen() {
     <>
       <div className="flex flex-col gap-3">
         <PageHeader eyebrow={ts("invest_career")} title={label("nav.10_year_simulation")} />
-        <ModuleTabs module="invest" active="sim" />
+        <ModuleTabs module="money" active="sim" />
       </div>
 
       {!family.length ? (

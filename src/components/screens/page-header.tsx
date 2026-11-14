@@ -9,7 +9,3 @@ export function PageHeader({ eyebrow, title, children }: { eyebrow: ReactNode; t
     </div>
   );
 }
-
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-[18px] border border-line bg-card p-5 ${className}`}>{children}</section>;
-}

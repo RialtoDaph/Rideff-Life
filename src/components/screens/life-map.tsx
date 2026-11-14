@@ -4,21 +4,16 @@ import { Keyboard, Maximize, Mic, RotateCw, Volume2, VolumeX, X } from "lucide-r
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAiName, useAppData } from "@/components/app-data";
 import { useAssistant } from "@/components/assistant";
 import { ConfirmCard } from "@/components/assistant-card";
 import { Clopar } from "@/components/clopar";
+import { useScene } from "@/components/scene/scene-host";
 import { ScreenEmpty } from "@/components/empty-state";
-import { useFinance } from "@/components/finance-data";
-import { useMoney } from "@/components/money-data";
 import { useMoneyForms } from "@/components/money-forms";
-import { useTime } from "@/components/time-data";
-import { buildMap, HUBS, type MapGraph, type MapNode } from "@/lib/life-map";
-import { createLifeMapScene, type LifeMapScene } from "@/lib/life-map-scene";
-import { lifeScore, scoreState, type LifeScore, type PillarKey, type ScoreLine } from "@/lib/life-score";
-import { eur } from "@/lib/money";
-import { useDates } from "@/lib/use-dates";
+import { HUBS, type MapGraph, type MapNode } from "@/lib/life-map";
+import { scoreState, type LifeScore, type PillarKey, type ScoreLine } from "@/lib/life-score";
 import { useErrorText } from "./ask";
 import { useFreshSteps } from "./home";
 
@@ -34,68 +29,6 @@ export function LifeMapScreen() {
   const { openForm } = useMoneyForms();
   if (fresh) return <ScreenEmpty eyebrow={label("life_map")} title={t("map_empty")} action={t("map_empty_action")} onAction={() => openForm("income")} />;
   return <LifeMap />;
-}
-
-function useLifeData() {
-  const t = useTranslations("home");
-  const tt = useTranslations("t");
-  const { members, userId, settings } = useAppData();
-  const money = useMoney();
-  const time = useTime();
-  const { debts } = useFinance();
-  const dates = useDates();
-
-  const score = useMemo(
-    () =>
-      lifeScore({
-        today: money.today,
-        budget: money.budget,
-        ef: money.ef,
-        goals: money.goals,
-        yearlyGoals: time.yearlyGoals,
-        events: time.events,
-        people: members.map((m) => m.id),
-        viewerId: userId,
-        priorities: time.priorities,
-        learningMinutes: time.learningMinutes,
-        gym: time.gym,
-        gymGoal: settings?.gym_week_goal ?? 3,
-      }),
-    [money.today, money.budget, money.ef, money.goals, time.yearlyGoals, time.events, time.priorities, time.learningMinutes, time.gym, members, userId, settings?.gym_week_goal],
-  );
-
-  const graph = useMemo(
-    () =>
-      buildMap({
-        score,
-        viewerId: userId,
-        today: money.today,
-        subscriptions: money.recurring.filter((r) => r.is_subscription),
-        debts,
-        categories: money.categories,
-        transactions: money.transactions.filter((x) => x.visibility === "family"),
-        goals: money.goals,
-        events: time.events,
-        learning: time.learningItems,
-        gym: time.gym,
-        text: {
-          hub: (k) => tt(`p_${k}`),
-          coreLabel: tt("k_core"),
-          score: t("f_score"),
-          perMonth: t("f_month"),
-          balance: t("f_balance"),
-          rate: t("f_rate"),
-          spent: t("f_spent"),
-          saved: t("f_saved"),
-          progress: t("f_progress"),
-          when: t("f_when"),
-          eur: (n) => eur(n, 0),
-          day: dates.day,
-        },
-      }),
-    [score, userId, money.today, money.recurring, money.categories, money.transactions, money.goals, debts, time.events, time.learningItems, time.gym, t, tt, dates],
-  );
-  return { score, graph };
 }
 
 /** The map without 3D, for a device that cannot draw it: the score, the four areas, and each area's items. */
@@ -146,13 +79,10 @@ function LifeMap() {
   const ui = useTranslations("ui");
   const router = useRouter();
   const { openForm } = useMoneyForms();
-  const { score, graph } = useLifeData();
 
-  const stage = useRef<HTMLDivElement>(null);
-  const labels = useRef<HTMLDivElement>(null);
-  const scene = useRef<LifeMapScene | null>(null);
-  const latestGraph = useRef<MapGraph>(graph);
-  const [failed, setFailed] = useState(false);
+  // The canvas lives in the shell, so it survives moving between screens; this screen drives it.
+  const { scene, failed, setOnSelect, life } = useScene();
+  const { score, graph } = life;
   const [selected, setSelected] = useState<string | null>(null);
   const reduced = useSyncExternalStore(noop, () => window.matchMedia("(prefers-reduced-motion: reduce)").matches, () => false);
   const [spinChoice, setSpin] = useState<boolean | null>(null);
@@ -162,39 +92,24 @@ function LifeMap() {
   const locked = useAppData().plan === "life";
 
   useEffect(() => {
-    let alive = true;
-    createLifeMapScene(stage.current!, labels.current!, setSelected)
-      .then((s) => {
-        if (!alive) return s.dispose();
-        scene.current = s;
-        s.setGraph(latestGraph.current);
-      })
-      .catch(() => alive && setFailed(true));
-    // The scene takes its colours from the tokens, so it follows the theme and palette.
-    const watch = new MutationObserver(() => scene.current?.repaint());
-    watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-palette"] });
-    return () => {
-      alive = false;
-      watch.disconnect();
-      scene.current?.dispose();
-      scene.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    latestGraph.current = graph;
-    scene.current?.setGraph(graph);
-  }, [graph]);
-  useEffect(() => scene.current?.setSelected(selected), [selected]);
-  useEffect(() => scene.current?.setSpin(spin), [spin]);
+    setOnSelect(setSelected);
+    return () => setOnSelect(() => {});
+  }, [setOnSelect]);
+  useEffect(() => scene?.setSelected(selected), [scene, selected]);
+  useEffect(() => scene?.setSpin(spin), [scene, spin]);
+  // Leaving the map leaves nothing selected for the next screen that uses the canvas.
+  useEffect(() => () => scene?.setSelected(null), [scene]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !document.querySelector("[role=dialog]")) router.push("/");
+      if (e.key === "Escape" && !document.querySelector("[role=dialog]")) {
+        void scene?.flyTo("core", { ms: 600 });
+        router.push("/");
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [router, scene]);
 
   const node = graph.nodes.find((n) => n.id === selected);
   const topic = node ? node.label : HUBS.map((k) => tt(`p_${k}`)).join(", ");
@@ -203,12 +118,9 @@ function LifeMap() {
   return (
     <section
       data-screen-label="Life Map"
-      className="fixed inset-0 z-[55] overflow-hidden"
-      style={{ background: "radial-gradient(circle at 50% 46%, var(--tint) 0%, var(--bg) 64%) var(--bg)" }}
+      className={`fixed inset-0 z-[55] overflow-hidden ${failed ? "" : "pointer-events-none"}`}
+      style={failed ? { background: "radial-gradient(circle at 50% 46%, var(--tint) 0%, var(--bg) 64%) var(--bg)" } : undefined}
     >
-      <div ref={stage} className="absolute inset-0 cursor-grab">
-        <div ref={labels} className="pointer-events-none absolute inset-0 z-[1] overflow-hidden" />
-      </div>
 
       <div className="pointer-events-none absolute inset-x-3 top-[calc(env(safe-area-inset-top)+12px)] z-[2] flex items-start justify-between gap-2">
         <div className="pointer-events-auto flex min-w-0 flex-col gap-2">
@@ -235,12 +147,12 @@ function LifeMap() {
           </div>
         </div>
         <div className="pointer-events-auto flex flex-none gap-1 rounded-xl border border-line bg-card p-1">
-          <Link href="/" aria-label={t("map_close")} title={t("map_close")} className="hit44 flex h-9 w-9 items-center justify-center rounded-lg bg-soft2 text-ink">
+          <Link href="/" onClick={() => void scene?.flyTo("core", { ms: 600 })} aria-label={t("map_close")} title={t("map_close")} className="hit44 flex h-9 w-9 items-center justify-center rounded-lg bg-soft2 text-ink">
             <X size={16} strokeWidth={2.2} />
           </Link>
           <button
             onClick={() => {
-              scene.current?.fit();
+              scene?.fit();
               setSelected(null);
             }}
             aria-label={tt("mapFit")}
@@ -260,6 +172,17 @@ function LifeMap() {
           </button>
         </div>
       </div>
+
+      {/* The canvas is for the eyes; this is the same map for a screen reader. */}
+      <ul className="sr-only">
+        {graph.nodes
+          .filter((n) => n.kind !== "core")
+          .map((n) => (
+            <li key={n.id}>
+              <button onClick={() => setSelected(n.id)}>{n.val === null || n.val === undefined ? n.label : `${n.label}: ${n.val}`}</button>
+            </li>
+          ))}
+      </ul>
 
       {failed && <StaticMap graph={graph} note={t("map_failed")} selected={selected} onSelect={setSelected} />}
 
@@ -288,7 +211,7 @@ function LifeMap() {
       <Corner open={talking} onOpen={() => setTalking(true)} onClose={() => setTalking(false)} question={question} />
 
       {locked && (
-        <div className="absolute inset-0 z-[5] flex items-center justify-center p-5 backdrop-blur-[7px]">
+        <div className="pointer-events-auto absolute inset-0 z-[5] flex items-center justify-center p-5 backdrop-blur-[7px]">
           <div className="flex max-w-[380px] flex-col gap-3 rounded-[14px] border border-line bg-card p-[22px] shadow-[0_20px_50px_rgba(0,0,0,.18)]">
             <span className="self-start rounded-full bg-tint px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[.12em] text-acct">Life Plus</span>
             <div className="text-xl font-bold leading-[1.25]">{tt("mapUnlock")}</div>
@@ -351,7 +274,7 @@ function Panel({
   const pill = "flex min-h-10 items-center rounded-full px-3.5 text-[13px] font-bold";
 
   return (
-    <div className="absolute bottom-11 left-3 right-[104px] z-[3] flex max-h-[58%] max-w-[320px] flex-col gap-2.5 overflow-y-auto rounded-[14px] border border-line bg-card p-3.5 shadow-[0_14px_40px_rgba(0,0,0,.16)] min-[701px]:bottom-auto min-[701px]:left-auto min-[701px]:right-3 min-[701px]:top-[110px] min-[701px]:w-[300px]">
+    <div className="pointer-events-auto absolute bottom-11 left-3 right-[104px] z-[3] flex max-h-[58%] max-w-[320px] flex-col gap-2.5 overflow-y-auto rounded-[14px] border border-line bg-card p-3.5 shadow-[0_14px_40px_rgba(0,0,0,.16)] min-[701px]:bottom-auto min-[701px]:left-auto min-[701px]:right-3 min-[701px]:top-[110px] min-[701px]:w-[300px]">
       <div className="flex items-center gap-2">
         <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: DOT[node.st] }} />
         <span className="flex-1 font-mono text-[11px] font-bold uppercase tracking-[.14em] text-mut2">{tt(`k_${node.kind}`)}</span>

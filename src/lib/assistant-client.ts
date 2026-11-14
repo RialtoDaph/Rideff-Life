@@ -4,6 +4,7 @@
 
 import { supabase } from "@/lib/supabase";
 import type { Card } from "@/lib/assistant-tools";
+import { bandsOf, type Bands } from "@/lib/voice-level";
 
 const CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 
@@ -25,17 +26,45 @@ export async function authedPost<T>(path: string, body: unknown, keepalive = fal
 export const runAssistantTool = (session_id: string, name: string, args: string) =>
   authedPost<{ output: Record<string, unknown>; card?: Card }>("/api/assistant/tool", { session_id, name, arguments: args });
 
-export type Realtime = { send: (event: object) => void; setMuted: (on: boolean) => void; close: () => void };
+export type Realtime = { send: (event: object) => void; setMuted: (on: boolean) => void; close: () => void; /** Loudness of the microphone and of the voice coming back, now. */ levels: () => { mic: Bands; out: Bands } };
+
+const SILENT: Bands = { level: 0, bass: 0, mid: 0, high: 0 };
+/** Reads the loudness of a stream, or silence when the browser cannot. */
+function listenTo(ctx: AudioContext | null, stream: MediaStream): () => Bands {
+  if (!ctx) return () => SILENT;
+  try {
+    const node = ctx.createAnalyser();
+    node.fftSize = 256;
+    node.smoothingTimeConstant = 0.8;
+    ctx.createMediaStreamSource(stream).connect(node);
+    const bins = new Uint8Array(node.frequencyBinCount);
+    return () => {
+      node.getByteFrequencyData(bins);
+      return bandsOf(bins);
+    };
+  } catch {
+    return () => SILENT;
+  }
+}
+
+const CONNECT_MS = 5000;
 
 export async function connectRealtime(token: string, voice: boolean, onEvent: (e: { type: string }) => void, onDrop: () => void): Promise<Realtime> {
   const pc = new RTCPeerConnection();
   const audio = new Audio();
   audio.autoplay = true;
+  let ctx: AudioContext | null = null;
+  try {
+    ctx = new AudioContext();
+  } catch {}
+  let out: () => Bands = () => SILENT;
   pc.ontrack = (e) => {
     audio.srcObject = e.streams[0];
+    out = listenTo(ctx, e.streams[0]);
   };
 
   const mic = voice ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
+  const heard = mic ? listenTo(ctx, mic) : () => SILENT;
   try {
     if (mic) pc.addTrack(mic.getAudioTracks()[0], mic);
     else pc.addTransceiver("audio", { direction: "recvonly" });
@@ -48,7 +77,7 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
     };
     const opened = new Promise<void>((resolve, reject) => {
       channel.onopen = () => resolve();
-      setTimeout(() => reject(new Error("timeout")), 15000);
+      setTimeout(() => reject(new Error("timeout")), CONNECT_MS);
     });
 
     const offer = await pc.createOffer();
@@ -63,6 +92,7 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
       if (!closed && ["failed", "disconnected", "closed"].includes(pc.connectionState)) onDrop();
     };
     return {
+      levels: () => ({ mic: heard(), out: out() }),
       send: (event) => channel.readyState === "open" && channel.send(JSON.stringify(event)),
       setMuted: (on) => {
         audio.muted = on;
@@ -73,11 +103,13 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
         channel.close();
         pc.close();
         audio.srcObject = null;
+        void ctx?.close().catch(() => {});
       },
     };
   } catch (e) {
     mic?.getTracks().forEach((t) => t.stop());
     pc.close();
+    void ctx?.close().catch(() => {});
     throw e;
   }
 }

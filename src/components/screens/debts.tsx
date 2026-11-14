@@ -12,11 +12,11 @@ import { payoffPlan } from "@/lib/finance";
 import { AppIcon } from "@/lib/icons";
 import { eur } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
+import { HeroBlock } from "@/components/ds/hero-block";
+import { HeroNumber } from "@/components/ds/hero-number";
 import { ModuleHeader } from "./module-tabs";
 import { ScreenSkeleton } from "@/components/skeleton";
 
-const STAT = "rounded-xl border border-line bg-card px-[18px] py-4";
-const STAT_NUM = "mt-1 font-serif text-[42px] font-normal tabular-nums tracking-[-0.01em]";
 
 export function DebtsScreen() {
   const tm = useTranslations("money");
@@ -62,25 +62,19 @@ export function DebtsScreen() {
     <>
       <ModuleHeader module="money" active="debts" />
 
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))]">
-        <div className={STAT}>
-          <div className="text-[12.5px] text-mut">{tm("total_debt")}</div>
-          <div className={STAT_NUM}>{eur(total, 0)}</div>
-          <div className="text-xs text-mut2">{tm("debts_count", { n: family.length, pct: paidPct })}</div>
-        </div>
-        <div className={STAT}>
-          <div className="text-[12.5px] text-mut">{tm("monthly_payments")}</div>
-          <div className={STAT_NUM}>{eur(monthly, 0)}</div>
-          <div className="text-xs text-mut2">{tm("debts_extra", { extra: eur(extra) })}</div>
-        </div>
-        <div className={STAT}>
-          <div className="text-[12.5px] text-mut">{tm("debt_free_by")}</div>
-          <div className={STAT_NUM}>{!family.length ? "—" : canFinish ? dates.addMonths(today, plan.months) : tm("never_at_this_rate")}</div>
-          <div className="text-xs font-bold text-ok">
-            {savedMonths > 0 ? tm("debts_saved", { n: savedMonths, interest: eur(base.interest - plan.interest) }) : ""}
-          </div>
-        </div>
-      </div>
+      <HeroBlock
+        eyebrow={tm("total_debt")}
+        number={<HeroNumber value={total} format={(n) => eur(n, 0)} />}
+        sub={tm("debts_count", { n: family.length, pct: paidPct })}
+        stats={[
+          { label: tm("monthly_payments"), value: eur(monthly, 0), note: tm("debts_extra", { extra: eur(extra) }) },
+          {
+            label: tm("debt_free_by"),
+            value: !family.length ? "—" : canFinish ? dates.addMonths(today, plan.months) : tm("never_at_this_rate"),
+            note: savedMonths > 0 ? <span className="font-bold text-ok">{tm("debts_saved", { n: savedMonths, interest: eur(base.interest - plan.interest) })}</span> : undefined,
+          },
+        ]}
+      />
 
       {mine.length > 0 && <div className="text-[12.5px] text-mut">{tm("debts_private", { total: eur(mine.reduce((a, d) => a + d.balance, 0)) })}</div>}
 

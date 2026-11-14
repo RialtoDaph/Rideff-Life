@@ -30,6 +30,7 @@ import {
   type CalEvent,
 } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
+import { HeroBlock } from "@/components/ds/hero-block";
 import { ModuleHeader } from "./module-tabs";
 import { ScreenSkeleton } from "@/components/skeleton";
 
@@ -190,28 +191,23 @@ function WeekView() {
           </div>
         </Card>
 
-        <section className="flex flex-col gap-3.5 rounded-[18px] bg-inv p-6 text-white">
-          <div className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-acc2">{shared ? tt("free_together") : tt("free_this_week")}</div>
-          <div className="font-serif text-[49px] font-normal leading-[1.05] tracking-[-0.01em]">
-            {free.length ? tt("free_evening", { day: dates.dowLong(free[0]) }) : tt("no_free_evening")}
-          </div>
-          <p className="m-0 text-sm leading-[1.55] text-white/75">{tt("free_note", { n: free.length, shared: shared ? "yes" : "no" })}</p>
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="rounded-[10px] border border-white/10 bg-white/5 px-3.5 py-3">
-              <div className="text-[11px] text-white/55">{tt("shifts_this_week")}</div>
-              <div className="text-[20px] font-bold leading-[1.2]">{tt("shifts_hours", { n: shifts.length, h: dates.num(shiftH) })}</div>
-            </div>
-            <div className="rounded-[10px] border border-white/10 bg-white/5 px-3.5 py-3">
-              <div className="text-[11px] text-white/55">{tt("study_this_week")}</div>
-              <div className="text-[20px] font-bold leading-[1.2]">{tt("study_of", { done: dates.num(studied), goal: dates.num(studyGoal) })}</div>
-            </div>
-          </div>
-          {shared && (
-            <Link href="/together" className="flex h-11 items-center self-start rounded-full bg-acci px-5 text-sm font-bold text-onacci hover:text-onacci">
-              {tt("plan_the_date")}
-            </Link>
-          )}
-        </section>
+        <HeroBlock
+          eyebrow={shared ? tt("free_together") : tt("free_this_week")}
+          number={free.length ? tt("free_evening", { day: dates.dowLong(free[0]) }) : tt("no_free_evening")}
+          textual
+          sub={tt("free_note", { n: free.length, shared: shared ? "yes" : "no" })}
+          stats={[
+            { label: tt("shifts_this_week"), value: tt("shifts_hours", { n: shifts.length, h: dates.num(shiftH) }) },
+            { label: tt("study_this_week"), value: tt("study_of", { done: dates.num(studied), goal: dates.num(studyGoal) }) },
+          ]}
+          footer={
+            shared ? (
+              <Link href="/together" className="flex h-11 items-center self-start rounded-full bg-acci px-5 text-sm font-bold text-onacci hover:text-onacci">
+                {tt("plan_the_date")}
+              </Link>
+            ) : undefined
+          }
+        />
       </div>
 
       <Card>

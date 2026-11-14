@@ -322,6 +322,12 @@ button {
   animation: page-in var(--dur-2) var(--ease-out) 80ms both;
 }
 
+/* The big number that flies between screens (HeroNumber with a shareName): a slow, rare move. */
+::view-transition-group(.morph) {
+  animation-duration: 400ms;
+}
+
+
 /* The round + button steps aside while reading down a page. */
 .fab {
   transition:
@@ -355,4 +361,9 @@ button {
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* The presenter's size (?stage=1): the page drawn larger, for the back of a room. */
+html[data-stage] main {
+  zoom: 1.2;
 }

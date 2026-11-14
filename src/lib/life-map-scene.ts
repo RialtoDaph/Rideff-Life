@@ -3,8 +3,11 @@
 
 import type * as Three from "three";
 import type { MapGraph, MapNode } from "./life-map";
+import type { PillarKey } from "./life-score";
+import { flyEase, lockedDpr, type SceneMode } from "./scene-camera";
 
 export type Tier = "high" | "medium" | "low";
+export type VoiceFrame = { state: "idle" | "listen" | "think" | "speak"; level: number; bass: number; mid: number; high: number };
 
 /** How much each tier draws. A slow phone starts lower, and a scene that runs slowly steps down by itself. */
 const TIERS: Record<Tier, { dpr: number; density: number; stream: number; twinkle: number; dof: number }> = {
@@ -33,13 +36,14 @@ const POINT_VERT = /* glsl */ `
   uniform float uFocus;
   uniform float uDof;
   uniform float uTwinkle;
+  uniform float uVoice;
   varying float vAlpha;
   void main() {
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     float dist = max(1.0, -mv.z);
     float tw = 1.0 + uTwinkle * 0.35 * sin(uTime * (1.2 + aSeed * 2.0) + aSeed * 40.0);
     float blur = clamp(abs(dist - uFocus) / uFocus, 0.0, 1.5) * uDof;
-    gl_PointSize = max(1.5, uSize * uScale * tw * (1.0 + blur * 1.6) / dist);
+    gl_PointSize = max(1.5, uSize * uScale * tw * (1.0 + blur * 1.6 + uVoice * 0.7) / dist);
     vAlpha = (0.6 + 0.4 * tw) / (1.0 + blur * 2.2) * smoothstep(uFocus * 2.6, uFocus * 1.15, dist);
     gl_Position = projectionMatrix * mv;
   }
@@ -116,11 +120,25 @@ export type LifeMapScene = {
   tier: () => Tier;
   /** Re-reads the theme's colours. */
   repaint: () => void;
+  /** hero: turns by itself; explore: the map as before; backdrop: frozen and dimmed behind a screen; off: not drawn. */
+  setMode: (m: SceneMode) => void;
+  pause: () => void;
+  resume: () => void;
+  /** Flies the camera to the core, an area (a PillarKey) or a node id. Resolves when it arrives, when a newer flight replaces it, or at once for reduced motion or a paused scene. */
+  flyTo: (target: "core" | PillarKey | string, o?: { ms?: number }) => Promise<void>;
+  /** lock stops the scene stepping down a tier by itself; maxDpr caps the pixel ratio. */
+  setQuality: (q: { maxDpr?: number; tier?: Tier; lock?: boolean }) => void;
+  /** frames = drawn so far, paused = the loop is stopped, live = scenes alive in this page (one, if nothing leaks). */
+  stats: () => { fps: number; tier: Tier; dpr: number; frames: number; paused: boolean; live: number };
+  /** The voice's state and levels. Stored for the part that draws them (Clopar). */
+  setVoice: (v: VoiceFrame) => void;
   dispose: () => void;
 };
 
 const WIDE = 700;
 const clampZoom = (r: number) => Math.max(90, Math.min(640, r));
+
+let liveScenes = 0;
 
 export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement, onSelect: (id: string | null) => void): Promise<LifeMapScene> {
   const THREE = await import("three");
@@ -130,9 +148,10 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   let tier = startTier(navigator as { deviceMemory?: number; hardwareConcurrency?: number }, window.matchMedia("(pointer: coarse)").matches);
   let cfg = TIERS[tier];
   const renderer = new THREE.WebGLRenderer({ antialias: tier !== "low", alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cfg.dpr));
+  renderer.setPixelRatio(lockedDpr(window.devicePixelRatio || 1, cfg.dpr));
   renderer.setSize(rect.width, rect.height);
   renderer.setClearColor(0x000000, 0);
+  liveScenes++;
   const canvas = renderer.domElement;
   canvas.style.cssText = "position:absolute;inset:0;touch-action:none;outline:none";
   host.insertBefore(canvas, host.firstChild);
@@ -156,6 +175,19 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   let hover: string | null = null;
   let graph: MapGraph | null = null;
   let focusHub: string | null | undefined;
+  let mode: SceneMode = "explore";
+  let paused = false;
+  let locked = false;
+  let dprCap = Infinity;
+  let fps = 60;
+  let framesDrawn = 0;
+  let pausedAt = 0;
+  /** A flight in progress finishes before the scene freezes behind a screen. */
+  let pausePending = false;
+  /** Where the camera looks when nothing is selected: the middle, or the area a flight ended on. */
+  let anchor: Three.Vector3 | null = null;
+  type Flight = { t0: number; ms: number; from: { th: number; ph: number; r: number }; to: { th: number; ph: number; r: number }; done: () => void };
+  let flight: Flight | null = null;
 
   let byId: Record<string, MapNode> = {};
   let meshes: Record<string, Three.Mesh> = {};
@@ -167,12 +199,12 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   let haloAlpha = new Float32Array(0);
   let dark = false;
   let focusAt = 0;
-  const born = performance.now();
+  let born = performance.now();
   // Measured speed: a scene that cannot keep up steps down a tier.
   let frames = 0;
   let slow = 0;
   let lastFrame = 0;
-  const shared = { uTime: { value: 0 }, uScale: { value: 1 }, uFocus: { value: 250 }, uDof: { value: cfg.dof }, uTwinkle: { value: reduced ? 0 : cfg.twinkle } };
+  const shared = { uTime: { value: 0 }, uScale: { value: 1 }, uFocus: { value: 250 }, uDof: { value: cfg.dof }, uTwinkle: { value: reduced ? 0 : cfg.twinkle }, uVoice: { value: 0 } };
   let tags: Record<string, HTMLDivElement & { show?: boolean; x?: number; y?: number }> = {};
   let ring: Three.Mesh | null = null;
   let lines: Three.LineSegments | null = null;
@@ -430,6 +462,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     camera.updateProjectionMatrix();
     renderer.setSize(r.width, r.height);
     rescale();
+    // A frozen canvas would stretch or go blank after a resize: draw it once more.
+    if (paused) frame(performance.now());
   });
   resize.observe(host);
 
@@ -439,10 +473,14 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   }
   rescale();
 
+  function applyDpr() {
+    renderer.setPixelRatio(lockedDpr(window.devicePixelRatio || 1, Math.min(cfg.dpr, dprCap)));
+  }
+
   function applyTier(next: Tier) {
     tier = next;
     cfg = TIERS[next];
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cfg.dpr));
+    applyDpr();
     shared.uDof.value = cfg.dof;
     shared.uTwinkle.value = reduced ? 0 : cfg.twinkle;
     for (const m of Object.values(meshes)) {
@@ -462,7 +500,9 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     const ease = reduced ? 1 : 0.08;
 
     // After the fly-in, watch the frame time for a few seconds and draw less if it is too slow.
-    if (lastFrame && now - born > 2200 && frames < 150 && document.visibilityState === "visible") {
+    // A paused scene is not measured, and a locked one never steps down.
+    if (!paused && lastFrame && now > lastFrame) fps += (1000 / (now - lastFrame) - fps) * 0.1;
+    if (!paused && !locked && lastFrame && now - born > 2200 && frames < 150 && document.visibilityState === "visible") {
       frames++;
       if (now - lastFrame > 30) slow++;
       if (frames === 150 && slow > 60) {
@@ -473,10 +513,29 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     }
     lastFrame = now;
 
+    // A camera flight overrides the orbit until it lands.
+    if (flight) {
+      const k = flyEase((now - flight.t0) / flight.ms);
+      const dth = Math.atan2(Math.sin(flight.to.th - flight.from.th), Math.cos(flight.to.th - flight.from.th));
+      orbit.th = flight.from.th + dth * k;
+      orbit.ph = flight.from.ph + (flight.to.ph - flight.from.ph) * k;
+      orbit.r = flight.from.r + (flight.to.r - flight.from.r) * k;
+      if (k >= 1) {
+        const done = flight.done;
+        zoom = flight.to.r;
+        flight = null;
+        done();
+        if (pausePending) {
+          pausePending = false;
+          queueMicrotask(pause);
+        }
+      }
+    }
+
     // Fly in once: from far and to the side, settling where the map rests.
     const intro = reduced ? 1 : easeOut(Math.min(1, (now - born) / 1800));
 
-    if (spin && now - lastTouch > 3500 && !sel) orbit.th += 0.0016;
+    if (spin && now - lastTouch > 3500 && !sel && !flight) orbit.th += 0.0016;
 
     const hub = sel && sel.kind !== "core" ? byId[`h-${sel.hub}`] : undefined;
     if (hub) {
@@ -486,7 +545,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       orbit.ph += (1.25 - orbit.ph) * (reduced ? 1 : 0.06);
     }
     const items = hub ? nodes.filter((n) => n.hub === hub.hub && n.kind !== "hub").length : 0;
-    orbit.r += ((sel ? 130 + items * 8 : zoom) - orbit.r) * ease;
+    if (!flight) orbit.r += ((sel ? 130 + items * 8 : zoom) - orbit.r) * ease;
 
     // Keep the chosen node clear of the panel: beside it when wide, above it on a phone.
     const wide = canvas.clientWidth > WIDE;
@@ -496,7 +555,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       tmp.copy(meshes[sel.id].position);
       if (wide) tmp.add(tmp2.set(Math.sin(orbit.th), 0, -Math.cos(orbit.th)).multiplyScalar(-orbit.r * 0.22));
       else tmp.y -= orbit.r * 0.12;
-    } else tmp.set(0, 0, 0);
+    } else if (anchor) tmp.copy(anchor);
+    else tmp.set(0, 0, 0);
     look.lerp(tmp, ease);
 
     camera.position.set(
@@ -540,7 +600,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       const wantA = (on ? (pts.userData.gain as number) : 0.06) * intro;
       u.value += (wantA - u.value) * (reduced ? 1 : 0.12);
       haloPos.set([me.position.x, me.position.y, me.position.z], i * 3);
-      const glow = (on ? (dark ? 0.2 : 0.1) : 0) * intro * (n.kind === "core" ? 1.3 : 1) * (selected === n.id || hover === n.id ? 1.6 : 1);
+      const glow = (on ? (dark ? 0.2 : 0.1) : 0) * intro * (n.kind === "core" ? 1.3 + shared.uVoice.value * 1.4 : 1 + shared.uVoice.value * 0.4) * (selected === n.id || hover === n.id ? 1.6 : 1);
       haloAlpha[i] += (glow - haloAlpha[i]) * (reduced ? 1 : 0.12);
     });
     halo.geometry.attributes.position.needsUpdate = true;
@@ -577,6 +637,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     }
 
     renderer.render(scene, camera);
+    framesDrawn++;
 
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -632,24 +693,110 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
 
   renderer.setAnimationLoop(frame);
 
+  /** Stops the loop after drawing one last frame, so the canvas keeps what it shows. */
+  function pause() {
+    if (paused) return;
+    paused = true;
+    pausedAt = performance.now();
+    frame(performance.now());
+    renderer.setAnimationLoop(null);
+  }
+  function resume() {
+    if (!paused) return;
+    paused = false;
+    // The fly-in does not run while paused: shift its clock by the time spent paused.
+    born += performance.now() - pausedAt;
+    // The time spent paused must not look like slow frames.
+    frames = slow = 0;
+    lastFrame = 0;
+    renderer.setAnimationLoop(frame);
+  }
+  const onVisible = () => {
+    if (document.hidden) pause();
+    else if (mode === "hero" || mode === "explore") resume();
+  };
+  document.addEventListener("visibilitychange", onVisible);
+
   return {
     setGraph(next) {
       graph = next;
       build();
+      if (paused) frame(performance.now());
     },
     setSelected(id) {
       selected = id;
+      if (id) anchor = null;
     },
     setSpin(on) {
       spin = on;
     },
     fit() {
+      anchor = null;
       zoom = fitZoom();
       orbit.ph = 1.15;
     },
     tier: () => tier,
-    repaint: build,
+    repaint() {
+      build();
+      if (paused) frame(performance.now());
+    },
+    setMode(m) {
+      mode = m;
+      if (m === "hero") spin = !reduced;
+      if (m === "backdrop" || m === "off") {
+        if (flight) pausePending = true;
+        else pause();
+      } else {
+        pausePending = false;
+        resume();
+      }
+    },
+    pause,
+    resume,
+    flyTo(target, o) {
+      return new Promise<void>((resolve) => {
+        flight?.done();
+        flight = null;
+        const node = byId[target] ?? byId[`h-${target}`];
+        if (!graph || !node) return resolve();
+        let to: Flight["to"];
+        if (node.kind === "core") {
+          anchor = null;
+          to = { th: orbit.th, ph: 1.15, r: fitZoom() };
+        } else {
+          const at = meshes[node.id].position;
+          anchor = at.clone();
+          const items = node.kind === "hub" ? graph.nodes.filter((n) => n.hub === node.hub && n.kind !== "hub").length : 0;
+          to = { th: Math.atan2(node.pos[2], node.pos[0]), ph: 1.25, r: node.kind === "hub" ? 130 + items * 8 : 110 };
+        }
+        if (reduced || paused) {
+          Object.assign(orbit, to);
+          zoom = to.r;
+          if (anchor) look.copy(anchor);
+          else look.set(0, 0, 0);
+          if (paused) frame(performance.now());
+          return resolve();
+        }
+        flight = { t0: performance.now(), ms: Math.max(1, o?.ms ?? 900), from: { th: orbit.th, ph: orbit.ph, r: orbit.r }, to, done: resolve };
+      });
+    },
+    setQuality(q) {
+      if (q.lock !== undefined) locked = q.lock;
+      if (q.maxDpr !== undefined) dprCap = q.maxDpr;
+      if (q.tier) applyTier(q.tier);
+      else applyDpr();
+      rescale();
+    },
+    stats: () => ({ fps: Math.round(fps), tier, dpr: renderer.getPixelRatio(), frames: framesDrawn, paused, live: liveScenes }),
+    setVoice(v) {
+      // Only the overall level is kept for now; the shaders that use it come with Clopar.
+      const target = Math.max(0, Math.min(1, v.level));
+      shared.uVoice.value += (target - shared.uVoice.value) * 0.4;
+    },
     dispose() {
+      document.removeEventListener("visibilitychange", onVisible);
+      flight?.done();
+      flight = null;
       renderer.setAnimationLoop(null);
       resize.disconnect();
       canvas.removeEventListener("pointerdown", onDown);
@@ -660,6 +807,9 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       canvas.removeEventListener("wheel", onWheel);
       clear();
       sphere.dispose();
+      liveScenes--;
+      // Let go of the GPU context now, not whenever the garbage collector gets to it.
+      renderer.forceContextLoss();
       renderer.dispose();
       canvas.remove();
       labels.replaceChildren();

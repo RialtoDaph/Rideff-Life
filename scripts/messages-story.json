@@ -1,0 +1,227 @@
+{
+ "built_title": [
+  "How it was built",
+  "So wurde es gebaut",
+  "Bagaimana ini dibuat"
+ ],
+ "built_sub": [
+  "The real record of this app: eight rounds of work, what each did, and what went wrong along the way.",
+  "Das echte Protokoll dieser App: acht Arbeitsrunden, was jede getan hat und was dabei schiefging.",
+  "Catatan nyata app ini: delapan putaran kerja, apa yang dilakukan masing-masing, dan apa yang salah di tengah jalan."
+ ],
+ "built_rounds": [
+  "rounds of work",
+  "Arbeitsrunden",
+  "putaran kerja"
+ ],
+ "built_tests": [
+  "automated tests",
+  "automatische Tests",
+  "tes otomatis"
+ ],
+ "built_screens": [
+  "screens",
+  "Bildschirme",
+  "layar"
+ ],
+ "built_what": [
+  "What it did",
+  "Was es getan hat",
+  "Apa yang dilakukan"
+ ],
+ "built_wrong": [
+  "What went wrong",
+  "Was schiefging",
+  "Apa yang salah"
+ ],
+ "built_decisions": [
+  "Decisions, and why",
+  "Entscheidungen und warum",
+  "Keputusan dan alasannya"
+ ],
+ "built_credit": [
+  "Built with Claude Code by Ridev.",
+  "Gebaut mit Claude Code von Ridev.",
+  "Dibuat dengan Claude Code oleh Ridev."
+ ],
+ "r_A_t": [
+  "Close the leaks",
+  "Lecks schließen",
+  "Tutup kebocoran"
+ ],
+ "r_A_w": [
+  "Usage limits for AI and voice, enforced in the database; fixes found by auditing the app against itself.",
+  "Nutzungsgrenzen für KI und Sprache, in der Datenbank durchgesetzt; Funde aus einem Audit der App gegen sich selbst.",
+  "Batas pemakaian AI dan suara, ditegakkan di database; temuan dari audit app terhadap dirinya sendiri."
+ ],
+ "r_A_x": [
+  "The trial was never enforced and AI cost had no ceiling.",
+  "Die Testphase wurde nie durchgesetzt, und die KI-Kosten hatten keine Obergrenze.",
+  "Masa percobaan tidak pernah ditegakkan dan biaya AI tidak punya batas."
+ ],
+ "r_B_t": [
+  "Law and accounts",
+  "Recht und Konten",
+  "Hukum dan akun"
+ ],
+ "r_B_w": [
+  "Legal pages, deleting an account for real, an honest text about the PIN.",
+  "Rechtstexte, echtes Löschen des Kontos, ein ehrlicher Text zur PIN.",
+  "Halaman hukum, hapus akun sungguhan, teks jujur tentang PIN."
+ ],
+ "r_B_x": [
+  "The privacy page promised an export that only covered the profile.",
+  "Die Datenschutzseite versprach einen Export, der nur das Profil umfasste.",
+  "Halaman privasi menjanjikan ekspor yang hanya mencakup profil."
+ ],
+ "r_C_t": [
+  "A language for motion",
+  "Eine Sprache für Bewegung",
+  "Bahasa gerak"
+ ],
+ "r_C_w": [
+  "Motion tokens, an animated sheet and toast, view transitions, skeletons.",
+  "Bewegungs-Tokens, animiertes Sheet und Toast, View Transitions, Skeletons.",
+  "Token gerak, sheet dan toast beranimasi, view transition, skeleton."
+ ],
+ "r_C_x": [
+  "The audit counted zero keyframes: the app only ever faded.",
+  "Das Audit zählte null Keyframes: die App blendete nur ein und aus.",
+  "Audit menghitung nol keyframe: app hanya memudar."
+ ],
+ "r_D_t": [
+  "Home and Clopar",
+  "Start und Clopar",
+  "Beranda dan Clopar"
+ ],
+ "r_D_w": [
+  "A Home built around one big number, and a character that reacts to what is going on.",
+  "Ein Start, gebaut um eine große Zahl, und eine Figur, die auf das Geschehen reagiert.",
+  "Beranda yang dibangun di sekitar satu angka besar, dan karakter yang bereaksi pada keadaan."
+ ],
+ "r_D_x": [
+  "The first Home was a grid of equal cards: nothing said what mattered.",
+  "Der erste Start war ein Raster gleich großer Karten: nichts sagte, was wichtig ist.",
+  "Beranda pertama adalah kisi kartu sama besar: tidak ada yang menunjukkan mana yang penting."
+ ],
+ "r_E_t": [
+  "The Life Map in 3D",
+  "Die Life Map in 3D",
+  "Life Map 3D"
+ ],
+ "r_E_w": [
+  "A map of life as particles: halos, a fly-in, steps down in quality on a slow device.",
+  "Eine Karte des Lebens aus Partikeln: Lichthöfe, ein Einflug, Qualitätsstufen für langsame Geräte.",
+  "Peta hidup dari partikel: halo, terbang masuk, kualitas turun otomatis di perangkat lambat."
+ ],
+ "r_E_x": [
+  "Bloom had to move into the shader to keep a transparent background and light phones.",
+  "Bloom musste in den Shader, um den transparenten Hintergrund und leichte Handys zu bewahren.",
+  "Bloom harus pindah ke shader agar latar tetap transparan dan ponsel tetap ringan."
+ ],
+ "r_F_t": [
+  "Polish and rhythm",
+  "Feinschliff und Rhythmus",
+  "Poles dan ritme"
+ ],
+ "r_F_w": [
+  "Skeletons, errors you can act on, a quick start, per-language offline pages, live updates for households.",
+  "Skeletons, Fehler mit Handlungsoption, ein Schnellstart, Offline-Seiten pro Sprache, Live-Updates für Haushalte.",
+  "Skeleton, galat yang bisa ditindak, mulai cepat, halaman offline per bahasa, pembaruan langsung untuk rumah tangga."
+ ],
+ "r_F_x": [
+  "An offline page opened in the wrong language until the cache learned to follow it.",
+  "Eine Offline-Seite öffnete sich in der falschen Sprache, bis der Cache ihr folgen lernte.",
+  "Halaman offline terbuka di bahasa yang salah sampai cache belajar mengikutinya."
+ ],
+ "r_G_t": [
+  "One room",
+  "Ein Raum",
+  "Satu ruang"
+ ],
+ "r_G_w": [
+  "One scene for the whole app, a compass on top and a dock below, a dark palette with light from a single source.",
+  "Eine Szene für die ganze App, oben ein Kompass, unten ein Dock, eine dunkle Palette mit Licht aus einer Quelle.",
+  "Satu scene untuk seluruh app, kompas di atas dan dok di bawah, palet gelap dengan cahaya dari satu sumber."
+ ],
+ "r_G_x": [
+  "Glass panels over the 3D scene looked good and read badly on a projector, so they went.",
+  "Glas-Panels über der 3D-Szene sahen gut aus und waren am Beamer schlecht lesbar, also flogen sie raus.",
+  "Panel kaca di atas scene 3D tampak bagus tapi sulit dibaca di proyektor, jadi dibuang."
+ ],
+ "r_H_t": [
+  "A voice that moves",
+  "Eine Stimme, die sich bewegt",
+  "Suara yang bergerak"
+ ],
+ "r_H_w": [
+  "Clopar and the map react to the loudness of the voice; a tool that points at what is being talked about; a trace of every answer; a check before going on stage.",
+  "Clopar und die Karte reagieren auf die Lautstärke der Stimme; ein Werkzeug, das auf das Besprochene zeigt; ein Ablauf zu jeder Antwort; ein Check vor dem Auftritt.",
+  "Clopar dan peta bereaksi pada kerasnya suara; alat yang menunjuk apa yang dibicarakan; jejak tiap jawaban; cek sebelum tampil."
+ ],
+ "r_H_x": [
+  "The orb went blank after a tap: its particles fled the pointer that stayed on it.",
+  "Die Kugel wurde nach einem Tippen leer: ihre Partikel flohen vor dem Zeiger, der auf ihr blieb.",
+  "Orb menjadi kosong setelah diketuk: partikelnya lari dari kursor yang tetap di atasnya."
+ ],
+ "dec_1": [
+  "A finished trial falls back to the free plan instead of locking people out of their own data.",
+  "Eine abgelaufene Testphase fällt auf den freien Tarif zurück, statt Menschen von ihren eigenen Daten auszusperren.",
+  "Masa percobaan yang habis jatuh ke paket gratis, bukan mengunci orang dari datanya sendiri."
+ ],
+ "dec_2": [
+  "The glow of the scene is drawn in the shader, not in a post-processing pass: transparent background, light phones.",
+  "Das Leuchten der Szene wird im Shader gezeichnet, nicht in einem Nachbearbeitungs-Pass: transparenter Hintergrund, leichte Handys.",
+  "Cahaya scene digambar di shader, bukan di pass pasca-proses: latar transparan, ponsel ringan."
+ ],
+ "dec_3": [
+  "Privacy is decided by the database, not by the screens: what a tool may read is what the signed-in person may read.",
+  "Privatsphäre entscheidet die Datenbank, nicht die Bildschirme: Ein Werkzeug darf lesen, was die angemeldete Person lesen darf.",
+  "Privasi diputuskan database, bukan layar: yang boleh dibaca sebuah alat adalah yang boleh dibaca orang yang masuk."
+ ],
+ "dec_4": [
+  "Nothing is saved by the assistant alone: it proposes, a card shows what, and the person taps Save.",
+  "Nichts wird vom Assistenten allein gespeichert: Er schlägt vor, eine Karte zeigt was, und die Person tippt auf Speichern.",
+  "Tidak ada yang disimpan asisten sendirian: ia mengusulkan, kartu menunjukkan apa, dan orangnya mengetuk Simpan."
+ ],
+ "w_title": [
+  "Life Wrapped",
+  "Life Wrapped",
+  "Life Wrapped"
+ ],
+ "w_sub": [
+  "Your month in one card you can share. It holds numbers only, nothing private.",
+  "Dein Monat auf einer Karte zum Teilen. Nur Zahlen, nichts Privates.",
+  "Bulanmu dalam satu kartu yang bisa dibagikan. Hanya angka, tidak ada yang pribadi."
+ ],
+ "w_score": [
+  "Life Score",
+  "Life Score",
+  "Life Score"
+ ],
+ "w_left": [
+  "left to spend",
+  "übrig zum Ausgeben",
+  "sisa untuk dibelanjakan"
+ ],
+ "w_made": [
+  "Made with rideff Life",
+  "Gemacht mit rideff Life",
+  "Dibuat dengan rideff Life"
+ ],
+ "w_share": [
+  "Share",
+  "Teilen",
+  "Bagikan"
+ ],
+ "w_save": [
+  "Save image",
+  "Bild speichern",
+  "Simpan gambar"
+ ],
+ "w_empty": [
+  "Add a little data first and your card will fill in.",
+  "Trag zuerst ein paar Daten ein, dann füllt sich deine Karte.",
+  "Isi sedikit data dulu, lalu kartumu akan terisi."
+ ]
+}

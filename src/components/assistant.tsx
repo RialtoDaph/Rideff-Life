@@ -12,7 +12,10 @@ import type { AskAction } from "@/lib/ask-schema";
 import { authedPost, connectRealtime, runAssistantTool, type Realtime, type SessionInfo } from "@/lib/assistant-client";
 import { firstSentence, functionCalls, TALK_START, talkStep, type FunctionCall, type Talk } from "@/lib/assistant-events";
 import type { Card, CardStatus } from "@/lib/assistant-tools";
+import { canListen, listenOnce, speak } from "@/lib/browser-voice";
+import { dispatchShow, hubForTool, parseShow } from "@/lib/show";
 import { supabase } from "@/lib/supabase";
+import { voiceLevel } from "@/lib/voice-level";
 
 export type Turn = {
   id: string;
@@ -23,6 +26,10 @@ export type Turn = {
   action?: AskAction;
   card?: Card;
 };
+/** One thing the assistant did while answering: a tool it called, with what it was asked and how long it took. */
+export type ToolStep = { name: string; args: string; ms: number; output: string };
+/** What one answer was made of: what was heard, what was done, what was said. */
+export type TraceEntry = { id: string; heard: string; steps: ToolStep[]; answer: string; tier: "realtime" | "browser" | "ask" };
 export type AssistantError = "voice_quota" | "ai_quota" | "not_configured" | "mic" | "failed" | null;
 type Live = { rt: Realtime; info: SessionInfo & { spoken: boolean }; voice: boolean; turns: { role: string; text: string }[]; tools: string[]; timer?: ReturnType<typeof setTimeout> };
 
@@ -39,7 +46,11 @@ type Assistant = {
   muted: boolean;
   error: AssistantError;
   quota: { voiceLeft: number | null; aiLeft: number | null };
-  send: (text: string) => Promise<void>;
+  /** Which voice is in use: the realtime one, or the browser's own listening and speaking. */
+  tier: "realtime" | "browser" | null;
+  /** The latest answers, newest last, with the tools behind each. */
+  traces: TraceEntry[];
+  send: (text: string, viaAsk?: boolean) => Promise<void>;
   startVoice: () => Promise<boolean>;
   stop: () => void;
   setMuted: (on: boolean) => void;
@@ -77,11 +88,18 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const [muted, setMutedState] = useState(false);
   const [error, setError] = useState<AssistantError>(null);
   const [quota, setQuota] = useState<Assistant["quota"]>({ voiceLeft: null, aiLeft: null });
+  const [tier, setTier] = useState<Assistant["tier"]>(null);
+  const [traces, setTraces] = useState<TraceEntry[]>([]);
 
   const talkRef = useRef(TALK_START);
   const live = useRef<Live | null>(null);
   const mutedRef = useRef(false);
   const handler = useRef<(e: { type: string }) => void>(() => {});
+  const steps = useRef<ToolStep[]>([]);
+  const heardLast = useRef("");
+  const browser = useRef<{ stopListen: () => void; stopSpeak: () => void; on: boolean }>({ stopListen: () => {}, stopSpeak: () => {}, on: false });
+  const sendRef = useRef<(q: string, viaAsk?: boolean) => Promise<void>>(async () => {});
+  const loopRef = useRef<() => void>(() => {});
 
   const setTalk = useCallback((next: Talk) => {
     talkRef.current = next;
@@ -122,10 +140,15 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const stop = useCallback(() => {
     const s = live.current;
     live.current = null;
+    browser.current.on = false;
+    browser.current.stopListen();
+    browser.current.stopSpeak();
+    setTier(null);
     setPendingCard(null);
     setVoiceOn(false);
     setBusy(false);
     setTalk(TALK_START);
+    voiceLevel.idle();
     if (!s) return;
     clearTimeout(s.timer);
     s.rt.close();
@@ -176,7 +199,12 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         const s = live.current;
         if (!s) return;
         s.tools.push(c.name);
-        const res = await runAssistantTool(s.info.session_id, c.name, c.arguments);
+        const began = performance.now();
+        // Pointing at a place is the app's own business; a reading tool also points at its area.
+        const hub = c.name === "show" ? parseShow(c.arguments) : hubForTool(c.name);
+        if (hub) dispatchShow(hub);
+        const res = c.name === "show" ? { data: { output: { shown: hub ?? null } } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
+        steps.current.push({ name: c.name, args: c.arguments, ms: Math.round(performance.now() - began), output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
         if (res.data?.card) {
           addTurn({ role: "assistant", text: "", card: res.data.card });
           setPendingCard(res.data.card);
@@ -198,6 +226,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       const s = live.current;
       setTalk(talkStep({ ...before, live: !!s?.voice }, event));
       if (event.type === "conversation.item.input_audio_transcription.completed" && event.transcript?.trim()) {
+        heardLast.current = event.transcript.trim();
         addTurn({ role: "user", text: event.transcript.trim() });
       }
       if (event.type === "error") {
@@ -209,27 +238,67 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       if (calls.length) return void runCalls(calls);
       setBusy(false);
       const reply = talkRef.current.reply.trim();
-      if (reply) addTurn({ role: "assistant", text: reply });
+      if (reply) {
+        addTurn({ role: "assistant", text: reply });
+        setTraces((x) => [...x.slice(-9), { id: newId(), heard: heardLast.current, steps: steps.current, answer: reply, tier: "realtime" }]);
+        steps.current = [];
+      }
       if (s && !s.voice) touch();
       if (s && !s.info.spoken) setTalk({ ...talkRef.current, mode: s.voice ? "listen" : "calm" });
     };
   }, [addTurn, runCalls, setTalk, touch]);
 
+  // The browser's own voice: listen for a sentence, answer it through /api/ask, say it aloud, listen again.
+  const listenLoop = useCallback(() => {
+    const b = browser.current;
+    if (!b.on) return;
+    setTalk({ ...TALK_START, mode: "listen", live: true });
+    b.stopListen = listenOnce(
+      locale,
+      (text) => {
+        heardLast.current = text;
+        void sendRef.current(text, true);
+      },
+      (reason) => {
+        if (!b.on || reason === undefined) return; // stopped, or a sentence came and send carries on
+        // Silence is no failure: keep listening. Anything else (no permission, no microphone, the speech
+        // service out of reach) ends the browser voice with a card that says what to do.
+        if (reason === "no-speech" || reason === "nothing") return void setTimeout(() => loopRef.current(), 300);
+        stop();
+        setError(["not-allowed", "service-not-allowed", "audio-capture", "unsupported"].includes(reason) ? "mic" : "failed");
+      },
+    );
+  }, [locale, setTalk, stop]);
+
+  useEffect(() => {
+    loopRef.current = listenLoop;
+  }, [listenLoop]);
+
   const startVoice = useCallback(async () => {
-    if (live.current?.voice) return true;
+    if (live.current?.voice || browser.current.on) return true;
     stop();
     const res = await open(true);
     if (!res.ok) {
+      // No realtime voice (no key, no connection): the browser can still listen and speak.
+      if ((res.code === "not_configured" || res.code === "failed") && canListen()) {
+        browser.current.on = true;
+        setTier("browser");
+        setVoiceOn(true);
+        setError(null);
+        listenLoop();
+        return true;
+      }
       setError(res.code);
       return false;
     }
+    setTier("realtime");
     setVoiceOn(true);
     setTalk({ ...TALK_START, mode: "listen", live: true });
     return true;
-  }, [open, setTalk, stop]);
+  }, [listenLoop, open, setTalk, stop]);
 
   const send = useCallback(
-    async (raw: string) => {
+    async (raw: string, viaAsk = false) => {
       const q = raw.trim();
       if (!q || busy) return;
       setError(null);
@@ -238,7 +307,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       setBusy(true);
       setTalk({ ...TALK_START, mode: "think", live: !!live.current?.voice });
 
-      if (!live.current) {
+      if (!live.current && !viaAsk) {
         const res = await open(false);
         if (!res.ok && res.code !== "not_configured") {
           setBusy(false);
@@ -269,10 +338,40 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         return setError(failed === "quota" ? "ai_quota" : "failed");
       }
       addTurn({ role: "assistant", text: answer.text, nums: answer.nums, next: answer.next, action: answer.action });
-      setTalk({ ...TALK_START, mode: "speak", reply: answer.text });
+      setTraces((x) => [...x.slice(-9), { id: newId(), heard: q, steps: [], answer: answer.text, tier: viaAsk ? "browser" : "ask" }]);
+      setTalk({ ...TALK_START, mode: "speak", reply: answer.text, live: browser.current.on });
+      // Spoken aloud when the person talked; then back to listening.
+      if (viaAsk && browser.current.on) {
+        browser.current.stopSpeak = speak(answer.text, locale, () => {
+          if (!browser.current.on) return setTalk(TALK_START);
+          listenLoop();
+        });
+      }
     },
-    [addTurn, busy, open, setTalk, turns],
+    [addTurn, busy, listenLoop, locale, open, setTalk, turns],
   );
+  useEffect(() => {
+    sendRef.current = send;
+  }, [send]);
+
+  // While Clopar listens, thinks or speaks, the loudness drives the character and the scene.
+  useEffect(() => {
+    if (talk.mode === "calm" && !voiceOn) return voiceLevel.idle();
+    let raf = 0;
+    const tick = (now: number) => {
+      const mode = talkRef.current.mode;
+      const rt = live.current?.rt;
+      let b = { level: 0, bass: 0, mid: 0, high: 0 };
+      if (rt && (mode === "listen" || mode === "speak")) b = mode === "speak" ? rt.levels().out : rt.levels().mic;
+      else if (mode === "think") b = { level: 0.14 + 0.08 * Math.sin(now / 260), bass: 0.14, mid: 0.08, high: 0.04 };
+      else if (mode === "speak") b = { level: 0.3 + 0.22 * Math.abs(Math.sin(now / 150)), bass: 0.3, mid: 0.2, high: 0.1 }; // the browser's voice has no signal to read
+      const lift = (v: number) => Math.min(1, v * 2.4);
+      voiceLevel.set({ state: mode === "confirm" || mode === "calm" ? "idle" : mode, level: lift(b.level), bass: lift(b.bass), mid: lift(b.mid), high: lift(b.high) });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [talk.mode, voiceOn]);
 
   const setCard = useCallback((id: string, status: CardStatus) => {
     setTurns((x) => x.map((row) => (row.card?.id === id ? { ...row, card: { ...row.card, status } } : row)));
@@ -343,8 +442,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? talk.heard || t("listening") : firstSentence(talk.reply);
 
   const value = useMemo<Assistant>(
-    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
-    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, send, startVoice, stop, setMuted, answerCard, editCard, clear],
+    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
+    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, send, startVoice, stop, setMuted, answerCard, editCard, clear],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
