@@ -5,7 +5,8 @@ import { Camera } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAppData } from "@/components/app-data";
-import { CountUp } from "@/components/count-up";
+import { HeroBlock } from "@/components/ds/hero-block";
+import { HeroNumber } from "@/components/ds/hero-number";
 import { ModuleEmpty } from "@/components/empty-state";
 import { useFinance } from "@/components/finance-data";
 import { useMoney } from "@/components/money-data";
@@ -84,42 +85,17 @@ function Hero() {
     .reduce((a, t) => a - t.amount, 0);
 
   return (
-    <section className="relative overflow-hidden rounded-[18px] bg-inv p-6 text-white">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <div className="font-mono text-[11px] font-bold uppercase tracking-[.16em] text-acc2">
-            {tm("hero_day", { month: dates.monthLong(today.m), day: today.d, days: today.daysInMonth })}
-          </div>
-          <div className="mt-3 text-[13px] text-white/60">{tm("flexible_money_left")}</div>
-          <div className="mt-1 font-serif text-[68px] font-normal leading-none tabular-nums tracking-[-0.01em]">
-            <CountUp value={budget.flexLeft} format={(n) => eur(n, 0)} />
-          </div>
-          <div className="mt-2 text-sm text-white/75">
-            {tm.rich("per_day_line", {
-              amount: eur(budget.perDay, 0),
-              n: budget.daysLeft,
-              b: (chunks) => <b className="text-white">{chunks}</b>,
-            })}
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2.5">
-          <HeroStat label={tm("spent_so_far")} value={eur(budget.spent, 0)} />
-          <HeroStat label={tm("monthly_budget")} value={eur(budget.limit, 0)} />
-        </div>
-      </div>
-      {myPrivate > 0 && (
-<div className="mt-4 text-[12.5px] text-white/60">{tm("budget_private", { total: eur(myPrivate) })}</div>
-      )}
-    </section>
-  );
-}
-
-function HeroStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[10px] border border-white/10 bg-white/[.06] px-4 py-3">
-      <div className="text-[11px] text-white/55">{label}</div>
-      <div className="text-xl font-bold tabular-nums">{value}</div>
-    </div>
+    <HeroBlock
+      eyebrow={tm("hero_day", { month: dates.monthLong(today.m), day: today.d, days: today.daysInMonth })}
+      label={tm("flexible_money_left")}
+      number={<HeroNumber value={budget.flexLeft} format={(n) => eur(n, 0)} shareName={budget.flexLeft >= 0 ? "hero-money" : undefined} />}
+      sub={tm.rich("per_day_line", { amount: eur(budget.perDay, 0), n: budget.daysLeft, b: (chunks) => <b className="text-ink">{chunks}</b> })}
+      stats={[
+        { label: tm("spent_so_far"), value: eur(budget.spent, 0) },
+        { label: tm("monthly_budget"), value: eur(budget.limit, 0) },
+      ]}
+      footer={myPrivate > 0 ? <div className="text-[12.5px] text-mut2">{tm("budget_private", { total: eur(myPrivate) })}</div> : undefined}
+    />
   );
 }
 

@@ -5,9 +5,7 @@ import type { Member } from "@/components/app-data";
 import { avatarColors } from "@/components/shell/avatar";
 import type { Status } from "@/lib/money";
 
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-[18px] border border-line bg-card p-5 ${className}`}>{children}</section>;
-}
+export { Slab as Card } from "@/components/ds/slab";
 
 export function H2({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <h2 className={`m-0 text-lg font-extrabold ${className}`}>{children}</h2>;

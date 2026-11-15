@@ -9,7 +9,7 @@ const session = () => ({ access_token: b({ alg: 'none' }) + '.' + b({ sub: uid, 
 const share = { money: true, goals: true, cal: true, docs: false, debts: false, remit: false };
 const rows = {
   members: [{ id: uid, household_id: 'h1', display_name: 'Alex', email: 'alex@example.test', role: 'owner', avatar_bg: null, avatar_fg: null, sort: 1, share }, { id: '22222222-2222-2222-2222-222222222222', household_id: 'h1', display_name: 'Mira', email: 'mira@example.test', role: 'partner', avatar_bg: null, avatar_fg: null, sort: 2, share }],
-  households: [{ id: 'h1', name: 'Morgan family', home_city: 'München', currency: 'EUR' }],
+  households: [{ id: 'h1', name: 'Lena & Tom Brandt', home_city: 'München', currency: 'EUR' }],
   subscriptions_billing: [{ seats: 4, plan: 'together', interval: 'month', status: 'trial', current_period_end: new Date(Date.now()+9e8).toISOString(), provider_ref: null }],
   invites: [],
 };

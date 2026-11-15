@@ -3,6 +3,7 @@
 
 import { createHash } from "node:crypto";
 import { TOOLS } from "@/lib/assistant-tools";
+import { SHOW_TOOL } from "@/lib/show";
 import { buildInstructions, memoriesFor, MAX_MEMORIES, type MemoryFact } from "@/lib/assistant-prompt";
 import { berlinToday } from "@/lib/money";
 import { AI_NAME } from "@/lib/nav";
@@ -42,6 +43,9 @@ export async function POST(req: Request) {
     memories = memoriesFor((data ?? []) as MemoryFact[], userId);
   }
 
+  // Tells the transcriber which language is spoken: Indonesian and German are otherwise guessed from the first words.
+  const spokenLang = ((l) => (l === "de" || l === "id" || l === "en" ? l : "en"))(body?.locale ?? settings?.lang);
+
   const instructions = buildInstructions({
     aiName: settings?.ai_name || AI_NAME,
     speaker: members.find((x) => x.id === userId)?.display_name ?? "the person",
@@ -65,11 +69,11 @@ export async function POST(req: Request) {
         type: "realtime",
         model: MODEL,
         instructions,
-        tools: TOOLS,
+        tools: [...TOOLS, SHOW_TOOL],
         tool_choice: "auto",
         output_modalities: [spoken ? "audio" : "text"],
         audio: {
-          input: voice ? { transcription: { model: "gpt-4o-mini-transcribe" }, turn_detection: { type: "semantic_vad" } } : { turn_detection: null },
+          input: voice ? { transcription: { model: "gpt-4o-mini-transcribe", language: spokenLang }, turn_detection: { type: "semantic_vad" } } : { turn_detection: null },
           output: { voice: "marin" },
         },
       },

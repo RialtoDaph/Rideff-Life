@@ -33,7 +33,7 @@ export function CareerScreen() {
   if (!time.loaded) {
     return (
       <>
-        <ModuleHeader module="invest" active="career" />
+        <ModuleHeader module="time" active="career" />
         <ScreenSkeleton />
       </>
     );
@@ -42,7 +42,7 @@ export function CareerScreen() {
   if (time.loaded && !time.careerSteps.length) {
     return (
       <>
-        <ModuleHeader module="invest" active="career" />
+        <ModuleHeader module="time" active="career" />
         <ScreenEmpty eyebrow={label("nav.career")} title={t("t.e_career")} action={t("t.b_learn")} onAction={() => openForm("career")} />
       </>
     );
@@ -52,7 +52,7 @@ export function CareerScreen() {
     <>
       <div className="flex flex-col gap-3">
         <PageHeader eyebrow={ts("invest_career")} title={label("nav.career")} />
-        <ModuleTabs module="invest" active="career" />
+        <ModuleTabs module="time" active="career" />
       </div>
       <div className="flex justify-end">
         <AddButton onClick={() => openForm("career")} label={ts("ca_add")} />

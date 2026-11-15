@@ -61,7 +61,7 @@ export function GymScreen() {
   if (!time.loaded) {
     return (
       <>
-        <ModuleHeader module="life" active="gym" />
+        <ModuleHeader module="health" active="gym" />
         <ScreenSkeleton />
       </>
     );
@@ -70,7 +70,7 @@ export function GymScreen() {
   if (time.loaded && !time.gym.length) {
     return (
       <>
-        <ModuleHeader module="life" active="gym" />
+        <ModuleHeader module="health" active="gym" />
         <ScreenEmpty eyebrow={label("nav.gym")} title={t("e_gym")} action={tt("log_session")} onAction={() => openForm("gym")} />
       </>
     );
@@ -78,7 +78,7 @@ export function GymScreen() {
 
   return (
     <>
-      <ModuleHeader module="life" active="gym" />
+      <ModuleHeader module="health" active="gym" />
 
       <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))]">
         {members.map((m) => {

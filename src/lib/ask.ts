@@ -30,10 +30,11 @@ async function post(body: Record<string, unknown>): Promise<{ answer?: Answer; e
   }
 }
 
-export function askClopar(question: string, history: { role: string; text: string }[]) {
+export function askClopar(question: string, history: { role: string; text: string }[], locale?: string) {
   return post({
     mode: "ask",
     question,
+    locale,
     history: history.slice(-6).map((t) => ({ role: t.role, text: t.text })),
   });
 }

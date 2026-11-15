@@ -10,15 +10,14 @@ import {
   FileText,
   Heart,
   House,
-  LayoutGrid,
+  Layers,
   ListChecks,
-  Map,
   NotebookPen,
   Receipt,
   Repeat,
   Send,
   Settings,
-  SlidersHorizontal,
+  Share2,
   Sparkles,
   Target,
   TrendingUp,
@@ -31,16 +30,18 @@ export const AI_NAME = "Clopar";
 type Messages = typeof import("@/messages/en.json");
 
 /** A message path such as "nav.budget"; see src/messages. */
-export type LabelKey = `nav.${keyof Messages["nav"] & string}` | `copy.${keyof Messages["copy"] & string}` | `ui.${keyof Messages["ui"] & string}`;
+export type LabelKey = `nav.${keyof Messages["nav"] & string}` | `copy.${keyof Messages["copy"] & string}` | `ui.${keyof Messages["ui"] & string}` | `t.p_${HubKey}`;
 
-export type ModuleKey = "money" | "time" | "invest" | "life";
+/** The four areas of the Life Map, which are also the four places the app is organised in. */
+export type HubKey = "money" | "time" | "health" | "goals";
+export type ModuleKey = HubKey;
 
 type Tab = { id: string; label: string; key: LabelKey; phase: number; blurb: string };
 
 export const MODULES: Record<ModuleKey, { name: string; key: LabelKey; icon: LucideIcon; tabs: Tab[] }> = {
   money: {
     name: "Money",
-    key: "nav.money",
+    key: "t.p_money",
     icon: Wallet,
     tabs: [
       { id: "budget", label: "Budget", key: "nav.budget", phase: 1, blurb: "Monthly limits per category, flexible money left and your daily allowance." },
@@ -50,32 +51,24 @@ export const MODULES: Record<ModuleKey, { name: string; key: LabelKey; icon: Luc
       { id: "remit", label: "To Indonesia", key: "nav.to_indonesia", phase: 2, blurb: "Transfers home in EUR and Rupiah, with a provider comparison." },
       { id: "biz", label: "Business", key: "nav.business", phase: 2, blurb: "Monthly totals and the monthly report file for each business." },
       { id: "tax", label: "Taxes & refund", key: "nav.taxes_refund", phase: 2, blurb: "Tax pot, deadlines and the refund estimate." },
+      { id: "invest", label: "Overview", key: "nav.overview", phase: 2, blurb: "Net worth and what you own, in EUR and IDR." },
+      { id: "sim", label: "10-year simulation", key: "nav.10_year_simulation", phase: 5, blurb: "Bad, middle and good scenarios for the next ten years." },
     ],
   },
   time: {
-    name: "Time & goals",
-    key: "nav.time_goals",
+    name: "Time",
+    key: "t.p_time",
     icon: CalendarDays,
     tabs: [
       { id: "week", label: "This week", key: "nav.this_week", phase: 4, blurb: "Three priorities and a 7-day board for your household." },
       { id: "shifts", label: "Shifts", key: "nav.shifts", phase: 4, blurb: "Work shifts and hours, read straight from the roster." },
-      { id: "ygoals", label: "Yearly goals", key: "nav.yearly_goals", phase: 4, blurb: "A 52-week strip per goal and this week's step." },
       { id: "learn", label: "Learning", key: "nav.learning", phase: 4, blurb: "Minutes per person, books and courses." },
-    ],
-  },
-  invest: {
-    name: "Invest & career",
-    key: "nav.invest_career",
-    icon: TrendingUp,
-    tabs: [
-      { id: "invest", label: "Overview", key: "nav.overview", phase: 2, blurb: "Net worth and what you own, in EUR and IDR." },
-      { id: "sim", label: "10-year simulation", key: "nav.10_year_simulation", phase: 5, blurb: "Bad, middle and good scenarios for the next ten years." },
       { id: "career", label: "Career", key: "nav.career", phase: 5, blurb: "Your career plan and its stages." },
     ],
   },
-  life: {
-    name: "Life",
-    key: "nav.life",
+  health: {
+    name: "Health",
+    key: "t.p_health",
     icon: Heart,
     tabs: [
       { id: "gym", label: "Gym", key: "nav.gym", phase: 4, blurb: "Sessions per person per week." },
@@ -83,9 +76,18 @@ export const MODULES: Record<ModuleKey, { name: string; key: LabelKey; icon: Luc
       { id: "journal", label: "Journal", key: "nav.journal", phase: 4, blurb: "Private by default. Only you can read it." },
     ],
   },
+  goals: {
+    name: "Goals",
+    key: "t.p_goals",
+    icon: Target,
+    tabs: [
+      { id: "ygoals", label: "Yearly goals", key: "nav.yearly_goals", phase: 4, blurb: "A 52-week strip per goal and this week's step." },
+      { id: "whatif", label: "What if", key: "nav.what_if", phase: 5, blurb: "Move a slider and see what changes for your goals." },
+    ],
+  },
 };
 
-export const MODULE_ORDER: ModuleKey[] = ["money", "time", "invest", "life"];
+export const MODULE_ORDER: ModuleKey[] = ["money", "time", "health", "goals"];
 
 type Tool = { id: string; label: string; key: LabelKey; icon: LucideIcon; phase: number; blurb: string };
 
@@ -93,10 +95,11 @@ export const TOOLS: Tool[] = [
   { id: "alerts", label: "Alerts", key: "nav.alerts", icon: Bell, phase: 1, blurb: "What needs attention, what is coming up, and what is good to know." },
   { id: "report", label: "Monthly report", key: "nav.monthly_report", icon: FileText, phase: 5, blurb: "A print-ready summary of the month, saved as PDF." },
   { id: "ask", label: `Ask ${AI_NAME}`, key: "ui.ask_name", icon: Sparkles, phase: 5, blurb: "Ask about your money and plans. Answers come with numbers and a next step." },
-  { id: "whatif", label: "What if", key: "nav.what_if", icon: SlidersHorizontal, phase: 5, blurb: "Move a slider and see what changes for your goals." },
   { id: "plan", label: "Plan & billing", key: "nav.plan_billing", icon: CreditCard, phase: 7, blurb: "" },
   { id: "settings", label: "Settings", key: "nav.settings", icon: Settings, phase: 0, blurb: "" },
   { id: "help", label: "Help", key: "ui.help", icon: CircleHelp, phase: 7, blurb: "" },
+  { id: "wrapped", label: "Life Wrapped", key: "ui.wrapped", icon: Share2, phase: 6, blurb: "Your month as one card you can share." },
+  { id: "built", label: "How it was built", key: "ui.built", icon: Layers, phase: 6, blurb: "The story of how this app was made." },
   { id: "setup", label: "Setup & data", key: "nav.setup_data", icon: ListChecks, phase: 1, blurb: "Put your real data in, step by step." },
 ];
 
@@ -128,22 +131,6 @@ export function screenInfo(id: string): ScreenInfo | undefined {
   const tool = TOOLS.find((t) => t.id === id);
   if (tool) return { id, title: tool.label, phase: tool.phase, blurb: tool.blurb };
   return undefined;
-}
-
-export const BOTTOM_TABS: { key: string; label: LabelKey; icon: LucideIcon; href: string; orb?: boolean }[] = [
-  { key: "home", label: "nav.home", icon: House, href: "/" },
-  { key: "money", label: "nav.money", icon: Wallet, href: "/budget" },
-  { key: "ask", label: "ui.ask_name", icon: Sparkles, href: "/ask", orb: true },
-  { key: "map", label: "ui.map", icon: Map, href: "/map" },
-  { key: "more", label: "nav.more", icon: LayoutGrid, href: "/more" },
-];
-
-export function bottomTabOf(screen: string): string {
-  if (screen === "home") return "home";
-  if (screen === "ask") return "ask";
-  if (screen === "map") return "map";
-  if (moduleOf(screen) === "money" || screen === "subs") return "money";
-  return "more";
 }
 
 export type QuickAddItem = {

@@ -40,7 +40,7 @@ export function DateNightsScreen() {
   if (!time.loaded) {
     return (
       <>
-        <ModuleHeader module="life" active="together" />
+        <ModuleHeader module="health" active="together" />
         <ScreenSkeleton />
       </>
     );
@@ -49,7 +49,7 @@ export function DateNightsScreen() {
   if (time.loaded && !time.dateNights.length && !time.dateIdeas.length) {
     return (
       <>
-        <ModuleHeader module="life" active="together" />
+        <ModuleHeader module="health" active="together" />
         <ScreenEmpty eyebrow={label("nav.date_nights")} title={t("e_together")} action={t("b_date")} onAction={() => openForm("datenight", undefined, { date: friday })} />
       </>
     );
@@ -57,7 +57,7 @@ export function DateNightsScreen() {
 
   return (
     <>
-      <ModuleHeader module="life" active="together" />
+      <ModuleHeader module="health" active="together" />
 
       <div className="grid items-stretch gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
         <section className="flex flex-col gap-3 rounded-[18px] bg-inv p-6 text-white">

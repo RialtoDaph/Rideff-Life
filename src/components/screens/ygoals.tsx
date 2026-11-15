@@ -11,6 +11,7 @@ import { AddButton, Card, OwnerPill, PrivateMark } from "@/components/ui";
 import { AppIcon } from "@/lib/icons";
 import { addDays, goalStatus, goalTip, weekOfYear, weekStart, weekStrip, type GoalStatus, type YearlyGoal } from "@/lib/time";
 import { useDates } from "@/lib/use-dates";
+import { HeroBlock } from "@/components/ds/hero-block";
 import { ModuleHeader } from "./module-tabs";
 import { ScreenSkeleton } from "@/components/skeleton";
 
@@ -35,7 +36,7 @@ export function YearlyGoalsScreen() {
   if (!time.loaded) {
     return (
       <>
-        <ModuleHeader module="time" active="ygoals" />
+        <ModuleHeader module="goals" active="ygoals" />
         <ScreenSkeleton />
       </>
     );
@@ -44,7 +45,7 @@ export function YearlyGoalsScreen() {
   if (time.loaded && !goals.length) {
     return (
       <>
-        <ModuleHeader module="time" active="ygoals" />
+        <ModuleHeader module="goals" active="ygoals" />
         <ModuleEmpty screen="ygoals" eyebrow={label("nav.yearly_goals")} onAction={() => openForm("ygoal")} />
       </>
     );
@@ -52,22 +53,23 @@ export function YearlyGoalsScreen() {
 
   return (
     <>
-      <ModuleHeader module="time" active="ygoals" />
-      <Card className="flex flex-wrap items-center justify-between gap-5">
-        <div>
-          <div className="eyebrow">{tt("year_week", { year: today.y, n: week })}</div>
-          <div className="mt-1 font-serif text-[34px] font-normal tracking-[-0.01em]">{tt("goals_summary", { ok: goals.length - behind, behind })}</div>
-          <div className="mt-2.5">
+      <ModuleHeader module="goals" active="ygoals" />
+      <HeroBlock
+        eyebrow={tt("year_week", { year: today.y, n: week })}
+        number={tt("goals_summary", { ok: goals.length - behind, behind })}
+        textual
+        footer={
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <AddButton onClick={() => openForm("ygoal")} />
+            <div className="min-w-[200px] max-w-[420px] flex-1">
+              <div className="h-2.5 overflow-hidden rounded-full bg-soft2">
+                <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${gone}%` }} />
+              </div>
+              <div className="mt-1.5 text-xs text-mut">{tt("year_gone", { pct: gone, n: 52 - week })}</div>
+            </div>
           </div>
-        </div>
-        <div className="min-w-[200px] max-w-[420px] flex-1">
-          <div className="h-2.5 overflow-hidden rounded-full bg-soft2">
-            <div className="bar-fill h-full rounded-full bg-acc" style={{ width: `${gone}%` }} />
-          </div>
-          <div className="mt-1.5 text-xs text-mut">{tt("year_gone", { pct: gone, n: 52 - week })}</div>
-        </div>
-      </Card>
+        }
+      />
       <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
         {goals.map((g) => (
           <GoalCard key={g.id} g={g} pace={gone} />

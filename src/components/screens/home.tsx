@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useAppData, type Member, useAiName } from "@/components/app-data";
-import { Clopar, type CloparMode } from "@/components/clopar";
-import { CountUp } from "@/components/count-up";
+import { HeroNumber } from "@/components/ds/hero-number";
 import { useMoney } from "@/components/money-data";
 import { useMoneyForms } from "@/components/money-forms";
 import { useOnline } from "@/components/pwa";
@@ -73,46 +72,41 @@ export function HomeScreen() {
   const who = person?.display_name ?? (fresh ? me?.display_name : names);
   const city = household?.home_city;
 
+  const eyebrow = today.y >= 2026 ? `${dates.day(today.iso)}${city ? ` · ${city}` : ""}` : " ";
+  const title = who ? t("greet_name", { greeting, name: who }) : greeting;
+
+  if (!loaded || fresh) {
+    return (
+      <>
+        <PageHeader eyebrow={eyebrow} title={title} />
+        {!loaded ? <ScreenSkeleton numbers={false} /> : <GettingStarted />}
+      </>
+    );
+  }
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3.5">
-        <PageHeader
-          eyebrow={today.y >= 2026 ? `${dates.day(today.iso)}${city ? ` · ${city}` : ""}` : " "}
-          title={who ? t("greet_name", { greeting, name: who }) : greeting}
-        />
-        {loaded && !fresh && (
-          <div className="flex max-w-full flex-wrap items-center gap-2">
-            {members.length > 1 && <PersonFilter members={members} value={scope} onChange={setScope} />}
-            <div className="flex gap-0.5 rounded-full bg-soft2 p-[3px]">
-              <span className="flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-card px-3.5 text-[13px] font-bold text-ink shadow-[0_1px_3px_rgba(0,0,0,.12)]">
-                <List size={15} strokeWidth={2} />
-                {tt("mapList")}
-              </span>
-              <Link href="/map" className="hit44 flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-bold text-mut">
-                <Network size={15} strokeWidth={2} />
-                {tt("mapMap")}
-              </Link>
-            </div>
-          </div>
-        )}
+      <Hero celebrating={celebrating} eyebrow={eyebrow} title={title} />
+      <div className="flex max-w-full flex-wrap items-center gap-2">
+        {members.length > 1 && <PersonFilter members={members} value={scope} onChange={setScope} />}
+        <div className="flex gap-0.5 rounded-full bg-soft2 p-[3px]">
+          <span className="flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-card px-3.5 text-[13px] font-bold text-ink shadow-[0_1px_3px_rgba(0,0,0,.12)]">
+            <List size={15} strokeWidth={2} />
+            {tt("mapList")}
+          </span>
+          <Link href="/map" className="hit44 flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-bold text-mut">
+            <Network size={15} strokeWidth={2} />
+            {tt("mapMap")}
+          </Link>
+        </div>
       </div>
-      {!loaded ? (
-        <ScreenSkeleton numbers={false} />
-      ) : fresh ? (
-        <GettingStarted />
-      ) : (
-        <>
-          <Hero celebrating={celebrating} />
-          <AlertChip />
-          <Briefing scope={scope} />
-          {(scope === "family" || scope === userId) && <InboxCard />}
-          <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
-            <ThreeThings onAllDone={celebrate} />
-            <UpNext scope={scope} />
-          </div>
-          <Goals scope={scope} viewerId={userId} />
-        </>
-      )}
+      <AlertChip />
+      <Briefing scope={scope} />
+      {(scope === "family" || scope === userId) && <InboxCard />}
+      <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+        <ThreeThings onAllDone={celebrate} />
+        <UpNext scope={scope} />
+      </div>
+      <Goals scope={scope} viewerId={userId} />
     </>
   );
 }
@@ -206,16 +200,17 @@ function PersonFilter({ members, value, onChange }: { members: Member[]; value: 
   );
 }
 
-/** The one number. Its stage comes first and stays put with reduced motion; the text beside it says the same. */
-/** Clopar's mood on Home: a smile when today's list is done, leaning in when something needs you, calm otherwise. */
-function Hero({ celebrating }: { celebrating: boolean }) {
+/**
+ * Home's stage: the one number, large, on the left, and the Life Map drawing itself on the right
+ * (the scene lives in the shell). Nothing here has a card behind it: a gradient keeps the words readable.
+ */
+function Hero({ celebrating, eyebrow, title }: { celebrating: boolean; eyebrow: string; title: string }) {
   const aiName = useAiName();
   const t = useTranslations("home");
   const { budget, alerts } = useMoney();
   const hasBudget = budget.flexLimit > 0;
   const over = budget.flexLeft < 0;
   const needs = alerts.filter((a) => a.sev !== "info").length;
-  const mode: CloparMode = celebrating ? "confirm" : needs ? "listen" : "calm";
   const mood = celebrating ? t("clopar_confirm") : needs ? t("clopar_listen", { n: needs }) : t("clopar_calm");
   // Never more than three numbers under the big one.
   const metrics = [
@@ -225,47 +220,42 @@ function Hero({ celebrating }: { celebrating: boolean }) {
   ];
 
   return (
-    <section data-screen-label="Home hero" className="relative grid overflow-hidden rounded-[18px] bg-inv text-white wide:grid-cols-[minmax(0,1fr)_minmax(260px,36%)]">
-      <div className="flex min-w-0 flex-col gap-1 p-6 wide:p-8">
-        <div className="font-mono text-[11px] font-bold uppercase tracking-[.16em] text-acc2">{over ? t("hero_over") : t("flex_left")}</div>
+    <section data-screen-label="Home hero" className="relative isolate flex flex-col justify-start pb-2 pt-[calc(42svh-8px)] wide:min-h-[calc(100svh-220px)] wide:justify-center wide:py-6">
+      <div
+        aria-hidden
+        className="absolute -inset-x-[14px] inset-y-0 -z-10 wide:-inset-x-10 wide:bg-[linear-gradient(90deg,var(--bg)_0%,color-mix(in_oklch,var(--bg)_82%,transparent)_36%,transparent_70%)]"
+      />
+      <div className="flex max-w-[640px] flex-col gap-3">
+        <div className="eyebrow">{eyebrow}</div>
+        <h1 className="m-0 font-serif text-[clamp(28px,4.4vw,46px)] font-normal leading-[1.06] tracking-[-0.01em]">{title}</h1>
+        <div className="mt-6 font-mono text-[11px] font-bold uppercase tracking-[.18em] text-acc">{over ? t("hero_over") : t("flex_left")}</div>
         {hasBudget ? (
           <>
-            <div className="mt-2 font-serif text-[clamp(56px,15vw,84px)] font-normal leading-none tabular-nums tracking-[-0.01em]">
-              <CountUp value={Math.abs(budget.flexLeft)} format={(n) => eur(n, 0)} />
+            <div className="font-serif text-[clamp(84px,19vw,176px)] font-normal leading-[.9] tabular-nums tracking-[-0.03em]">
+              <HeroNumber value={Math.abs(budget.flexLeft)} format={(n) => eur(n, 0)} shareName={budget.flexLeft >= 0 ? "hero-money" : undefined} />
             </div>
-            {over && <div className="mt-1 text-sm text-white/75">{t("flex_over", { over: eur(-budget.flexLeft, 0) })}</div>}
-            <dl className="m-0 mt-5 grid grid-cols-3 gap-3 border-t border-white/15 pt-4">
+            {over && <div className="text-sm text-mut">{t("flex_over", { over: eur(-budget.flexLeft, 0) })}</div>}
+            <dl className="m-0 mt-4 flex max-w-[460px] flex-wrap gap-x-8 gap-y-3 border-t border-line pt-4">
               {metrics.map((m) => (
                 <div key={m.label} className="min-w-0">
-                  <dt className="truncate text-xs font-semibold text-white/55">{m.label}</dt>
+                  <dt className="truncate text-xs font-semibold text-mut2">{m.label}</dt>
                   <dd className="m-0 mt-1 truncate text-xl font-bold tabular-nums">{m.value}</dd>
                 </div>
               ))}
             </dl>
           </>
         ) : (
-          <div className="mt-2 max-w-[38ch] font-serif text-[30px] font-normal leading-[1.15] [text-wrap:pretty]">{t("no_budget")}</div>
+          <div className="max-w-[38ch] font-serif text-[30px] font-normal leading-[1.15] [text-wrap:pretty]">{t("no_budget")}</div>
         )}
-        <Link href="/budget" className="mt-4 flex min-h-11 items-center self-start whitespace-nowrap text-[13px] font-bold text-white hover:text-white">
-          {t("cta_budget")} →
-        </Link>
+        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1">
+          <Link href="/budget" className="hit44 flex min-h-11 items-center whitespace-nowrap text-[13px] font-bold text-ink hover:text-ink">
+            {t("cta_budget")} →
+          </Link>
+          <Link href="/ask" aria-label={`${t("hero_ask_cta", { name: aiName })}. ${mood}`} className="hit44 flex min-h-11 items-center whitespace-nowrap text-[13px] font-bold text-acct hover:text-acct">
+            {mood} · {t("hero_ask_cta", { name: aiName })} →
+          </Link>
+        </div>
       </div>
-      <Link
-        href="/ask"
-        aria-label={`${t("hero_ask_cta", { name: aiName })}. ${mood}`}
-        className="relative flex min-h-[190px] flex-col justify-end border-t border-white/10 bg-inv p-5 text-white hover:text-white wide:min-h-[300px] wide:border-l wide:border-t-0"
-      >
-        <span className="absolute inset-x-0 bottom-14 top-2 bg-inv">
-          <Clopar variant="hero" mode={mode} />
-        </span>
-        <span className="relative flex items-center justify-between gap-3">
-          <span className="min-w-0">
-            <span className="block truncate text-[13px] font-bold">{mood}</span>
-            <span className="mt-0.5 block truncate text-xs text-white/55">{t("hero_ask_sub")}</span>
-          </span>
-          <span className="flex-none whitespace-nowrap text-[13px] font-bold text-acc2">{t("hero_ask_cta", { name: aiName })} →</span>
-        </span>
-      </Link>
     </section>
   );
 }

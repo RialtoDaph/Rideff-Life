@@ -31,7 +31,7 @@ export function InvestScreen() {
   if (!loaded) {
     return (
       <>
-        <ModuleHeader module="invest" active="invest" />
+        <ModuleHeader module="money" active="invest" />
         <ScreenSkeleton />
       </>
     );
@@ -40,7 +40,7 @@ export function InvestScreen() {
   if (loaded && !assets.length) {
     return (
       <>
-        <ModuleHeader module="invest" active="invest" />
+        <ModuleHeader module="money" active="invest" />
         <ScreenEmpty eyebrow={label("nav.overview")} title={t("settings.e_invest")} action={t("t.b_asset")} onAction={() => openForm("asset")} />
       </>
     );
@@ -50,7 +50,7 @@ export function InvestScreen() {
     <>
       <div className="flex flex-col gap-3">
         <PageHeader eyebrow={ts("invest_career")} title={label("nav.overview")} />
-        <ModuleTabs module="invest" active="invest" />
+        <ModuleTabs module="money" active="invest" />
       </div>
 
       <section className="rounded-[10px] bg-inv p-6 text-white">
