@@ -212,7 +212,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       const info = res.data;
       setQuota({ voiceLeft: info.voice_left, aiLeft: info.ai_left });
       try {
-        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current());
+        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current(), info.tts ? { sessionId: info.session_id } : undefined);
         rt.setMuted(mutedRef.current);
         rt.muteMic(micMutedRef.current);
         live.current = { rt, info, voice, turns: [], tools: [] };
