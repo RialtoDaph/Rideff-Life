@@ -30,6 +30,7 @@ export function Compass({ screen }: { screen: string }) {
   return (
     <header
       data-noprint
+      data-stage-scale
       className="fixed inset-x-0 top-0 z-30 flex items-center gap-2 border-b border-line bg-bg px-3 pb-2 pt-[calc(8px+env(safe-area-inset-top))] wide:gap-6 wide:px-8 wide:pb-3 wide:pt-[calc(12px+env(safe-area-inset-top))]"
     >
       <Link href="/" aria-label={label("nav.home")} className="hit44 flex min-w-0 flex-none items-center gap-2.5 text-ink hover:text-ink wide:w-[220px]">

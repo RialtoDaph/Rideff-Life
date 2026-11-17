@@ -24,7 +24,7 @@ export function Dock({ away }: { away: boolean }) {
   const urgent = alerts.some((a) => a.sev !== "info");
 
   return (
-    <div data-noprint className="pointer-events-none fixed inset-x-0 bottom-[calc(14px+env(safe-area-inset-bottom))] z-40 flex justify-center px-3">
+    <div data-noprint data-stage-scale className="pointer-events-none fixed inset-x-0 bottom-[calc(14px+env(safe-area-inset-bottom))] z-40 flex justify-center px-3">
       <div
         data-away={away || undefined}
         className="fab pointer-events-auto flex items-center gap-2 rounded-full border border-line2 bg-card p-1.5 shadow-[0_10px_30px_rgba(0,0,0,.35)]"

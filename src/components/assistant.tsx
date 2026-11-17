@@ -15,6 +15,7 @@ import type { Card, CardStatus } from "@/lib/assistant-tools";
 import { canListen, listenOnce, speak } from "@/lib/browser-voice";
 import { cannedFor, type Canned } from "@/content/canned";
 import { nextCanned, planCanned } from "@/lib/canned-voice";
+import { stageCues } from "@/lib/stage-cues";
 import { dispatchShow, hubForTool, parseShow } from "@/lib/show";
 import { supabase } from "@/lib/supabase";
 import { voiceLevel } from "@/lib/voice-level";
@@ -238,8 +239,11 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         // Pointing at a place is the app's own business; a reading tool also points at its area.
         const hub = c.name === "show" ? parseShow(c.arguments) : hubForTool(c.name);
         if (hub) dispatchShow(hub);
+        stageCues.emit({ t: "tool-start", id: c.call_id, name: c.name, target: hub ?? undefined });
         const res = c.name === "show" ? { data: { output: { shown: hub ?? null } } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
-        steps.current.push({ name: c.name, args: c.arguments, ms: Math.round(performance.now() - began), output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
+        const took = Math.round(performance.now() - began);
+        stageCues.emit({ t: "tool-end", id: c.call_id, name: c.name, ms: took, ok: (() => { const out = res.data?.output; return !!out && typeof out === "object" && !("error" in out); })() });
+        steps.current.push({ name: c.name, args: c.arguments, ms: took, output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
         setLiveSteps([...steps.current]);
         if (res.data?.card) {
           addTurn({ role: "assistant", text: "", card: res.data.card });
@@ -267,6 +271,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       }
       // Any sign of life from the session ends an earlier error card.
       if (event.type === "input_audio_buffer.speech_started" || event.type === "response.created") setError(null);
+      if (event.type === "input_audio_buffer.speech_started") stageCues.emit({ t: "clear" });
       if (event.type === "error") {
         // A stray error event while Clopar listens or speaks is not worth a sticky card. Only a lost answer is.
         setBusy(false);

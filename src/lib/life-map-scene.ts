@@ -339,7 +339,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     linePos = new Float32Array(edges.length * 6);
     const lg = new THREE.BufferGeometry();
     lg.setAttribute("position", new THREE.BufferAttribute(linePos, 3));
-    lineBase = dark ? 0.1 : 0.3;
+    lineBase = dark ? 0.28 : 0.3;
     lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(dark ? colors.acc : token("--line2", "#CDD1D8")), transparent: true, opacity: lineBase }));
     lines.frustumCulled = false;
     scene.add(lines);
@@ -383,14 +383,14 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         num.style.cssText = "font-family:var(--font-serif);font-size:40px;line-height:1";
         num.textContent = n.val === null || n.val === undefined ? "—" : String(n.val);
         const cap = document.createElement("div");
-        cap.style.cssText = "font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mut2);margin-top:2px";
+        cap.style.cssText = "font-family:var(--font-mono);font-size:calc(9px * var(--stage-label,1));font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:2px";
         cap.textContent = n.label;
         d.append(num, cap);
       } else if (n.kind === "hub") {
-        d.style.cssText += ";font-size:12.5px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.08)";
+        d.style.cssText += ";font-size:calc(12.5px * var(--stage-label,1));font-weight:800;padding:4px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.08)";
         d.textContent = n.val === null || n.val === undefined ? n.label : `${n.label}  ${n.val}`;
       } else {
-        d.style.cssText += ";font-size:11.5px;font-weight:700;text-shadow:0 0 6px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)";
+        d.style.cssText += ";font-size:calc(11.5px * var(--stage-label,1));font-weight:700;text-shadow:0 0 6px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)";
         d.textContent = n.label;
       }
       labels.appendChild(d);

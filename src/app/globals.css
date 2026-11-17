@@ -261,7 +261,7 @@ button {
 }
 @utility skeleton {
   border-radius: 8px;
-  background: linear-gradient(90deg, var(--soft2) 0%, var(--soft2) 40%, var(--line) 50%, var(--soft2) 60%, var(--soft2) 100%);
+  background: linear-gradient(90deg, var(--soft2) 0%, var(--soft2) 35%, var(--line2) 50%, var(--soft2) 65%, var(--soft2) 100%);
   background-size: 200% 100%;
   animation: skeleton-sweep 1.6s linear infinite;
 }
@@ -365,6 +365,29 @@ button {
 
 /* The presenter's size (?stage=1): the page drawn larger, for the back of a room. */
 html[data-stage] main,
-html[data-stage] [data-stage-scale] {
+html[data-stage] [data-stage-scale],
+html[data-stage] .sheet-panel,
+html[data-stage] .toast {
   zoom: 1.2;
+}
+html[data-stage] main .sheet-panel {
+  zoom: 1;
+}
+/* On a projector the quiet greys vanish: stronger surfaces and lines, no film grain, readable eyebrows. */
+html[data-stage][data-palette="noir"] {
+  --s1: color-mix(in oklch, var(--bg), var(--ink) 6%);
+  --s2: color-mix(in oklch, var(--bg), var(--ink) 10%);
+  --s3: color-mix(in oklch, var(--bg), var(--ink) 15%);
+  --line: color-mix(in oklch, var(--bg), var(--ink) 30%);
+  --line2: color-mix(in oklch, var(--bg), var(--ink) 40%);
+}
+html[data-stage] {
+  --stage-label: 1.4;
+}
+html[data-stage][data-palette="noir"] body::before {
+  display: none;
+}
+html[data-stage] .eyebrow {
+  font-size: 14px;
+  color: var(--mut);
 }
