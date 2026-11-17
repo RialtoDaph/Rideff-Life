@@ -207,7 +207,7 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
             screen === "home"
               ? "top-[64px] h-[42svh] wide:inset-y-0 wide:top-0 wide:left-[32%] wide:h-auto"
               : mode === "backdrop"
-                ? "inset-y-0 min-[1250px]:left-[calc(50%+460px)]" // beside the detail column, in the gutter on its right
+                ? "inset-y-0 min-[1250px]:left-[calc(50%+360px)] [mask-image:linear-gradient(to_right,transparent,#000_22%)]" // in the gutter on the column's right; its left edge fades out instead of cutting the sphere
                 : "inset-y-0 cursor-grab"
           }`}
         >

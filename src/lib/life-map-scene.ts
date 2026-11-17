@@ -120,7 +120,7 @@ export type LifeMapScene = {
   tier: () => Tier;
   /** Re-reads the theme's colours. */
   repaint: () => void;
-  /** hero: turns by itself; explore: the map as before; backdrop: frozen and dimmed behind a screen; off: not drawn. */
+  /** hero: turns by itself; explore: the map as before; backdrop: slowly turning and dimmed behind a screen (frozen for reduced motion); off: not drawn. */
   setMode: (m: SceneMode) => void;
   pause: () => void;
   resume: () => void;
@@ -140,6 +140,8 @@ export type LifeMapScene = {
 };
 
 const WIDE = 700;
+/** The backdrop is drawn only beside a detail screen on a wide window (the host is transparent below 1250px) and not for reduced motion. */
+const backdropShown = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !window.matchMedia("(max-width: 1250px)").matches;
 const clampZoom = (r: number) => Math.max(90, Math.min(640, r));
 
 let liveScenes = 0;
@@ -805,7 +807,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   }
   const onVisible = () => {
     if (document.hidden) pause();
-    else if (mode === "hero" || mode === "explore") resume();
+    else if (mode === "hero" || mode === "explore" || (mode === "backdrop" && backdropShown())) resume();
   };
   document.addEventListener("visibilitychange", onVisible);
 
@@ -833,9 +835,16 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       if (paused) frame(performance.now());
     },
     setMode(m) {
+      const was = mode;
       mode = m;
-      if (m === "hero") spin = !reduced;
-      if (m === "backdrop" || m === "off") {
+      // The gutter beside a detail screen is narrow: pull the camera back so the whole map fits in it, and restore on leaving.
+      if (m === "backdrop" !== (was === "backdrop")) {
+        zoom = m === "backdrop" ? clampZoom(fitZoom() * 1.45) : fitZoom();
+        if (flight) flight.to = { ...flight.to, r: zoom }; // a flight in progress lands on it
+      }
+      if (m === "hero" || m === "backdrop") spin = !reduced;
+      // Behind a screen the scene keeps turning slowly (it is no longer a still picture); reduced motion freezes it.
+      if (m === "off" || (m === "backdrop" && !backdropShown())) {
         if (flight) pausePending = true;
         else pause();
       } else {
@@ -909,7 +918,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         let to: Flight["to"];
         if (node.kind === "core") {
           anchor = null;
-          to = { th: orbit.th, ph: 1.15, r: fitZoom() };
+          to = { th: orbit.th, ph: 1.15, r: mode === "backdrop" ? clampZoom(fitZoom() * 1.45) : fitZoom() };
         } else {
           const at = meshes[node.id].position;
           anchor = at.clone();

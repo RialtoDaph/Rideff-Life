@@ -391,3 +391,31 @@ html[data-stage] .eyebrow {
   font-size: 14px;
   color: var(--mut);
 }
+
+/* Glass: cards are frosted panes over the particle scene, with a soft top highlight and rim light.
+   Only where the browser can blur; elsewhere the card stays opaque. */
+@supports (backdrop-filter: blur(1px)) {
+  :root[data-theme="dark"] .glass,
+  :root[data-palette="noir"] .glass {
+    background-color: color-mix(in oklch, var(--card) 62%, transparent);
+    background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 38%, transparent 70%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    backdrop-filter: blur(18px) saturate(1.5);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 34px -14px rgba(0, 0, 0, 0.7);
+  }
+  :root:not([data-theme="dark"]):not([data-palette="noir"]) .glass {
+    background-color: color-mix(in oklch, var(--card) 72%, transparent);
+    background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 55%);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 28px -16px rgba(20, 30, 60, 0.25);
+  }
+}
+@media print {
+  .glass {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+}
