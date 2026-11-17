@@ -523,5 +523,15 @@
   "Connecting…",
   "Verbinde…",
   "Menyambungkan…"
+ ],
+ "trace_recorded": [
+  "Recorded earlier",
+  "Früher aufgenommen",
+  "Direkam sebelumnya"
+ ],
+ "trace_prepared": [
+  "Prepared answer",
+  "Vorbereitete Antwort",
+  "Jawaban disiapkan"
  ]
 }

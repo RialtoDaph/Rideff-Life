@@ -36,7 +36,7 @@ function Step({ step }: { step: ToolStep }) {
 /** How one answer was made, from what was heard to what was said. The real record, not a picture of it. */
 function TraceSheet({ traces, onClose }: { traces: TraceEntry[]; onClose: () => void }) {
   const t = useTranslations("assistant");
-  const label = { realtime: t("trace_realtime"), browser: t("trace_browser"), ask: t("trace_ask") };
+  const label = { realtime: t("trace_realtime"), browser: t("trace_browser"), ask: t("trace_ask"), recorded: t("trace_recorded"), prepared: t("trace_prepared") };
   return (
     <Sheet title={t("trace_title")} onClose={onClose}>
       <div className="flex flex-col gap-5">
@@ -88,7 +88,7 @@ export function VoiceCaption() {
   const last = traces.at(-1);
   // While an answer is being made the tools appear as they finish; afterwards the last answer's tools stay with it.
   const cards = liveSteps.length ? liveSteps : talk.mode === "speak" ? (last?.steps ?? []) : [];
-  const active = voiceOn || busy || connecting || talk.mode !== "calm" || !!pendingCard;
+  const active = voiceOn || busy || connecting || talk.mode !== "calm" || !!pendingCard || tier === "recorded" || tier === "prepared";
   if (!active && !error && !typing) return null;
 
   const status = error ? "" : connecting ? t("connecting") : talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? t("listening") : talk.mode === "speak" ? aiName : "";
@@ -115,6 +115,7 @@ export function VoiceCaption() {
         <div role="status" aria-live="polite" className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[.16em] text-mut">
           {status}
           {tier === "browser" && !error && <span className="rounded-full bg-tint px-2 py-0.5 text-acct">{t("trace_browser")}</span>}
+          {(tier === "recorded" || tier === "prepared") && <span className="rounded-full bg-tint px-2 py-0.5 text-acct">{t(tier === "recorded" ? "trace_recorded" : "trace_prepared")}</span>}
         </div>
         {cards.length > 0 && !error && (
           <ul data-testid="tool-cards" className="m-0 flex max-w-full list-none flex-wrap justify-center gap-2 p-0">

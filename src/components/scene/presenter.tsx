@@ -25,7 +25,7 @@ export function Presenter({ scene }: { scene: LifeMapScene | null }) {
   useEffect(() => {
     demoRef.current = demo;
   }, [demo]);
-  const { startVoice, stop, voiceLang, setVoiceLang, micMuted, setMicMuted, tier } = useAssistant();
+  const { startVoice, stop, voiceLang, setVoiceLang, micMuted, setMicMuted, tier, error, playCanned } = useAssistant();
   const langRef = useRef(voiceLang);
   useEffect(() => {
     langRef.current = voiceLang;
@@ -77,6 +77,12 @@ export function Presenter({ scene }: { scene: LifeMapScene | null }) {
         else scene?.resume();
         return;
       }
+      // R plays the next recorded answer (no network); Shift+R repeats the last. The label on screen says it is recorded.
+      if (e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        playCanned(e.shiftKey);
+        return;
+      }
       if (e.key.toLowerCase() === "m") {
         setMicMuted(!micRef.current);
         return;
@@ -100,11 +106,11 @@ export function Presenter({ scene }: { scene: LifeMapScene | null }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, scene, setMicMuted, setVoiceLang, stop]);
+  }, [go, playCanned, scene, setMicMuted, setVoiceLang, stop]);
 
   return (
     <div data-noprint data-stage-scale className="pointer-events-none fixed bottom-2 left-[170px] z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
-      {demo ? "" : "NOT DEMO · "}{beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()}{micMuted && tier !== "browser" ? " · MIC OFF" : ""} · . , I D E M
+      {demo ? "" : "NOT DEMO · "}{beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()}{micMuted && tier !== "browser" ? " · MIC OFF" : ""}{error ? " · VOICE DOWN · R" : ""} · . , I D E M R
     </div>
   );
 }

@@ -2064,7 +2064,9 @@
     "sc_fix_power": "Saat memakai baterai, browser bisa membatasi frame rate ke 30 per detik. Colokkan charger sebelum tampil.",
     "sc_household": "Rumah tangga demo",
     "sc_fix_household": "Ini bukan rumah tangga demo. Masuk sebagai Lena atau Tom sebelum tampil: tur tidak jalan di data asli.",
-    "connecting": "Menyambungkan…"
+    "connecting": "Menyambungkan…",
+    "trace_recorded": "Direkam sebelumnya",
+    "trace_prepared": "Jawaban disiapkan"
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",
