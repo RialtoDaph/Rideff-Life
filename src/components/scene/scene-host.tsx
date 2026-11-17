@@ -55,6 +55,19 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
   const [epoch, setEpoch] = useState(0);
   const life = useLifeData();
 
+  // The presenter's keys do not depend on the 3D scene: a failed or absent scene must not take the tour away.
+  useEffect(() => {
+    const asked = new URLSearchParams(window.location.search).get("stage");
+    let on = asked === "1"; // from the address first: blocked storage must not lose it
+    try {
+      if (asked === "1") sessionStorage.setItem("rideff-stage", "1");
+      else if (asked === "0") sessionStorage.removeItem("rideff-stage");
+      on = asked === "1" || (asked !== "0" && sessionStorage.getItem("rideff-stage") === "1");
+    } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStageMode(on);
+  }, []);
+
   useEffect(() => {
     if (!wanted) return;
     let alive = true;
@@ -75,7 +88,6 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
         made = s;
         // A projector wants a steady picture: cap the density and never step down in the middle of a talk.
         if (staged) s.setQuality({ maxDpr: 1.5, lock: true });
-        setStageMode(staged);
         // The presenter's size: the page is drawn larger for a room (see globals.css).
         if (staged) document.documentElement.dataset.stage = "1";
         // A hook for the end-to-end tests and the stage readout; nothing in the app reads it.
@@ -153,7 +165,7 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
         </div>
       </div>
       {stageMode && scene && <StageHud scene={scene} />}
-      {stageMode && scene && <Presenter scene={scene} />}
+      {stageMode && <Presenter scene={scene} />}
       {children}
     </Ctx>
   );

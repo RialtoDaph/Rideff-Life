@@ -15,6 +15,8 @@ const fail = (error: string, status: number) => Response.json({ error }, { statu
 
 export async function POST(req: Request) {
   if (!process.env.ANTHROPIC_API_KEY) return fail("Clopar is not set up yet.", 503);
+  // The key check returns only yes or no, not who, so it cannot follow DEMO_ALLOWED_USER_IDS: on the demo deploy this route is closed.
+  if (process.env.DEMO_ALLOWED_USER_IDS?.trim()) return fail("This demo is closed to other accounts.", 403);
   const key = req.headers.get("authorization")?.replace(/^Bearer /, "") ?? "";
   if (!/^efk_[0-9a-f]{64}$/.test(key)) return fail("Missing or wrong key. Make a new one in Settings → Inbox.", 401);
   if (Number(req.headers.get("content-length") ?? 0) > 1_500_000) return fail("Too much at once.", 413);
