@@ -14,10 +14,10 @@ const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isConte
 
 /**
  * The presenter's keys (only with ?stage=1): . or → for the next beat, , or ← for the one before,
- * 1-6 to jump, B to freeze or thaw the scene, and I, D or E to choose the language spoken to Clopar (Indonesian, German, English). A beat opens its screen, flies the camera and, for the
+ * 1-6 to jump, B to freeze or thaw the scene, M to hold back the microphone, and I, D or E to choose the language spoken to Clopar (Indonesian, German, English). A beat opens its screen, flies the camera and, for the
  * last one, wakes Clopar. The person on stage keeps the tempo; nothing runs on a timer.
  */
-export function Presenter({ scene }: { scene: LifeMapScene }) {
+export function Presenter({ scene }: { scene: LifeMapScene | null }) {
   const router = useRouter();
   const { household } = useAppData();
   const demo = household?.name === DEMO_HOUSEHOLD;
@@ -25,7 +25,24 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
   useEffect(() => {
     demoRef.current = demo;
   }, [demo]);
-  const { startVoice, stop, voiceLang, setVoiceLang } = useAssistant();
+  const { startVoice, stop, voiceLang, setVoiceLang, micMuted, setMicMuted, tier } = useAssistant();
+  const langRef = useRef(voiceLang);
+  useEffect(() => {
+    langRef.current = voiceLang;
+  }, [voiceLang]);
+  const micRef = useRef(micMuted);
+  useEffect(() => {
+    micRef.current = micMuted;
+  }, [micMuted]);
+
+  // On stage the talk is in Indonesian, whatever language the app is in; a reload keeps the last choice for the tab.
+  useEffect(() => {
+    let saved: string | null = null;
+    try {
+      saved = sessionStorage.getItem("rideff-voice-lang");
+    } catch {}
+    setVoiceLang(saved === "de" || saved === "en" || saved === "id" ? saved : "id");
+  }, [setVoiceLang]);
   const [beat, setBeat] = useState(0);
   const run = useRef(0);
   const at = useRef({ beat: 0 });
@@ -43,7 +60,7 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
       }
       for (const target of b.fly) {
         if (run.current !== mine) return;
-        await scene.flyTo(target, { ms: 1100 });
+        await scene?.flyTo(target, { ms: 1100 });
         await sleep(700);
       }
       if (b.voice && run.current === mine) void startVoice();
@@ -56,14 +73,23 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
       if (e.metaKey || e.ctrlKey || e.altKey || typing(e.target)) return;
       if (e.key.toLowerCase() === "b") {
         frozen.current = !frozen.current;
-        if (frozen.current) scene.pause();
-        else scene.resume();
+        if (frozen.current) scene?.pause();
+        else scene?.resume();
+        return;
+      }
+      if (e.key.toLowerCase() === "m") {
+        setMicMuted(!micRef.current);
         return;
       }
       const lang = ({ i: "id", d: "de", e: "en" } as Record<string, string>)[e.key.toLowerCase()];
       if (lang) {
+        // Pressing the language already in use must not cut a conversation off.
+        if (lang === langRef.current) return;
         stop(); // a conversation in the old language ends; the next tap on Clopar starts one in the new
         setVoiceLang(lang);
+        try {
+          sessionStorage.setItem("rideff-voice-lang", lang);
+        } catch {}
         return;
       }
       const next = beatForKey(at.current.beat, e.key);
@@ -74,11 +100,11 @@ export function Presenter({ scene }: { scene: LifeMapScene }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, scene, setVoiceLang, stop]);
+  }, [go, scene, setMicMuted, setVoiceLang, stop]);
 
   return (
     <div data-noprint data-stage-scale className="pointer-events-none fixed bottom-2 left-[170px] z-[60] rounded-md border border-line bg-card px-2 py-1 font-mono text-[11px] text-mut">
-      {demo ? "" : "NOT DEMO · "}{beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()} · . , I D E
+      {demo ? "" : "NOT DEMO · "}{beat + 1}/{TOUR.length} · {TOUR[beat].id} · {voiceLang.toUpperCase()}{micMuted && tier !== "browser" ? " · MIC OFF" : ""} · . , I D E M
     </div>
   );
 }

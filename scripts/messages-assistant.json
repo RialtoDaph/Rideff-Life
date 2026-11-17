@@ -518,5 +518,10 @@
   "This is not the demo household. Sign in as Lena or Tom before the talk: the tour will not run on real data.",
   "Das ist nicht der Demo-Haushalt. Melde dich vor dem Auftritt als Lena oder Tom an: Die Tour läuft nicht mit echten Daten.",
   "Ini bukan rumah tangga demo. Masuk sebagai Lena atau Tom sebelum tampil: tur tidak jalan di data asli."
+ ],
+ "connecting": [
+  "Connecting…",
+  "Verbinde…",
+  "Menyambungkan…"
  ]
 }

@@ -2,8 +2,10 @@
 
 import { Keyboard, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAiName } from "@/components/app-data";
+import { ConfirmCard } from "@/components/assistant-card";
 import { useAssistant, type ToolStep, type TraceEntry } from "@/components/assistant";
 import { useErrorText } from "@/components/screens/ask";
 import { Sheet } from "@/components/sheet";
@@ -76,7 +78,9 @@ export function VoiceCaption() {
   const t = useTranslations("assistant");
   const aiName = useAiName();
   const errorText = useErrorText();
-  const { talk, error, tier, traces, liveSteps, voiceOn, busy, send, startVoice, stop } = useAssistant();
+  const { talk, error, tier, traces, liveSteps, voiceOn, busy, connecting, pendingCard, send, startVoice, stop } = useAssistant();
+  // The Map screen carries its own card; every other screen shows it here, so a save request never waits unseen.
+  const onMap = /^\/(?:(?:de|id)\/)?map(?:\/|$)/.test(usePathname());
   const [trace, setTrace] = useState(false);
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
@@ -84,10 +88,10 @@ export function VoiceCaption() {
   const last = traces.at(-1);
   // While an answer is being made the tools appear as they finish; afterwards the last answer's tools stay with it.
   const cards = liveSteps.length ? liveSteps : talk.mode === "speak" ? (last?.steps ?? []) : [];
-  const active = voiceOn || busy || talk.mode !== "calm";
+  const active = voiceOn || busy || connecting || talk.mode !== "calm" || !!pendingCard;
   if (!active && !error && !typing) return null;
 
-  const status = error ? "" : talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? t("listening") : talk.mode === "speak" ? aiName : "";
+  const status = error ? "" : connecting ? t("connecting") : talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? t("listening") : talk.mode === "speak" ? aiName : "";
   const text = error
     ? errorText(error)
     : talk.mode === "think"
@@ -126,6 +130,11 @@ export function VoiceCaption() {
           <p className="m-0 max-w-[min(720px,100%)] font-serif text-[clamp(22px,4.2vw,38px)] font-normal leading-[1.15] tracking-[-0.01em] text-ink [text-shadow:0_2px_16px_var(--bg),0_0_3px_var(--bg)] [text-wrap:balance]">
             {text}
           </p>
+        )}
+        {pendingCard && !onMap && !error && (
+          <div className="pointer-events-auto flex w-[min(420px,calc(100vw-32px))] text-left">
+            <ConfirmCard key={pendingCard.id} card={pendingCard} />
+          </div>
         )}
         {typing && (
           <div className="pointer-events-auto flex w-[min(360px,calc(100vw-32px))] items-center gap-1 rounded-full border border-line bg-card py-[3px] pl-4 pr-[3px]">

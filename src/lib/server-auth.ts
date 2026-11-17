@@ -6,6 +6,17 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export type Authorized = { sb: SupabaseClient; userId: string };
 
+/**
+ * The demo deploy sets DEMO_ALLOWED_USER_IDS (comma-separated user ids). Then only those people may use the
+ * routes behind authorize() (Clopar, voice, tools), so a public sign-up cannot spend the demo's AI budget.
+ * Unset or empty: no restriction, as in production.
+ */
+export function isAllowedUser(userId: string, list = process.env.DEMO_ALLOWED_USER_IDS): boolean {
+  if (!list || !list.trim()) return true; // unset or blank: no restriction
+  const ids = list.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+  return ids.includes(userId.toLowerCase()); // set but without a usable id (",") closes the demo to everyone
+}
+
 export async function authorize(req: Request): Promise<Authorized | Response> {
   const fail = (error: string, status: number) => Response.json({ error }, { status });
   const token = req.headers.get("authorization")?.replace(/^Bearer /, "");
@@ -16,6 +27,7 @@ export async function authorize(req: Request): Promise<Authorized | Response> {
   });
   const { data: who } = await sb.auth.getUser(token);
   if (!who.user) return fail("Please sign in again.", 401);
+  if (!isAllowedUser(who.user.id)) return fail("This demo is closed to other accounts.", 403);
   const { data: me } = await sb.from("members").select("id").eq("id", who.user.id).maybeSingle();
   if (!me) return fail("Only family members can use this.", 403);
   return { sb, userId: who.user.id };

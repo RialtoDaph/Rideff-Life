@@ -30,6 +30,9 @@ const iso = (d) => d.toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
 const monthKey = (d, ago) => iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - ago, 1))).slice(0, 7);
 
+/** The cron compares against the household's own (Berlin) month, so the seed must too. */
+const berlinMonth = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit" }).format(d).slice(0, 7);
+
 /** The whole persona, as rows per table. `ids` carries what must be known first (categories, businesses, members). */
 export function build(today, ids = {}) {
   const mon = addDays(today, -((today.getUTCDay() + 6) % 7));
@@ -53,7 +56,19 @@ export function build(today, ids = {}) {
       ["Telekom · internet & phones", "smartphone", -92, "Rent & utilities", 1], ["Techniker Krankenkasse", "shield", -265, "Insurance & health", 1],
       ["HUK · liability & home", "shield", -38, "Insurance & health", 1], ["Deutschlandticket ×2", "train-front", -98, "Transport", 1],
       ["Figma + Adobe · studio", "laptop", -79, "Business tools", 12], ["LVB · salary (Tom)", "banknote", 2480, null, 28],
-    ].map(([name, icon, amount, c, day_of_month]) => ({ name, icon, amount, category_id: c ? cat(c) : null, day_of_month })),
+    ].map(([name, icon, amount, c, day_of_month]) => ({ name, icon, amount, category_id: c ? cat(c) : null, day_of_month, is_subscription: false, last_used_at: null, last_posted_month: berlinMonth(today) }))
+      // Storyline 2: three subscriptions nobody uses, about 38 a month. Clopar offers to cancel them.
+      // The separate `subscriptions` table is gone (migration 20261105): they are recurring rows with is_subscription.
+      // last_posted_month = this month, so the hourly cron never books them while the demo runs.
+      .concat(
+        [
+          ["Netflix", -13.99, 3, 2], ["Spotify Family", -17.99, 8, 1], ["Disney+", -9.99, 20, 52],
+          ["Fitness app (unused)", -13.99, 11, 74], ["Cloud storage 2 TB (unused)", -13.99, 14, 96],
+        ].map(([name, amount, day_of_month, ago]) => ({
+          name, icon: "tv", amount, category_id: cat("Streaming & apps"), day_of_month,
+          is_subscription: true, last_used_at: addDays(today, -ago).toISOString(), last_posted_month: berlinMonth(today),
+        })),
+      ),
     transactions: [
       [0, -52.3, "REWE Leipzig", "Groceries"], [-1, -24.99, "Amazon.de", "Online shopping"], [-1, -4.8, "Café Cantona", "Coffee & drinks"],
       [-2, -61.4, "Zalando", "Online shopping"], [-3, 540, "Client payment · Weber Verlag", null], [-4, -46.5, "Trattoria Da Marco", "Eating out"],
@@ -71,11 +86,6 @@ export function build(today, ids = {}) {
       { name: "Phone financing", icon: "smartphone", lender: "o2", balance: 380, original: 760, rate_pct: 0, monthly_payment: 32 },
       { name: "Klarna pay later", icon: "credit-card", lender: "Klarna", balance: 214, original: 360, rate_pct: 0, monthly_payment: 70 },
     ],
-    // Storyline 2: three subscriptions nobody uses, about 38 a month. Clopar offers to cancel them.
-    subscriptions: [
-      ["Netflix", 13.99, null], ["Spotify Family", 17.99, null],
-      ["Disney+", 9.99, null], ["Fitness app (unused)", 13.99, null], ["Cloud storage 2 TB (unused)", 13.99, null],
-    ].map(([name, monthly_price, for_whom]) => ({ name, monthly_price, for_whom })),
     // Storyline 3: the VAT pre-return in five days, 612 due, 540 set aside.
     businesses: [{ name: "Lena Brandt Design", sort: 1, mine: true }],
     business_months: [[1, 3150, 480, 190], [2, 2780, 455, 180], [3, 2950, 470, 170]].map(([ago, revenue, costs, tax_set_aside]) => ({ ago, month: monthKey(today, ago), revenue, costs, tax_set_aside })),
@@ -91,8 +101,10 @@ export function build(today, ids = {}) {
     events: [
       ["Client call · Weber Verlag", 0, "09:30", null, "event"], ["Gym", 0, "18:30", null, "event"], ["Invoice run", 1, "10:00", null, "event"],
       ["Tom · early shift", 2, "05:30", "13:30", "shift"], ["Tom · early shift", 3, "05:30", "13:30", "shift"],
-      ["Date night", 4, "19:00", null, "event"], ["VAT pre-return", 5, "09:00", null, "event"],
-    ].map(([title, d, start_time, end_time, kind]) => ({ title, date: iso(addDays(mon, d)), start_time, end_time, kind })),
+      ["Date night", 4, "19:00", null, "event"],
+    ].map(([title, d, start_time, end_time, kind]) => ({ title, date: iso(addDays(mon, d)), start_time, end_time, kind }))
+      // Same day as the VAT deadline above (today + 5), so the week and the tax card tell one story.
+      .concat([{ title: "VAT pre-return", date: iso(addDays(today, 5)), start_time: "09:00", end_time: null, kind: "event" }]),
     yearly_goals: [
       { name: "Read 24 books", icon: "graduation-cap", target: 24, unit: "books", done: 17, step: "1 hour of reading" },
       { name: "Design studio: 8 new clients", icon: "laptop", target: 8, unit: "clients", done: 6, step: "5 outreach messages" },
@@ -110,60 +122,75 @@ export function build(today, ids = {}) {
 
 const rows = (d) => Object.entries(d).map(([t, r]) => `${t.padEnd(18)} ${String(r.length).padStart(3)} rows`);
 
-if (DRY) {
-  const d = build(new Date());
-  console.log(`DRY RUN: nothing is read or written.\nHousehold: ${HOUSEHOLD}, Leipzig\n`);
-  console.log(rows(d).join("\n"));
-  console.log("\nOrder when it runs for real: guard -> rpc reset_my_data -> rename household -> insert every table above.");
-  process.exit(0);
+async function main() {
+  if (DRY) {
+    const d = build(new Date());
+    console.log(`DRY RUN: nothing is read or written.\nHousehold: ${HOUSEHOLD}, Leipzig\n`);
+    console.log(rows(d).join("\n"));
+    console.log("\nOrder when it runs for real: guard -> rpc reset_my_data -> rename household -> insert every table above.");
+    process.exit(0);
+  }
+
+  const env = { ...loadEnv(".env.local"), ...loadEnv(".env.demo.local"), ...process.env };
+  const need = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "DEMO_EMAIL", "DEMO_PASSWORD"].filter((k) => !env[k]);
+  if (need.length) {
+    console.error(`Missing ${need.join(", ")}. Put DEMO_EMAIL and DEMO_PASSWORD in .env.demo.local (git-ignored).`);
+    process.exit(1);
+  }
+  if (!/jfvgfbmilavkkdjohmcl/.test(env.NEXT_PUBLIC_SUPABASE_URL)) {
+    console.error("Refusing: the Supabase URL is not the rideff-life project.");
+    process.exit(1);
+  }
+
+  const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
+  const must = (what, { data, error }) => {
+    if (error) throw new Error(`${what}: ${error.message}`);
+    return data;
+  };
+
+  const { data: auth, error: aerr } = await sb.auth.signInWithPassword({ email: env.DEMO_EMAIL, password: env.DEMO_PASSWORD });
+  if (aerr) throw new Error(`sign-in: ${aerr.message}`);
+  const me = auth.user.id;
+  const members = must("members", await sb.from("members").select("id,email,display_name,household_id"));
+  const hh = must("household", await sb.from("households").select("id,name").limit(1).maybeSingle());
+  const tom = members.find((m) => env.DEMO_TOM_EMAIL && m.email === env.DEMO_TOM_EMAIL)?.id ?? null;
+
+  // Guards: only a fresh or already-demo household, at most two people, and only the person who signed in.
+  const guards = [
+    [members.some((m) => m.id === me && m.email === env.DEMO_EMAIL), "the signed-in member is the demo email"],
+    [hh && (hh.name === HOUSEHOLD || hh.name === "Household"), `household is "${HOUSEHOLD}" or still the default name (is: "${hh?.name}")`],
+    [members.length <= 2, "at most two members"],
+  ];
+  for (const [ok, text] of guards) console.log(`${ok ? "ok  " : "STOP"} ${text}`);
+  if (guards.some(([ok]) => !ok)) process.exit(1);
+  if (CHECK) {
+    console.log("\nGuards pass. Nothing written (--check).");
+    process.exit(0);
+  }
+
+  // Every table this script touches must exist and be readable BEFORE anything is deleted (a renamed table must not leave a half-reset account).
+  const TABLES = ["categories", "incomes", "recurring", "transactions", "goals", "debts", "tax_deadlines", "assets", "events", "yearly_goals", "gym_sessions", "ai_memories", "ai_messages", "ai_pending_actions", "businesses", "business_months"];
+  for (const t of TABLES) must(`probe ${t}`, await sb.from(t).select("*", { head: true, count: "exact" }).limit(1));
+
+  must("reset", await sb.rpc("reset_my_data")); // her own rows (owner_id) only. NOT categories, ai_messages, ai_pending_actions: handled below
+  // Not covered by reset_my_data: categories have no owner (the household's defaults would double up), Clopar's chat and open cards are keyed by member_id.
+  must("clear categories", await sb.from("categories").delete().eq("household_id", hh.id));
+  must("clear chat", await sb.from("ai_messages").delete().eq("member_id", me));
+  // ai_pending_actions allows no DELETE for the app role; an open card is closed instead (its chat snapshot is gone anyway).
+  must("close cards", await sb.from("ai_pending_actions").update({ status: "skipped" }).eq("member_id", me).eq("status", "pending"));
+  must("rename", await sb.from("households").update({ name: HOUSEHOLD, home_city: "Leipzig" }).eq("id", hh.id));
+
+  const cats = must("categories", await sb.from("categories").insert(build(new Date()).categories).select("id,name"));
+  const ids = { cat: Object.fromEntries(cats.map((c) => [c.name, c.id])), me, tom };
+  const d = build(new Date(), ids);
+  const biz = must("business", await sb.from("businesses").insert(d.businesses.map(({ mine, ...b }) => ({ ...b, member_id: mine ? me : null }))).select("id"));
+  for (const t of ["incomes", "recurring", "transactions", "goals", "debts", "tax_deadlines", "assets", "events", "yearly_goals", "gym_sessions", "ai_memories"]) {
+    must(t, await sb.from(t).insert(d[t]));
+  }
+  must("business_months", await sb.from("business_months").insert(d.business_months.map(({ ago, ...m }) => ({ ...m, business_id: biz[0].id }))));
+  console.log("\nDone:\n" + rows(d).join("\n"));
+
 }
 
-const env = { ...loadEnv(".env.local"), ...loadEnv(".env.demo.local"), ...process.env };
-const need = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "DEMO_EMAIL", "DEMO_PASSWORD"].filter((k) => !env[k]);
-if (need.length) {
-  console.error(`Missing ${need.join(", ")}. Put DEMO_EMAIL and DEMO_PASSWORD in .env.demo.local (git-ignored).`);
-  process.exit(1);
-}
-if (!/jfvgfbmilavkkdjohmcl/.test(env.NEXT_PUBLIC_SUPABASE_URL)) {
-  console.error("Refusing: the Supabase URL is not the rideff-life project.");
-  process.exit(1);
-}
-
-const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
-const must = (what, { data, error }) => {
-  if (error) throw new Error(`${what}: ${error.message}`);
-  return data;
-};
-
-const { data: auth, error: aerr } = await sb.auth.signInWithPassword({ email: env.DEMO_EMAIL, password: env.DEMO_PASSWORD });
-if (aerr) throw new Error(`sign-in: ${aerr.message}`);
-const me = auth.user.id;
-const members = must("members", await sb.from("members").select("id,email,display_name,household_id"));
-const hh = must("household", await sb.from("households").select("id,name").limit(1).maybeSingle());
-const tom = members.find((m) => env.DEMO_TOM_EMAIL && m.email === env.DEMO_TOM_EMAIL)?.id ?? null;
-
-// Guards: only a fresh or already-demo household, at most two people, and only the person who signed in.
-const guards = [
-  [members.some((m) => m.id === me && m.email === env.DEMO_EMAIL), "the signed-in member is the demo email"],
-  [hh && (hh.name === HOUSEHOLD || hh.name === "Household"), `household is "${HOUSEHOLD}" or still the default name (is: "${hh?.name}")`],
-  [members.length <= 2, "at most two members"],
-];
-for (const [ok, text] of guards) console.log(`${ok ? "ok  " : "STOP"} ${text}`);
-if (guards.some(([ok]) => !ok)) process.exit(1);
-if (CHECK) {
-  console.log("\nGuards pass. Nothing written (--check).");
-  process.exit(0);
-}
-
-must("reset", await sb.rpc("reset_my_data")); // her own rows only (RLS), including Clopar's messages and memories
-must("rename", await sb.from("households").update({ name: HOUSEHOLD, home_city: "Leipzig" }).eq("id", hh.id));
-
-const cats = must("categories", await sb.from("categories").insert(build(new Date()).categories).select("id,name"));
-const ids = { cat: Object.fromEntries(cats.map((c) => [c.name, c.id])), me, tom };
-const d = build(new Date(), ids);
-const biz = must("business", await sb.from("businesses").insert(d.businesses.map(({ mine, ...b }) => ({ ...b, member_id: mine ? me : null }))).select("id"));
-for (const t of ["incomes", "recurring", "transactions", "goals", "debts", "subscriptions", "tax_deadlines", "assets", "events", "yearly_goals", "gym_sessions", "ai_memories"]) {
-  must(t, await sb.from(t).insert(d[t]));
-}
-must("business_months", await sb.from("business_months").insert(d.business_months.map(({ ago, ...m }) => ({ ...m, business_id: biz[0].id }))));
-console.log("\nDone:\n" + rows(d).join("\n"));
+import { pathToFileURL } from "node:url";
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

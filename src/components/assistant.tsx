@@ -9,7 +9,7 @@ import { useTime } from "@/components/time-data";
 import { useToast } from "@/components/toast";
 import { askClopar } from "@/lib/ask";
 import type { AskAction } from "@/lib/ask-schema";
-import { authedPost, connectRealtime, runAssistantTool, type Realtime, type SessionInfo } from "@/lib/assistant-client";
+import { authedPost, connectRealtime, isMicError, runAssistantTool, type Realtime, type SessionInfo } from "@/lib/assistant-client";
 import { firstSentence, functionCalls, TALK_START, talkStep, type FunctionCall, type Talk } from "@/lib/assistant-events";
 import type { Card, CardStatus } from "@/lib/assistant-tools";
 import { canListen, listenOnce, speak } from "@/lib/browser-voice";
@@ -44,6 +44,9 @@ type Assistant = {
   connecting: boolean;
   voiceOn: boolean;
   muted: boolean;
+  /** The microphone is held back (the session stays open). */
+  micMuted: boolean;
+  setMicMuted: (on: boolean) => void;
   error: AssistantError;
   quota: { voiceLeft: number | null; aiLeft: number | null };
   /** Which voice is in use: the realtime one, or the browser's own listening and speaking. */
@@ -91,6 +94,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const [connecting, setConnecting] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [muted, setMutedState] = useState(false);
+  const [micMuted, setMicMutedState] = useState(false);
+  const micMutedRef = useRef(false);
   const [error, setError] = useState<AssistantError>(null);
   const [quota, setQuota] = useState<Assistant["quota"]>({ voiceLeft: null, aiLeft: null });
   const [tier, setTier] = useState<Assistant["tier"]>(null);
@@ -103,6 +108,9 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     langRef.current = voiceLang;
   }, [voiceLang]);
   const dropRef = useRef<() => void>(() => {});
+  // Bumped by every stop(): a start that was still connecting when the person stopped must not come alive afterwards.
+  const gen = useRef(0);
+  const starting = useRef(false);
 
   const talkRef = useRef(TALK_START);
   const live = useRef<Live | null>(null);
@@ -151,6 +159,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const stop = useCallback(() => {
+    gen.current += 1;
+    setConnecting(false);
     const s = live.current;
     live.current = null;
     browser.current.on = false;
@@ -192,6 +202,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       try {
         const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current());
         rt.setMuted(mutedRef.current);
+        rt.muteMic(micMutedRef.current);
         live.current = { rt, info, voice, turns: [], tools: [] };
         setConnecting(false);
         // A voice session ends when the month's minutes do.
@@ -200,7 +211,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         setConnecting(false);
         void authedPost("/api/assistant/end", { session_id: info.session_id });
-        return { ok: false as const, code: (e instanceof DOMException ? "mic" : "failed") as Exclude<AssistantError, null> };
+        return { ok: false as const, code: (isMicError(e) ? "mic" : "failed") as Exclude<AssistantError, null> };
       }
     },
     [touch],
@@ -243,9 +254,16 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         heardLast.current = event.transcript.trim();
         addTurn({ role: "user", text: event.transcript.trim() });
       }
+      // Any sign of life from the session ends an earlier error card.
+      if (event.type === "input_audio_buffer.speech_started" || event.type === "response.created") setError(null);
       if (event.type === "error") {
-        setError("failed");
+        // A stray error event while Clopar listens or speaks is not worth a sticky card. Only a lost answer is.
         setBusy(false);
+        if (before.mode === "think") {
+          setError("failed");
+          setTalk({ ...TALK_START, mode: s?.voice ? "listen" : "calm", live: !!s?.voice });
+        }
+        return;
       }
       if (event.type !== "response.done") return;
       const calls = functionCalls(event);
@@ -309,24 +327,46 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     };
   }, [beginBrowser, stop]);
 
-  const startVoice = useCallback(async () => {
-    if (live.current?.voice || browser.current.on) return true;
-    stop();
-    const res = await open(true);
-    if (!res.ok) {
-      // No realtime voice (no key, no connection): the browser can still listen and speak.
-      if ((res.code === "not_configured" || res.code === "failed") && canListen()) {
-        beginBrowser();
-        return true;
+  const afterOpen = useCallback(
+    (res: Awaited<ReturnType<typeof open>>) => {
+      if (!res.ok) {
+        // No realtime voice (no key, no connection): the browser can still listen and speak.
+        if ((res.code === "not_configured" || res.code === "failed") && canListen()) {
+          beginBrowser();
+          return true;
+        }
+        setError(res.code);
+        return false;
       }
-      setError(res.code);
-      return false;
+      setTier("realtime");
+      setVoiceOn(true);
+      setTalk({ ...TALK_START, mode: "listen", live: true });
+      return true;
+    },
+    [beginBrowser, setTalk],
+  );
+
+  const startVoice = useCallback(async () => {
+    if (live.current?.voice || browser.current.on) {
+      setError(null); // "Retry" on a session that is still alive just clears the card
+      return true;
     }
-    setTier("realtime");
-    setVoiceOn(true);
-    setTalk({ ...TALK_START, mode: "listen", live: true });
-    return true;
-  }, [beginBrowser, open, setTalk, stop]);
+    if (starting.current) return true; // already connecting: not a failure, so callers must not fall back to another session
+    starting.current = true;
+    try {
+      stop();
+      const g = gen.current;
+      const res = await open(true);
+      if (gen.current !== g) {
+        // Stopped while connecting: close what just opened and stay quiet.
+        if (res.ok) stop();
+        return true; // cancelled on purpose, not a failure
+      }
+      return afterOpen(res);
+    } finally {
+      starting.current = false;
+    }
+  }, [afterOpen, open, stop]);
 
   const send = useCallback(
     async (raw: string, viaAsk = false) => {
@@ -345,7 +385,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
 
       if (!live.current && !viaAsk) {
         const res = await open(false);
-        if (!res.ok && res.code !== "not_configured") {
+        // Only a quota is final. No key or no connection falls through to /api/ask below, so a typed question still gets an answer.
+        if (!res.ok && (res.code === "ai_quota" || res.code === "voice_quota")) {
           setBusy(false);
           setTalk(TALK_START);
           return setError(res.code);
@@ -464,10 +505,38 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     live.current?.rt.setMuted(on);
   }, []);
 
+  const setMicMuted = useCallback((on: boolean) => {
+    micMutedRef.current = on;
+    setMicMutedState(on);
+    live.current?.rt.muteMic(on);
+  }, []);
+
   const clear = useCallback(async () => {
     setTurns([]);
     await supabase().from("ai_messages").delete().eq("member_id", userId);
   }, [userId]);
+
+  // A thinking state that never ends (the model or a tool went quiet) must end: after 30 s the card says so.
+  useEffect(() => {
+    // Realtime voice never sets busy (the person just speaks), so "think" alone arms it.
+    if (talk.mode !== "think") return;
+    const id = setTimeout(() => {
+      setBusy(false);
+      setError("failed");
+      const s = live.current;
+      setTalk({ ...TALK_START, mode: s?.voice ? "listen" : "calm", live: !!s?.voice });
+    }, 45000);
+    return () => clearTimeout(id);
+  }, [talk.mode, setTalk]);
+
+  // Losing the network is a drop like any other: the browser voice takes over, or a card says what happened.
+  useEffect(() => {
+    const off = () => {
+      if (live.current?.voice) dropRef.current();
+    };
+    window.addEventListener("offline", off);
+    return () => window.removeEventListener("offline", off);
+  }, []);
 
   // Close properly when the page goes away, so the minutes and memories are booked.
   useEffect(() => {
@@ -479,8 +548,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? talk.heard || t("listening") : firstSentence(talk.reply);
 
   const value = useMemo<Assistant>(
-    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
-    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear],
+    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, micMuted, setMicMuted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
+    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, micMuted, setMicMuted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

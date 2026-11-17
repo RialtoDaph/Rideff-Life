@@ -24,9 +24,16 @@ export async function authedPost<T>(path: string, body: unknown, keepalive = fal
 }
 
 export const runAssistantTool = (session_id: string, name: string, args: string) =>
-  authedPost<{ output: Record<string, unknown>; card?: Card }>("/api/assistant/tool", { session_id, name, arguments: args });
+  // A tool that hangs must not freeze the conversation: after 15 s the model gets an error output and carries on.
+  authedPost<{ output: Record<string, unknown>; card?: Card }>("/api/assistant/tool", { session_id, name, arguments: args }, false, 15000);
 
-export type Realtime = { send: (event: object) => void; setMuted: (on: boolean) => void; close: () => void; /** Loudness of the microphone and of the voice coming back, now. */ levels: () => { mic: Bands; out: Bands } };
+/** Only a refused or missing microphone is a "mic" problem. A timeout is a DOMException too, and is not. */
+export function isMicError(e: unknown): boolean {
+  const name = (e as { name?: string } | null)?.name;
+  return name === "NotAllowedError" || name === "NotFoundError" || name === "SecurityError" || name === "NotReadableError" || name === "OverconstrainedError";
+}
+
+export type Realtime = { send: (event: object) => void; setMuted: (on: boolean) => void; /** Stops sending the microphone without ending the session (the presenter's M key). */ muteMic: (on: boolean) => void; close: () => void; /** Loudness of the microphone and of the voice coming back, now. */ levels: () => { mic: Bands; out: Bands } };
 
 const SILENT: Bands = { level: 0, bass: 0, mid: 0, high: 0 };
 /** Reads the loudness of a stream, or silence when the browser cannot. */
@@ -63,9 +70,12 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
     out = listenTo(ctx, e.streams[0]);
   };
 
-  const mic = voice ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
-  const heard = mic ? listenTo(ctx, mic) : () => SILENT;
+  let mic: MediaStream | null = null;
+  let heard: () => Bands = () => SILENT;
   try {
+    // Inside the try: a refused microphone must still close the peer connection and the audio context.
+    mic = voice ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
+    heard = mic ? listenTo(ctx, mic) : () => SILENT;
     if (mic) pc.addTrack(mic.getAudioTracks()[0], mic);
     else pc.addTransceiver("audio", { direction: "recvonly" });
 
@@ -105,11 +115,21 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
           if (!closed && pc.connectionState === "disconnected") onDrop();
         }, 3000);
     };
+    // The data channel closing or the microphone vanishing (unplugged, revoked) is a loss too, not silence.
+    channel.onclose = () => {
+      if (!closed) onDrop();
+    };
+    mic?.getAudioTracks()[0]?.addEventListener("ended", () => {
+      if (!closed) onDrop();
+    });
     return {
       levels: () => ({ mic: heard(), out: out() }),
       send: (event) => channel.readyState === "open" && channel.send(JSON.stringify(event)),
       setMuted: (on) => {
         audio.muted = on;
+      },
+      muteMic: (on) => {
+        mic?.getAudioTracks().forEach((t) => (t.enabled = !on));
       },
       close: () => {
         closed = true;

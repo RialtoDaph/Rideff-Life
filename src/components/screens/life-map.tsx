@@ -376,7 +376,7 @@ function Corner({ open, onOpen, onClose, question }: { open: boolean; onOpen: ()
     >
       {open && card && (
         <div className="mb-1 flex w-[min(320px,calc(100vw-28px))]">
-          <ConfirmCard card={card} />
+          <ConfirmCard key={card.id} card={card} />
         </div>
       )}
       {open && line && (
