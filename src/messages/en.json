@@ -2066,7 +2066,11 @@
     "sc_fix_household": "This is not the demo household. Sign in as Lena or Tom before the talk: the tour will not run on real data.",
     "connecting": "Connecting…",
     "trace_recorded": "Recorded earlier",
-    "trace_prepared": "Prepared answer"
+    "trace_prepared": "Prepared answer",
+    "card_cancel_subs": "Cancel these subscriptions?",
+    "card_frees": "Frees per month",
+    "card_months": "{from} → {to} months",
+    "card_never": "never"
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

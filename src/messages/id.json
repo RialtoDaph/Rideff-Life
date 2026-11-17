@@ -2066,7 +2066,11 @@
     "sc_fix_household": "Ini bukan rumah tangga demo. Masuk sebagai Lena atau Tom sebelum tampil: tur tidak jalan di data asli.",
     "connecting": "Menyambungkan…",
     "trace_recorded": "Direkam sebelumnya",
-    "trace_prepared": "Jawaban disiapkan"
+    "trace_prepared": "Jawaban disiapkan",
+    "card_cancel_subs": "Batalkan langganan ini?",
+    "card_frees": "Hemat per bulan",
+    "card_months": "{from} → {to} bulan",
+    "card_never": "tidak pernah"
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

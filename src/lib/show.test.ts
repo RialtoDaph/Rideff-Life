@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hubForTool, parseShow } from "./show";
+import { hubForTool, parseShow, resolveShow, setShowIndex } from "./show";
 
 describe("parseShow", () => {
   it("accepts an area, the core and a screen", () => {
@@ -26,5 +26,29 @@ describe("hubForTool", () => {
   it("leaves proposals and memory alone", () => {
     expect(hubForTool("propose_event")).toBeNull();
     expect(hubForTool("remember")).toBeNull();
+  });
+});
+
+describe("resolveShow", () => {
+  const n = (id: string, label: string) => ({ id, label, kind: "item" });
+  it("finds one item by name, ignoring case and accents", () => {
+    setShowIndex([n("g1", "Emergency fund"), n("g2", "Café budget"), { id: "h-money", label: "Money", kind: "hub" }]);
+    expect(resolveShow('{"target":"emergency FUND"}')).toBe("g1");
+    expect(resolveShow('{"target":"cafe"}')).toBe("g2");
+  });
+  it("prefers areas and screens, and never invents an address", () => {
+    setShowIndex([n("g1", "Budget plan")]);
+    expect(resolveShow('{"target":"budget"}')).toBe("budget");
+    expect(resolveShow('{"target":"//evil.com"}')).toBeNull();
+    expect(resolveShow('{"target":"zzz"}')).toBeNull();
+  });
+  it("returns nothing when the name fits more than one item", () => {
+    setShowIndex([n("a", "Savings car"), n("b", "Savings trip")]);
+    expect(resolveShow('{"target":"savings"}')).toBeNull();
+    expect(resolveShow('{"target":"savings car"}')).toBe("a");
+  });
+  it("does not point at hubs", () => {
+    setShowIndex([{ id: "h-x", label: "Fun", kind: "hub" }]);
+    expect(resolveShow('{"target":"fun"}')).toBeNull();
   });
 });

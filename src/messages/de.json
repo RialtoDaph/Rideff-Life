@@ -2066,7 +2066,11 @@
     "sc_fix_household": "Das ist nicht der Demo-Haushalt. Melde dich vor dem Auftritt als Lena oder Tom an: Die Tour läuft nicht mit echten Daten.",
     "connecting": "Verbinde…",
     "trace_recorded": "Früher aufgenommen",
-    "trace_prepared": "Vorbereitete Antwort"
+    "trace_prepared": "Vorbereitete Antwort",
+    "card_cancel_subs": "Diese Abos kündigen?",
+    "card_frees": "Spart pro Monat",
+    "card_months": "{from} → {to} Monate",
+    "card_never": "nie"
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

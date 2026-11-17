@@ -16,7 +16,7 @@ import { canListen, listenOnce, speak } from "@/lib/browser-voice";
 import { cannedFor, type Canned } from "@/content/canned";
 import { nextCanned, planCanned } from "@/lib/canned-voice";
 import { stageCues } from "@/lib/stage-cues";
-import { dispatchShow, hubForTool, parseShow } from "@/lib/show";
+import { dispatchShow, hubForTool, resolveShow, showLabel } from "@/lib/show";
 import { supabase } from "@/lib/supabase";
 import { voiceLevel } from "@/lib/voice-level";
 
@@ -237,10 +237,10 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         s.tools.push(c.name);
         const began = performance.now();
         // Pointing at a place is the app's own business; a reading tool also points at its area.
-        const hub = c.name === "show" ? parseShow(c.arguments) : hubForTool(c.name);
+        const hub = c.name === "show" ? resolveShow(c.arguments) : hubForTool(c.name);
         if (hub) dispatchShow(hub);
         stageCues.emit({ t: "tool-start", id: c.call_id, name: c.name, target: hub ?? undefined });
-        const res = c.name === "show" ? { data: { output: { shown: hub ?? null } } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
+        const res = c.name === "show" ? { data: { output: (hub ? { shown: showLabel(hub) ?? hub } : { error: "not on the map" }) as Record<string, unknown> } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
         const took = Math.round(performance.now() - began);
         stageCues.emit({ t: "tool-end", id: c.call_id, name: c.name, ms: took, ok: (() => { const out = res.data?.output; return !!out && typeof out === "object" && !("error" in out); })() });
         steps.current.push({ name: c.name, args: c.arguments, ms: took, output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
@@ -533,6 +533,12 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       if (!res.ok) return toast(t("card_failed"));
       setCard(card.id, verb === "save" ? "saved" : verb === "skip" ? "skipped" : "undone");
       if (verb === "skip") return tell("The person dismissed the card; nothing was saved.");
+      if (verb === "save" && card.kind === "cancel_subs") {
+        // The freed money visibly flows to the goal that gets it.
+        const subs = (Array.isArray(card.args.subs) ? card.args.subs : []) as { id: string }[];
+        const goal = card.args.goal as { id: string } | null;
+        if (goal) stageCues.emit({ t: "transfer", from: subs.map((x) => `s-${x.id}`), to: `g-${goal.id}` });
+      }
       await Promise.all([money.reload(), time.reload()]);
       if (verb === "undo") return tell("The person undid the saved card.");
       tell("The person saved the card.");

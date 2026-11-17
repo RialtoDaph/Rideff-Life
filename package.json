@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:e2e:build": "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54399 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=stub next build"
+    "test:e2e:build": "NEXT_PUBLIC_E2E=1 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54399 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=stub next build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

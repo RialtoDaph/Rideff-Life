@@ -97,7 +97,7 @@ const STREAM_VERT = /* glsl */ `
     float dist = max(1.0, -mv.z);
     gl_PointSize = max(1.5, uSize * uScale * (0.6 + 0.8 * aHead) / dist);
     vColor = aColor;
-    vAlpha = (0.25 + 0.75 * aHead) * smoothstep(uFocus * 2.6, uFocus * 1.15, dist);
+    vAlpha = min(1.0, (0.25 + 0.75 * aHead) * smoothstep(uFocus * 2.6, uFocus * 1.15, dist));
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -129,7 +129,11 @@ export type LifeMapScene = {
   /** lock stops the scene stepping down a tier by itself; maxDpr caps the pixel ratio. */
   setQuality: (q: { maxDpr?: number; tier?: Tier; lock?: boolean }) => void;
   /** frames = drawn so far, paused = the loop is stopped, live = scenes alive in this page (one, if nothing leaks). */
-  stats: () => { fps: number; tier: Tier; dpr: number; frames: number; paused: boolean; live: number };
+  stats: () => { pulses: number; fps: number; tier: Tier; dpr: number; frames: number; paused: boolean; live: number };
+  /** A tool is working on this area or item: its streams speed up and brighten until end() is called (or 8 s pass). */
+  pulse: (target: string) => { end: () => void };
+  /** Money moves: particles leave the `from` items, pass their area and the target's area, and arrive at `to`, which flashes. Resolves on arrival (at once for reduced motion or a paused scene). */
+  transfer: (from: string[], to: string, o?: { ms?: number }) => Promise<void>;
   /** The voice's state and levels. Stored for the part that draws them (Clopar). */
   setVoice: (v: VoiceFrame) => void;
   dispose: () => void;
@@ -223,6 +227,26 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   let streamJitter = new Float32Array(0);
   let streamHead = new Float32Array(0);
   const STREAM = TIERS.high.stream;
+  // Tools at work: each pulse speeds up and brightens the streams on its edges, so a tool call is something you can see.
+  const pulses = new Map<number, { id: string; start: number; release: number }>();
+  let pulseSeq = 0;
+  let pulseCount = 0;
+  let edgeBoost = new Float32Array(0);
+  let edgeOffset = new Float32Array(0);
+  let lastPulseT = 0;
+  // Money in flight: a short-lived point cloud per transfer, and when each arrival flashed.
+  type Transfer = { from: string[]; to: string; t0: number; ms: number; delay: Float32Array; per: number; jit: Float32Array; pts: Three.Points; done: () => void };
+  const transfers = new Set<Transfer>();
+  const flashes = new Map<string, number>();
+  let accHex = "#3355FF";
+  function endTransfer(tr: Transfer) {
+    transfers.delete(tr);
+    scene.remove(tr.pts);
+    tr.pts.geometry.dispose();
+    (tr.pts.material as Three.Material).dispose();
+    flashes.set(tr.to, performance.now());
+    tr.done();
+  }
 
   function clear() {
     for (const o of [...scene.children]) {
@@ -238,6 +262,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
   function build() {
     if (!graph) return;
     clear();
+    // A rebuild (new data arriving) must not cut a transfer short: its points go back in.
+    transfers.forEach((tr) => scene.add(tr.pts));
     const css = getComputedStyle(document.documentElement);
     const token = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
     const bg = new THREE.Color(token("--bg", "#ffffff"));
@@ -250,6 +276,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       bad: token("--bad", "#E5383B"),
       neu: token("--mut2", "#8E94A0"),
     };
+    accHex = colors.acc;
     const { nodes, edges } = graph;
     byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
     meshes = {};
@@ -602,15 +629,17 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         me.position.set(h.pos[0] + (n.pos[0] - h.pos[0]) * k, h.pos[1] + (n.pos[1] - h.pos[1]) * k + Math.sin(tt * 0.8 + n.ph) * 1.2, h.pos[2] + (n.pos[2] - h.pos[2]) * k);
       }
       const o = openness[n.id];
+      const fl = flashes.get(n.id);
+      const flashAge = fl === undefined ? 9e9 : now - fl;
       const pulse = n.st === "bad" ? 1 + Math.sin(tt * 3 + n.ph) * 0.12 : 1;
-      me.scale.setScalar(n.r * pulse * (leaf ? 0.7 + 0.3 * o : 1) * (hover === n.id || selected === n.id ? 1.35 : 1));
+      me.scale.setScalar(n.r * pulse * (leaf ? 0.7 + 0.3 * o : 1) * (hover === n.id || selected === n.id ? 1.35 : 1) * (1 + 0.25 * Math.sin(Math.PI * Math.min(1, flashAge / 400))));
       const pts = me.userData.pts as Three.Points;
       pts.rotation.y = tt * 0.2 + n.ph;
       const u = (pts.material as Three.ShaderMaterial).uniforms.uOpacity;
       const wantA = (on ? (pts.userData.gain as number) : 0.06) * intro;
       u.value += (wantA - u.value) * (reduced ? 1 : 0.12);
       haloPos.set([me.position.x, me.position.y, me.position.z], i * 3);
-      const glow = (on ? (dark ? 0.2 : 0.1) : 0) * intro * (n.kind === "core" ? 1.3 + shared.uVoice.value * 1.4 : 1 + shared.uVoice.value * 0.4) * (selected === n.id || hover === n.id ? 1.6 : 1);
+      const glow = (on ? (dark ? 0.2 : 0.1) : 0) * intro * (n.kind === "core" ? 1.3 + shared.uVoice.value * 1.4 : 1 + shared.uVoice.value * 0.4) * (selected === n.id || hover === n.id ? 1.6 : 1) * (1 + 2.5 * Math.max(0, 1 - flashAge / 900));
       haloAlpha[i] += (glow - haloAlpha[i]) * (reduced ? 1 : 0.12);
     });
     halo.geometry.attributes.position.needsUpdate = true;
@@ -620,6 +649,59 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     ring.lookAt(camera.position);
     ring.rotation.z = tt * 0.4;
 
+    for (const tr of [...transfers]) {
+      const pos = tr.pts.geometry.attributes.position as Three.BufferAttribute;
+      const head = tr.pts.geometry.attributes.aHead as Three.BufferAttribute;
+      const dst = meshes[tr.to]?.position;
+      const dstHub = meshes[`h-${byId[tr.to]?.hub}`]?.position ?? dst;
+      let live = false;
+      for (let i = 0; i < tr.delay.length; i++) {
+        const src = meshes[tr.from[Math.floor(i / tr.per)]];
+        const hubPos = meshes[`h-${byId[tr.from[Math.floor(i / tr.per)]]?.hub}`]?.position ?? src?.position;
+        const raw = (now - tr.t0 - tr.delay[i]) / tr.ms;
+        if (!src || !dst || raw <= 0 || raw >= 1) {
+          if (raw < 1) live = true;
+          pos.setXYZ(i, 1e5, 1e5, 1e5);
+          continue;
+        }
+        live = true;
+        const u = flyEase(raw);
+        // Four points, three legs: item, its area, the target's area, the target.
+        const path = [src.position, hubPos!, dstHub!, dst];
+        const f = Math.min(2.999, u * 3);
+        const leg = Math.floor(f);
+        const w = f - leg;
+        const a = path[leg];
+        const b = path[leg + 1];
+        const j = Math.sin(Math.PI * u) * 1.6;
+        pos.setXYZ(i, a.x + (b.x - a.x) * w + tr.jit[i * 3] * j, a.y + (b.y - a.y) * w + tr.jit[i * 3 + 1] * j, a.z + (b.z - a.z) * w + tr.jit[i * 3 + 2] * j);
+        head.setX(i, 0.4 + 0.6 * u);
+      }
+      pos.needsUpdate = true;
+      head.needsUpdate = true;
+      if (!live) endTransfer(tr);
+    }
+    if (edgeBoost.length !== edges.length) {
+      edgeBoost = new Float32Array(edges.length);
+      edgeOffset = new Float32Array(edges.length);
+    }
+    const dt = Math.min(0.05, lastPulseT ? (t - lastPulseT) / 1000 : 0.016);
+    lastPulseT = t;
+    const touched = new Set<string>();
+    for (const [k, p] of pulses) {
+      if (now > p.release) {
+        pulses.delete(k);
+        continue;
+      }
+      touched.add(p.id);
+      const n = byId[p.id];
+      if (n && n.kind !== "hub" && n.kind !== "core" && n.hub) touched.add(`h-${n.hub}`);
+    }
+    edges.forEach(([a, b], i) => {
+      const want = touched.has(a) || touched.has(b) ? 1 : 0;
+      edgeBoost[i] += (want - edgeBoost[i]) * (want ? 0.18 : 0.06);
+      edgeOffset[i] += dt * 0.08 * (1 + 5 * edgeBoost[i]);
+    });
     edges.forEach(([a, b], i) => {
       const A = meshes[a].position;
       const B = meshes[b].position;
@@ -631,13 +713,13 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
           streamPos[o] = streamPos[o + 1] = streamPos[o + 2] = 1e5;
           continue;
         }
-        const p = (streamPhase[i * STREAM + q] + tt * 0.08) % 1;
+        const p = (streamPhase[i * STREAM + q] + (reduced ? 0 : edgeOffset[i])) % 1;
         const w = Math.sin(p * Math.PI);
         streamPos[o] = A.x + (B.x - A.x) * p + streamJitter[o] * w;
         streamPos[o + 1] = A.y + (B.y - A.y) * p + streamJitter[o + 1] * w;
         streamPos[o + 2] = A.z + (B.z - A.z) * p + streamJitter[o + 2] * w;
         // Brighter and larger towards the end it is heading for: the direction can be read.
-        streamHead[i * STREAM + q] = p * p * intro;
+        streamHead[i * STREAM + q] = p * p * intro * (1 + 1.2 * edgeBoost[i]);
       }
     });
     lines.geometry.attributes.position.needsUpdate = true;
@@ -761,6 +843,61 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         resume();
       }
     },
+    transfer(from, to, o) {
+      const ids = from.filter((id) => meshes[id]).slice(0, 6);
+      if (!meshes[to] || !ids.length) return Promise.resolve();
+      if (reduced || paused) {
+        flashes.set(to, performance.now());
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        const per = Math.max(10, Math.min(80, Math.floor(240 / ids.length)));
+        const n = per * ids.length;
+        const g = new THREE.BufferGeometry();
+        const col = new THREE.Color(accHex);
+        g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3).fill(1e5), 3));
+        g.setAttribute("aColor", new THREE.BufferAttribute(Float32Array.from({ length: n * 3 }, (_, i) => [col.r, col.g, col.b][i % 3]), 3));
+        g.setAttribute("aHead", new THREE.BufferAttribute(new Float32Array(n).fill(0.6), 1));
+        const m = new THREE.ShaderMaterial({
+          vertexShader: STREAM_VERT,
+          fragmentShader: STREAM_FRAG,
+          uniforms: { uScale: shared.uScale, uFocus: shared.uFocus, uSize: { value: 2.6 }, uOpacity: { value: 1 } },
+          transparent: true,
+          depthWrite: false,
+          blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending,
+        });
+        const pts = new THREE.Points(g, m);
+        pts.frustumCulled = false;
+        scene.add(pts);
+        const tr: Transfer = {
+          from: ids,
+          to,
+          t0: performance.now(),
+          ms: o?.ms ?? 1800,
+          per,
+          delay: Float32Array.from({ length: n }, () => Math.random() * 500),
+          jit: Float32Array.from({ length: n * 3 }, () => Math.random() - 0.5),
+          pts,
+          done: resolve,
+        };
+        transfers.add(tr);
+      });
+    },
+    pulse(target) {
+      const node = byId[`h-${target}`] ?? byId[target];
+      if (!node || reduced) return { end() {} };
+      const key = ++pulseSeq;
+      const start = performance.now();
+      pulses.set(key, { id: node.id, start, release: start + 8000 });
+      pulseCount++;
+      return {
+        end() {
+          const p = pulses.get(key);
+          // Hold the glow long enough to be seen even when the tool was quick.
+          if (p) p.release = Math.max(performance.now(), p.start + 700);
+        },
+      };
+    },
     pause,
     resume,
     flyTo(target, o) {
@@ -797,13 +934,14 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       else applyDpr();
       rescale();
     },
-    stats: () => ({ fps: Math.round(fps), tier, dpr: renderer.getPixelRatio(), frames: framesDrawn, paused, live: liveScenes }),
+    stats: () => ({ pulses: pulseCount, fps: Math.round(fps), tier, dpr: renderer.getPixelRatio(), frames: framesDrawn, paused, live: liveScenes }),
     setVoice(v) {
       // Only the overall level is kept for now; the shaders that use it come with Clopar.
       // The point size grows with this, so it is capped: loud speech must not cost the projector its frame rate.
       voiceTarget = Math.max(0, Math.min(1, v.level)) * 0.5;
     },
     dispose() {
+      [...transfers].forEach(endTransfer);
       document.removeEventListener("visibilitychange", onVisible);
       flight?.done();
       flight = null;
