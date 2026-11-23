@@ -220,7 +220,7 @@ function Hero({ celebrating, eyebrow, title }: { celebrating: boolean; eyebrow: 
   ];
 
   return (
-    <section data-screen-label="Home hero" className="relative isolate flex flex-col justify-start pb-2 pt-[calc(42svh-8px)] wide:min-h-[calc(100svh-220px)] wide:justify-center wide:py-6">
+    <section data-screen-label="Home hero" className="relative isolate flex flex-col justify-start pb-2 pt-[calc(42svh-8px)] wide:min-h-[calc(100svh-322px)] wide:justify-center wide:py-6">
       <div
         aria-hidden
         className="absolute -inset-x-[14px] inset-y-0 -z-10 wide:-inset-x-10 wide:bg-[linear-gradient(90deg,var(--bg)_0%,color-mix(in_oklch,var(--bg)_82%,transparent)_36%,transparent_70%)]"

@@ -2007,6 +2007,7 @@
     "f_monthly": "Per month",
     "close": "Close",
     "type_to": "Type to {name}",
+    "ask_name": "Ask {name}",
     "type_instead": "Type instead",
     "mem_title": "What {name} remembers",
     "mem_sub": "Only you see your private memories. Shared ones are visible to everyone in your household.",

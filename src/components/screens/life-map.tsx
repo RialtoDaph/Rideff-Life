@@ -1,6 +1,6 @@
 "use client";
 
-import { Keyboard, Maximize, Mic, RotateCw, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowLeft, Keyboard, Maximize, Mic, RotateCw, Volume2, VolumeX, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -124,9 +124,22 @@ function LifeMap() {
 
       <div className="pointer-events-none absolute inset-x-3 top-[calc(env(safe-area-inset-top)+12px)] z-[2] flex items-start justify-between gap-2">
         <div className="pointer-events-auto flex min-w-0 flex-col gap-2">
-          <div className="flex items-center gap-2 self-start rounded-full border border-line bg-card py-[5px] pl-[5px] pr-3.5 shadow-[0_4px_16px_rgba(0,0,0,.06)]">
-            <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-acc text-[12.5px] font-bold text-onacc">{score.total ?? "—"}</span>
-            <h1 className="m-0 whitespace-nowrap text-[13px] font-bold">{ui("life_map")}</h1>
+          <div className="flex items-center gap-2 self-start">
+            {/* The way out, named as what it is. The × in the toolbar reads as a tool, not as "go back". */}
+            <Link
+              href="/"
+              onClick={() => void scene?.flyTo("core", { ms: 600 })}
+              aria-label={ui("back_home")}
+              title={ui("back_home")}
+              className="hit44 glass flex h-11 flex-none items-center justify-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-[13px] font-bold text-ink hover:text-ink"
+            >
+              <ArrowLeft size={18} strokeWidth={2.2} />
+              <span className="hidden wide:inline">{ui("back_home")}</span>
+            </Link>
+            <div className="glass flex items-center gap-2 rounded-full border border-line bg-card py-[5px] pl-[5px] pr-3.5 shadow-[0_4px_16px_rgba(0,0,0,.06)]">
+              <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-acc text-[12.5px] font-bold text-onacc">{score.total ?? "—"}</span>
+              <h1 className="m-0 whitespace-nowrap text-[13px] font-bold">{ui("life_map")}</h1>
+            </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {score.pillars.map((p) => {
@@ -406,14 +419,18 @@ function Corner({ open, onOpen, onClose, question }: { open: boolean; onOpen: ()
         onClick={() => (open ? void startVoice() : onOpen())}
         aria-label={aiName}
         className={`pointer-events-auto border-0 bg-transparent p-0 transition-[width,height] duration-500 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
-          open ? "h-[min(220px,46vw)] w-[min(220px,46vw)]" : "h-24 w-24"
+          open ? "h-[min(220px,46vw)] w-[min(220px,46vw)] wide:h-[260px] wide:w-[260px]" : "h-24 w-24 wide:h-32 wide:w-32"
         }`}
       >
         <span className="relative block h-full w-full">
           <Clopar variant="map" mode={talk.mode} />
         </span>
       </button>
-      {!open && <span className="mr-[22px] text-[11px] font-bold uppercase tracking-[.14em] text-mut">{aiName}</span>}
+      {!open && (
+        <span className="glass pointer-events-none mr-1.5 rounded-full border border-line bg-card px-3 py-1 text-[11px] font-bold uppercase tracking-[.14em] text-ink">
+          {t("ask_name", { name: aiName })}
+        </span>
+      )}
       {open && (
         <div className="pointer-events-auto mr-1.5 flex gap-1.5">
           <button
