@@ -86,7 +86,8 @@ export function HomeScreen() {
   return (
     <>
       <Hero celebrating={celebrating} eyebrow={eyebrow} title={title} />
-      <div className="flex max-w-full flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-4 desk:grid desk:grid-cols-[1.2fr_1fr] desk:items-start desk:gap-5">
+      <div className="flex max-w-full flex-wrap items-center gap-2 desk:col-span-2">
         {members.length > 1 && <PersonFilter members={members} value={scope} onChange={setScope} />}
         <div className="flex gap-0.5 rounded-full bg-soft2 p-[3px]">
           <span className="flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-card px-3.5 text-[13px] font-bold text-ink shadow-[0_1px_3px_rgba(0,0,0,.12)]">
@@ -99,14 +100,15 @@ export function HomeScreen() {
           </Link>
         </div>
       </div>
-      <AlertChip />
-      <Briefing scope={scope} />
-      {(scope === "family" || scope === userId) && <InboxCard />}
-      <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+      <div className="empty:hidden desk:col-span-2"><AlertChip /></div>
+      <div className="empty:hidden desk:col-span-2"><Briefing scope={scope} /></div>
+      {(scope === "family" || scope === userId) && <div className="desk:col-span-2"><InboxCard /></div>}
+      <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))] desk:contents">
         <ThreeThings onAllDone={celebrate} />
         <UpNext scope={scope} />
       </div>
-      <Goals scope={scope} viewerId={userId} />
+        <div className="desk:col-span-2"><Goals scope={scope} viewerId={userId} /></div>
+      </div>
     </>
   );
 }
@@ -132,7 +134,7 @@ function GettingStarted() {
           <div className="bar-fill h-full rounded-full bg-acci transition-[width] duration-500" style={{ width: `${(done / steps.length) * 100}%` }} />
         </div>
       </section>
-      <section className="rounded-[18px] border border-line bg-card px-4 py-1.5">
+      <section className="glass rounded-[18px] border border-line bg-card px-4 py-1.5">
         {steps.map((s, i) => {
           const inner = (
             <>
@@ -177,7 +179,7 @@ function PersonFilter({ members, value, onChange }: { members: Member[]; value: 
     }),
   ];
   return (
-    <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-line bg-card p-1">
+    <div className="glass flex max-w-full gap-1 overflow-x-auto rounded-full border border-line bg-card p-1">
       {opts.map((o) => {
         const on = value === o.id;
         return (
@@ -291,7 +293,7 @@ function AlertChip() {
   if (!open.length) return null;
   const top = open[0];
   return (
-    <Link href="/alerts" className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-line bg-card px-3.5 py-2.5 text-left text-ink hover:border-line2">
+    <Link href="/alerts" className="glass flex min-h-12 w-full items-center gap-3 rounded-xl border border-line bg-card px-3.5 py-2.5 text-left text-ink hover:border-line2">
       <span className={`h-2 w-2 flex-none rounded-full ${top.sev === "urgent" ? "bg-bad" : "bg-warn"}`} />
       <span className="min-w-0 flex-1 truncate text-sm font-bold">{text(top).title}</span>
       <span className="flex-none whitespace-nowrap text-[12.5px] font-bold text-mut">{t("alerts_n", { n: open.length })} →</span>
@@ -397,7 +399,7 @@ function Briefing({ scope }: { scope: string }) {
   }
 
   return (
-    <section className="flex flex-col gap-2.5 rounded-[18px] border border-line bg-soft py-2.5 pl-4 pr-2.5">
+    <section className="glass flex flex-col gap-2.5 rounded-[18px] border border-line bg-soft py-2.5 pl-4 pr-2.5">
       <div className="flex min-w-0 items-center gap-3">
         <span className="flex-none font-mono text-[11px] font-bold uppercase tracking-[.12em] text-mut">{aiName}</span>
         <span aria-label={text} className={`min-w-0 flex-1 text-sm font-medium leading-normal text-ink ${open ? "" : "line-clamp-2"}`}>
@@ -441,7 +443,7 @@ function ThreeThings({ onAllDone }: { onAllDone: () => void }) {
   const items = [...done.map((d) => ({ ...d, isDone: true, alert: true })), ...open.map((o) => ({ ...o, isDone: false }))].slice(0, 3);
 
   return (
-    <section className="rounded-[18px] border border-line bg-card p-5">
+    <section className="glass rounded-[18px] border border-line bg-card p-5">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="m-0 text-lg font-bold tracking-[-0.01em]">{t("things")}</h2>
         <span className="text-xs font-bold text-mut2">{t("things_done", { n: done.length })}</span>
@@ -508,7 +510,7 @@ function UpNext({ scope }: { scope: string }) {
   const shown = (busy.length ? busy : days).slice(0, 3);
 
   return (
-    <section data-screen-label="Up next" className="flex flex-col gap-1 rounded-[18px] border border-line bg-card p-5">
+    <section data-screen-label="Up next" className="glass flex flex-col gap-1 rounded-[18px] border border-line bg-card p-5">
       <div className="mb-2 flex items-baseline justify-between gap-2.5">
         <h2 className="m-0 text-lg font-bold tracking-[-0.01em]">{t("up_next")}</h2>
         <Link href="/week" className="hit44 whitespace-nowrap py-2 text-[12.5px] font-bold text-mut">
@@ -554,7 +556,7 @@ function Goals({ scope, viewerId }: { scope: string; viewerId: string }) {
 
   return (
     <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))]">
-      <section className="rounded-[18px] border border-line bg-card p-5">
+      <section className="glass rounded-[18px] border border-line bg-card p-5">
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="m-0 text-lg font-bold tracking-[-0.01em]">{t("shared_goals")}</h2>
           <div className="flex items-center gap-2.5">

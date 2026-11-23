@@ -12,6 +12,7 @@ import { AtlasSheet } from "./atlas";
 import { CommandPalette } from "./command-palette";
 import { Compass } from "./compass";
 import { Dock } from "./dock";
+import { Sidebar } from "./sidebar";
 import { VoiceCaption } from "./voice-caption";
 import { QuickAddSheet } from "./quick-add";
 import { ShellContext, useShell, type ShellUI } from "./shell-context";
@@ -32,6 +33,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const dockAway = useScrollingDown(screen);
   // A detail screen is a slab: one opaque column, with the frozen scene visible on both sides of it.
   const slab = sceneModeFor(screen) === "backdrop";
+  // At 1280px and up the four areas live in a left sidebar instead of the top bar (not on the map or Ask, which are full-bleed).
+  const side = screen !== "map" && screen !== "ask" && screen !== "stage-check";
   useServiceWorker();
 
   // ⌘K / Ctrl+K toggles the command palette anywhere.
@@ -65,17 +68,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     <ShellContext value={ui}>
       <SceneHost screen={screen}>
         <HouseholdLive />
-        <Compass screen={screen} />
-        <main className="px-[14px] pb-[calc(140px+env(safe-area-inset-bottom))] pt-[calc(84px+env(safe-area-inset-top))] wide:px-10 wide:pb-[150px] wide:pt-[calc(96px+env(safe-area-inset-top))]">
+        {side && <Sidebar screen={screen} />}
+        <Compass screen={screen} side={side} />
+        <main className={`px-[14px] pb-[calc(140px+env(safe-area-inset-bottom))] pt-[calc(84px+env(safe-area-inset-top))] wide:px-10 wide:pb-[150px] wide:pt-[calc(96px+env(safe-area-inset-top))] ${side ? "desk:pl-[calc(88px+40px)] desk:pt-10" : ""}`}>
           {/* Keyed by screen, so moving between screens fades the old one out and lifts the new one in. */}
           <ViewTransition key={screen} enter="page" exit="page" default="none">
-            <div className={slab ? "mx-auto flex max-w-[880px] flex-col gap-4 wide:rounded-[28px] wide:border wide:border-line wide:bg-bg wide:p-8" : "mx-auto flex max-w-[1120px] flex-col gap-4"}>{children}</div>
+            <div className={slab ? "mx-auto flex max-w-[880px] min-[1280px]:max-w-[1040px] flex-col gap-4 wide:rounded-[28px] wide:border wide:border-line wide:bg-bg wide:p-8 desk:rounded-none desk:border-0 desk:bg-transparent desk:p-0" : `mx-auto flex max-w-[1120px] flex-col gap-4 ${side ? "desk:max-w-[1320px]" : ""}`}>{children}</div>
           </ViewTransition>
         </main>
         {screen !== "ask" && screen !== "map" && (
           <>
             <VoiceCaption />
-            <Dock away={dockAway} />
+            <Dock away={dockAway} side={side} />
           </>
         )}
         {quickAdd && <QuickAddSheet onClose={() => setQuickAdd(false)} />}
