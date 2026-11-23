@@ -11,6 +11,8 @@ import { useErrorText } from "@/components/screens/ask";
 import { Sheet } from "@/components/sheet";
 import { firstSentence } from "@/lib/assistant-events";
 
+const SHOW_SUBTITLE = false;
+
 const prettyArgs = (args: string) => {
   try {
     const o = JSON.parse(args) as Record<string, unknown>;
@@ -92,9 +94,10 @@ export function VoiceCaption() {
   if (!active && !error && !typing) return null;
 
   const status = error ? "" : connecting ? t("connecting") : talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? t("listening") : talk.mode === "speak" ? aiName : "";
+  // The big subtitle of what Clopar hears and says is off for now (it sat on top of the hero number). Errors still show.
   const text = error
     ? errorText(error)
-    : talk.mode === "think"
+    : !SHOW_SUBTITLE || talk.mode === "think"
       ? ""
       : talk.mode === "listen"
         ? talk.heard || (last && !talk.heard ? last.answer : "")
