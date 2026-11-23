@@ -64,8 +64,10 @@ export function BudgetScreen() {
         <WarningsCard />
       </div>
 
-      <IncomePlan />
-      <Incomes />
+      <div className="flex flex-col gap-4 desk:grid desk:grid-cols-2 desk:items-start desk:gap-4">
+        <IncomePlan />
+        <Incomes />
+      </div>
 
       <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))]">
         <Categories monthPct={budget.monthPct} />

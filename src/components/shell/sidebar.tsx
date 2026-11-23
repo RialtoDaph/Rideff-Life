@@ -8,6 +8,7 @@ import { LogoTile } from "@/components/logo";
 import { useMoney } from "@/components/money-data";
 import { useLabel } from "@/components/nav-label";
 import { MODULE_ORDER, MODULES, hrefOf, moduleOf } from "@/lib/nav";
+import { lockedBy } from "@/lib/plans";
 import { Avatar } from "./avatar";
 
 /**
@@ -19,7 +20,7 @@ import { Avatar } from "./avatar";
 export function Sidebar({ screen }: { screen: string }) {
   const t = useTranslations();
   const label = useLabel();
-  const { me, household } = useAppData();
+  const { me, household, plan } = useAppData();
   const { alerts } = useMoney();
   const alertCount = alerts.filter((a) => a.sev !== "info").length;
   const here = moduleOf(screen);
@@ -53,7 +54,9 @@ export function Sidebar({ screen }: { screen: string }) {
                 <span className={word}>{label(m.key)}</span>
               </Link>
               {on &&
-                m.tabs.map((tab) => (
+                m.tabs.map((tab) => {
+                  const need = lockedBy(`/${tab.id}`, plan);
+                  return (
                   <Link
                     key={tab.id}
                     href={hrefOf(tab.id)}
@@ -61,8 +64,10 @@ export function Sidebar({ screen }: { screen: string }) {
                     className={`hidden min-h-9 items-center whitespace-nowrap rounded-[10px] pl-[44px] pr-3 group-hover:flex group-has-[:focus-visible]:flex text-[13px] hover:text-ink ${screen === tab.id ? "bg-soft font-bold text-ink" : "text-mut"}`}
                   >
                     {label(tab.key)}
+                    {need && <span className="ml-1.5 text-[11px] font-bold text-mut2">{need === "plus" ? "Plus" : "Together"}</span>}
                   </Link>
-                ))}
+                  );
+                })}
             </div>
           );
         })}
