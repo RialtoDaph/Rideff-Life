@@ -21,14 +21,20 @@ export async function POST(req: Request) {
   if (auth instanceof Response) return auth;
   const { sb, userId } = auth;
 
-  const body = (await req.json().catch(() => null)) as { mode?: string; locale?: string } | null;
+  const body = (await req.json().catch(() => null)) as { mode?: string; locale?: string; engine?: string } | null;
   const voice = body?.mode === "voice";
   // Typed sessions only ever use OpenAI: without its key there is nothing to open, and no session row may be created for it.
   if (!voice && !process.env.OPENAI_API_KEY) return fail("not_configured", 503);
+  // Voice without the agent engine (engine "realtime", or no agent set up) can only use OpenAI.
+  if (voice && !(agentsOn && body?.engine !== "realtime") && !process.env.OPENAI_API_KEY) return fail("not_configured", 503);
 
   // Asked for before the session row exists: a slow or failed ElevenLabs then never leaves an open row behind
   // (an open voice row is later billed up to an hour), and the Realtime fallback below still answers in time.
-  const signedUrl = voice && agentsOn ? await agentSignedUrl() : null;
+  // The browser asks for engine "realtime" after the agent engine failed to connect on its side (a refused override, a blocked socket).
+  const useAgent = voice && agentsOn && body?.engine !== "realtime";
+  const signedUrl = useAgent ? await agentSignedUrl() : null;
+  // Nothing can answer: say so before any session row, member or memory work.
+  if (useAgent && !signedUrl && !process.env.OPENAI_API_KEY) return fail("failed", 502);
 
   const { data: opened, error } = await sb.rpc("ai_session_start", { p_mode: voice ? "voice" : "text" });
   if (error) {
@@ -68,7 +74,7 @@ export async function POST(req: Request) {
 
   // ElevenAgents: ElevenLabs listens, thinks and speaks. The tools below still run on our server through /api/assistant/tool.
   // If it cannot be opened, Realtime (when its key is set) takes the call instead of leaving the person without a voice.
-  if (voice && agentsOn) {
+  if (useAgent) {
     if (signedUrl) return Response.json({ engine: "elevenagents", token: "", signed_url: signedUrl, instructions, language: spokenLang, spoken: true, tts: false, ...info });
     if (!process.env.OPENAI_API_KEY) {
       await sb.rpc("ai_session_end", { p_session: info.session_id });

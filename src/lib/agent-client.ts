@@ -7,7 +7,10 @@ import { bandsOf, type Bands } from "@/lib/voice-level";
 import type { Realtime } from "@/lib/assistant-client";
 
 export type AgentSession = { signed_url: string; instructions: string; language: string };
-export const AGENT_TOOLS = ["show", "get_budget", "get_goals", "get_week"] as const;
+/** Every tool the screen can run: the same names as TOOLS plus show (a test keeps the two lists equal). Each must also exist on the ElevenLabs agent. */
+export const AGENT_TOOLS = ["show", "get_budget", "get_goals", "get_week", "get_net_worth", "get_subscriptions", "simulate", "propose_transaction", "propose_event", "propose_goal", "propose_cancel_subscriptions", "remember", "forget"] as const;
+const CONNECT_MS = 10000;
+const norm = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();
 
 const SILENT: Bands = { level: 0, bass: 0, mid: 0, high: 0 };
 
@@ -19,6 +22,8 @@ type Event = { type: string; delta?: string; transcript?: string };
 export async function connectAgent(info: AgentSession, onEvent: (e: Event) => void, onDrop: () => void, runTool: RunTool): Promise<Realtime> {
   let closed = false;
   let convo: VoiceConversation | null = null;
+  // Text the person typed during the call: if ElevenLabs echoes it back as a transcript, it must not be saved twice.
+  let typed: { text: string; at: number }[] = [];
   const emit = (e: Event) => {
     if (!closed) onEvent(e);
   };
@@ -38,8 +43,16 @@ export async function connectAgent(info: AgentSession, onEvent: (e: Event) => vo
     ]),
   );
 
+  // The microphone prompt belongs before the timer: a slow click on Allow must not count as a stalled connection, and a refusal stays a mic error.
   try {
-    convo = (await Conversation.startSession({
+    const probe = await navigator.mediaDevices.getUserMedia({ audio: true });
+    probe.getTracks().forEach((t) => t.stop());
+  } catch (e) {
+    closed = true;
+    throw e;
+  }
+
+  const starting = Conversation.startSession({
       signedUrl: info.signed_url,
       connectionType: "websocket",
       textOnly: false,
@@ -52,6 +65,12 @@ export async function connectAgent(info: AgentSession, onEvent: (e: Event) => vo
       onMessage: ({ role, message }) => {
         if (!message?.trim()) return;
         if (role === "user") {
+          typed = typed.filter((t) => Date.now() - t.at < 8000);
+          const echo = typed.findIndex((t) => norm(t.text) === norm(message));
+          if (echo >= 0) {
+            typed.splice(echo, 1); // the echo of what was typed, already shown by the screen
+            return;
+          }
           emit({ type: "input_audio_buffer.speech_stopped" });
           emit({ type: "conversation.item.input_audio_transcription.completed", transcript: message });
           emit({ type: "response.created" });
@@ -69,9 +88,13 @@ export async function connectAgent(info: AgentSession, onEvent: (e: Event) => vo
       onDisconnect: (details) => {
         if (!closed && details.reason !== "user") onDrop();
       },
-    })) as VoiceConversation;
+  }) as Promise<VoiceConversation>;
+  try {
+    // startSession has no timeout of its own: a stalled socket must not freeze voice until the page is reloaded.
+    convo = await Promise.race([starting, new Promise<never>((_, no) => setTimeout(() => no(new Error("agent connect timeout")), CONNECT_MS))]);
   } catch (e) {
     closed = true;
+    void starting.then((c) => c.endSession()).catch(() => {}); // a connect that lands late is torn down
     throw e;
   }
 
@@ -91,7 +114,10 @@ export async function connectAgent(info: AgentSession, onEvent: (e: Event) => vo
       if (closed || e.type !== "conversation.item.create") return;
       const text = e.item?.content?.map((x) => x.text ?? "").join(" ").trim();
       if (!text) return;
-      if (e.item?.role === "user") c.sendUserMessage(text);
+      if (e.item?.role === "user") {
+        typed.push({ text, at: Date.now() });
+        c.sendUserMessage(text);
+      }
       else c.sendContextualUpdate(text);
     },
     setMuted: (on) => c.setVolume({ volume: on ? 0 : 1 }),

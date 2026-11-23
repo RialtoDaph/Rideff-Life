@@ -201,14 +201,17 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     [stop],
   );
 
+  // open() calls itself once with Realtime when the ElevenAgents link fails: through a ref, as a callback cannot reference itself.
+  const openRef = useRef<(voice: boolean, engine?: "realtime") => Promise<{ ok: true } | { ok: false; code: Exclude<AssistantError, null> }>>(async () => ({ ok: false, code: "failed" }));
   // Set below, once runOne exists: the ElevenAgents session calls its tools through it.
   const agentToolRef = useRef<(name: string, args: string) => Promise<string>>(async () => JSON.stringify({ error: "Tool failed." }));
 
   const open = useCallback(
-    async (voice: boolean) => {
+    async (voice: boolean, engine?: "realtime") => {
+      const g0 = gen.current;
       setConnecting(true);
       setError(null);
-      const res = await authedPost<SessionInfo & { spoken: boolean; code?: string; engine?: string; signed_url?: string; instructions?: string; language?: string }>("/api/assistant/session", { mode: voice ? "voice" : "text", locale: langRef.current }, false, voice ? 10000 : 6000);
+      const res = await authedPost<SessionInfo & { spoken: boolean; code?: string; engine?: string; signed_url?: string; instructions?: string; language?: string }>("/api/assistant/session", { mode: voice ? "voice" : "text", locale: langRef.current, ...(engine ? { engine } : {}) }, false, voice ? 10000 : 6000);
       if (!res.ok || (!res.data?.token && !res.data?.signed_url)) {
         setConnecting(false);
         return { ok: false as const, code: (res.data?.code ?? "failed") as Exclude<AssistantError, null> };
@@ -230,6 +233,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         setConnecting(false);
         void authedPost("/api/assistant/end", { session_id: info.session_id });
+        // The ElevenAgents link failed on this side (not the microphone): Realtime takes the call once, before the browser voice does.
+        if (info.engine === "elevenagents" && !engine && !isMicError(e) && gen.current === g0) return openRef.current(voice, "realtime"); // not after a stop made meanwhile
         return { ok: false as const, code: (isMicError(e) ? "mic" : "failed") as Exclude<AssistantError, null> };
       }
     },
@@ -262,6 +267,10 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     },
     [addTurn],
   );
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     agentToolRef.current = async (name, args) => (await runOne({ name, call_id: newId(), arguments: args })) ?? JSON.stringify({ error: "No session." });
