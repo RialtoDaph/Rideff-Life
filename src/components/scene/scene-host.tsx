@@ -46,6 +46,7 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
   const [wanted, setWanted] = useState(false);
   if (live && !wanted) setWanted(true);
 
+  const host = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const labels = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -116,6 +117,28 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
     };
   }, [wanted, epoch]);
 
+  // On Home the scene is fixed behind a page that scrolls over it: as the page leaves the hero, the scene fades out,
+  // so orbs and labels never sit on top of the cards and numbers below.
+  useEffect(() => {
+    const el = host.current;
+    if (!el || screen !== "home") return;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const k = Math.min(1, window.scrollY / (window.innerHeight * 0.45));
+      el.style.setProperty("--scroll-o", String(1 - k * 0.92));
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+      el.style.removeProperty("--scroll-o");
+    };
+  }, [screen]);
   // The scene draws the map on every live screen, so the host feeds it, not the map screen.
   useEffect(() => scene?.setGraph(life.graph), [scene, life.graph]);
   useEffect(() => setShowIndex(life.graph.nodes), [life.graph]);
@@ -192,9 +215,10 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
         aria-hidden
         data-noprint
         data-scene-host
+        ref={host}
         // Behind everything, except on the map, where it sits just under that screen's own controls.
-        className={`fixed inset-0 opacity-[var(--host-o)] transition-opacity duration-[320ms] motion-reduce:transition-none ${
-          mode === "explore" ? "z-[54] [--host-o:1]" : `pointer-events-none z-[-1] ${screen === "home" ? "[--host-o:1]" : mode === "backdrop" ? "[--host-o:.7] max-[1599px]:[--host-o:0]" : "[--host-o:0]"}`
+        className={`fixed inset-0 opacity-[calc(var(--host-o)*var(--scroll-o,1))] transition-opacity duration-[320ms] motion-reduce:transition-none ${
+          mode === "explore" ? "z-[54] [--host-o:1]" : `pointer-events-none z-[-1] ${screen === "home" ? "[--host-o:1]" : mode === "backdrop" ? "[--host-o:.7] max-[1699px]:[--host-o:0]" : "[--host-o:0]"}`
         }`}
         // The scene is seen on the map, as Home's stage, and frozen beside a detail screen's column (wide screens only:
         // on a phone the column is the whole width). Everywhere else it is hidden.
@@ -205,9 +229,9 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
           ref={stage}
           className={`absolute right-0 left-0 ${
             screen === "home"
-              ? "top-[64px] h-[42svh] wide:inset-y-0 wide:top-0 wide:left-[32%] wide:h-auto"
+              ? "top-[64px] h-[42svh] wide:inset-y-0 wide:top-0 wide:left-[32%] desk:left-[calc(88px+(100%-88px)*.32)] wide:h-auto"
               : mode === "backdrop"
-                ? "inset-y-0 min-[1600px]:left-[calc(50%+440px)] [mask-image:linear-gradient(to_right,transparent,#000_22%)]" // in the gutter on the column's right (the column is 880px, so its edge is at 50% + 440px; the gutter is only wide enough from 1600px); its left edge fades out instead of cutting the sphere
+                ? "inset-y-0 min-[1700px]:left-[calc(50%+564px)] [mask-image:linear-gradient(to_right,transparent,#000_22%)]" // in the gutter on the column's right (the 1040px column is centred beside the 88px sidebar rail, so its edge is at 50% + 564px; the gutter is only wide enough from 1700px); its left edge fades out instead of cutting the sphere
                 : "inset-y-0 cursor-grab"
           }`}
         >

@@ -114,7 +114,7 @@ export function VoiceCaption() {
 
   return (
     <>
-      <div data-noprint data-stage-scale className="pointer-events-none fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-40 flex flex-col items-center gap-2 px-4 text-center">
+      <div data-noprint data-stage-scale className="pointer-events-none fixed inset-x-0 desk:left-[88px] bottom-[calc(104px+env(safe-area-inset-bottom))] z-40 flex flex-col items-center gap-2 px-4 text-center">
         <div role="status" aria-live="polite" className="flex items-center gap-2 font-mono text-[calc(11px*var(--stage-label,1))] font-bold uppercase tracking-[.16em] text-mut">
           {status}
           {tier === "browser" && !error && <span className="rounded-full bg-tint px-2 py-0.5 text-acct">{t("trace_browser")}</span>}
