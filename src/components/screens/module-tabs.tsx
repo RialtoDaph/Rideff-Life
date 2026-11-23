@@ -8,7 +8,7 @@ import { MODULES, hrefOf, type ModuleKey } from "@/lib/nav";
 import { lockedBy } from "@/lib/plans";
 import { PageHeader } from "./page-header";
 
-/** Pill row for a module's pages. Scrolls sideways when it does not fit. */
+/** Pill row for a module's pages. Scrolls sideways when it does not fit. Hidden from 1280px, where the sidebar lists the same pages. */
 export function ModuleTabs({ module, active }: { module: ModuleKey; active: string }) {
   const label = useLabel();
   const { plan } = useAppData();
@@ -20,7 +20,7 @@ export function ModuleTabs({ module, active }: { module: ModuleKey; active: stri
     if (el && on) el.scrollLeft = on.offsetLeft - el.offsetLeft - (el.clientWidth - on.offsetWidth) / 2;
   }, [active]);
   return (
-    <nav ref={row} aria-label={label(MODULES[module].key)} className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+    <nav ref={row} aria-label={label(MODULES[module].key)} className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] desk:hidden">
       {MODULES[module].tabs.map((t) => {
         const on = t.id === active;
         const need = lockedBy(`/${t.id}`, plan);
