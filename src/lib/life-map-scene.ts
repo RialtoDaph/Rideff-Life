@@ -140,8 +140,8 @@ export type LifeMapScene = {
 };
 
 const WIDE = 700;
-/** The backdrop is drawn only beside a detail screen on a wide window (the host is transparent below 1250px) and not for reduced motion. */
-const backdropShown = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !window.matchMedia("(max-width: 1250px)").matches;
+/** The backdrop is drawn only beside a detail screen on a wide window (the host is transparent below 1600px: the gutter beside the 880px column is too narrow for the map before that) and not for reduced motion. */
+const backdropShown = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !window.matchMedia("(max-width: 1599px)").matches;
 const clampZoom = (r: number) => Math.max(90, Math.min(640, r));
 
 let liveScenes = 0;

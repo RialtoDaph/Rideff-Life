@@ -8,18 +8,18 @@ import { LogoTile } from "@/components/logo";
 import { useMoney } from "@/components/money-data";
 import { useLabel } from "@/components/nav-label";
 import { useOnline, usePendingCount } from "@/components/pwa";
-import { useScene } from "@/components/scene/scene-host";
 import { MODULE_ORDER, MODULES, hrefOf, moduleOf } from "@/lib/nav";
 import { Avatar } from "./avatar";
 
 /**
  * The top of every screen: where you are, and the four places you can go. The four names are the
- * four areas of the Life Map, and choosing one sends the camera there as the screen changes.
+ * four areas of the Life Map. Choosing one does not fly the camera to that area: the screen it opens is a
+ * backdrop screen, where the map is pulled back to fit the gutter, and a flight to a hub would be cut off
+ * mid-way by that change of mode and leave the cluster off-centre.
  */
 export function Compass({ screen }: { screen: string }) {
   const t = useTranslations();
   const label = useLabel();
-  const { scene } = useScene();
   const { me, household } = useAppData();
   const { alerts } = useMoney();
   const alertCount = alerts.filter((a) => a.sev !== "info").length;
@@ -45,7 +45,6 @@ export function Compass({ screen }: { screen: string }) {
             <Link
               key={k}
               href={hrefOf(MODULES[k].tabs[0].id)}
-              onClick={() => void scene?.flyTo(k, { ms: 900 })}
               aria-current={on ? "page" : undefined}
               className={`hit44 flex min-h-11 items-center whitespace-nowrap border-b-2 px-1.5 font-mono text-[11px] font-bold uppercase tracking-[.12em] hover:text-ink wide:text-[12px] wide:tracking-[.16em] ${
                 on ? "border-acc text-ink" : "border-transparent text-mut"

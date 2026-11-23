@@ -194,7 +194,7 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
         data-scene-host
         // Behind everything, except on the map, where it sits just under that screen's own controls.
         className={`fixed inset-0 opacity-[var(--host-o)] transition-opacity duration-[320ms] motion-reduce:transition-none ${
-          mode === "explore" ? "z-[54] [--host-o:1]" : `pointer-events-none z-[-1] ${screen === "home" ? "[--host-o:1]" : mode === "backdrop" ? "[--host-o:.7] max-[1250px]:[--host-o:0]" : "[--host-o:0]"}`
+          mode === "explore" ? "z-[54] [--host-o:1]" : `pointer-events-none z-[-1] ${screen === "home" ? "[--host-o:1]" : mode === "backdrop" ? "[--host-o:.7] max-[1599px]:[--host-o:0]" : "[--host-o:0]"}`
         }`}
         // The scene is seen on the map, as Home's stage, and frozen beside a detail screen's column (wide screens only:
         // on a phone the column is the whole width). Everywhere else it is hidden.
@@ -207,11 +207,11 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
             screen === "home"
               ? "top-[64px] h-[42svh] wide:inset-y-0 wide:top-0 wide:left-[32%] wide:h-auto"
               : mode === "backdrop"
-                ? "inset-y-0 min-[1250px]:left-[calc(50%+360px)] [mask-image:linear-gradient(to_right,transparent,#000_22%)]" // in the gutter on the column's right; its left edge fades out instead of cutting the sphere
+                ? "inset-y-0 min-[1600px]:left-[calc(50%+440px)] [mask-image:linear-gradient(to_right,transparent,#000_22%)]" // in the gutter on the column's right (the column is 880px, so its edge is at 50% + 440px; the gutter is only wide enough from 1600px); its left edge fades out instead of cutting the sphere
                 : "inset-y-0 cursor-grab"
           }`}
         >
-          <div ref={labels} className="pointer-events-none absolute inset-0 z-[1] overflow-hidden" />
+          <div ref={labels} className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden ${mode === "backdrop" ? "opacity-0" : ""}`} />
         </div>
       </div>
       {stageMode && scene && <StageHud scene={scene} />}
