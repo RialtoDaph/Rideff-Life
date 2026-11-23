@@ -18,8 +18,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabase}`,
   "font-src 'self' data:",
-  // Supabase (data, sign-in, reminders) and OpenAI (Clopar's voice).
-  `connect-src 'self' ${supabase} ${supabase.replace(/^http/, "ws")} https://api.openai.com`,
+  // Supabase (data, sign-in, reminders), OpenAI (Clopar's voice) and ElevenLabs (the ElevenAgents voice).
+  `connect-src 'self' ${supabase} ${supabase.replace(/^http/, "ws")} https://api.openai.com https://api.elevenlabs.io wss://api.elevenlabs.io`,
   "media-src 'self' blob: mediastream:",
   "worker-src 'self' blob:",
   "manifest-src 'self'",

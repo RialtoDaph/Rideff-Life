@@ -10,6 +10,7 @@ import { useToast } from "@/components/toast";
 import { askClopar } from "@/lib/ask";
 import type { AskAction } from "@/lib/ask-schema";
 import { authedPost, connectRealtime, isMicError, runAssistantTool, type Realtime, type SessionInfo } from "@/lib/assistant-client";
+import { connectAgent } from "@/lib/agent-client";
 import { firstSentence, functionCalls, TALK_START, talkStep, type FunctionCall, type Talk } from "@/lib/assistant-events";
 import type { Card, CardStatus } from "@/lib/assistant-tools";
 import { canListen, listenOnce, speak } from "@/lib/browser-voice";
@@ -200,19 +201,25 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     [stop],
   );
 
+  // Set below, once runOne exists: the ElevenAgents session calls its tools through it.
+  const agentToolRef = useRef<(name: string, args: string) => Promise<string>>(async () => JSON.stringify({ error: "Tool failed." }));
+
   const open = useCallback(
     async (voice: boolean) => {
       setConnecting(true);
       setError(null);
-      const res = await authedPost<SessionInfo & { spoken: boolean; code?: string }>("/api/assistant/session", { mode: voice ? "voice" : "text", locale: langRef.current }, false, 6000);
-      if (!res.ok || !res.data?.token) {
+      const res = await authedPost<SessionInfo & { spoken: boolean; code?: string; engine?: string; signed_url?: string; instructions?: string; language?: string }>("/api/assistant/session", { mode: voice ? "voice" : "text", locale: langRef.current }, false, voice ? 10000 : 6000);
+      if (!res.ok || (!res.data?.token && !res.data?.signed_url)) {
         setConnecting(false);
         return { ok: false as const, code: (res.data?.code ?? "failed") as Exclude<AssistantError, null> };
       }
       const info = res.data;
       setQuota({ voiceLeft: info.voice_left, aiLeft: info.ai_left });
       try {
-        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current(), info.tts ? { sessionId: info.session_id } : undefined);
+        const rt =
+          info.engine === "elevenagents" && info.signed_url
+            ? await connectAgent({ signed_url: info.signed_url, instructions: info.instructions ?? "", language: info.language ?? "en" }, (e) => handler.current(e), () => dropRef.current(), (name, args) => agentToolRef.current(name, args))
+            : await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current(), info.tts ? { sessionId: info.session_id } : undefined);
         rt.setMuted(mutedRef.current);
         rt.muteMic(micMutedRef.current);
         live.current = { rt, info, voice, turns: [], tools: [] };
@@ -229,11 +236,12 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     [touch],
   );
 
-  const runCalls = useCallback(
-    async (calls: FunctionCall[]) => {
-      for (const c of calls) {
+  /** Runs one tool call as the signed-in person (cue, trace step, card, show) and returns the JSON the model gets back. */
+  const runOne = useCallback(
+    async (c: FunctionCall): Promise<string | null> => {
+      {
         const s = live.current;
-        if (!s) return;
+        if (!s) return null;
         s.tools.push(c.name);
         const began = performance.now();
         // Pointing at a place is the app's own business; a reading tool also points at its area.
@@ -249,14 +257,28 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
           addTurn({ role: "assistant", text: "", card: res.data.card });
           setPendingCard(res.data.card);
         }
-        s.rt.send({
-          type: "conversation.item.create",
-          item: { type: "function_call_output", call_id: c.call_id, output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }) },
-        });
+        return JSON.stringify(res.data?.output ?? { error: "Tool failed." });
       }
-      live.current?.rt.send({ type: "response.create" });
     },
     [addTurn],
+  );
+
+  useEffect(() => {
+    agentToolRef.current = async (name, args) => (await runOne({ name, call_id: newId(), arguments: args })) ?? JSON.stringify({ error: "No session." });
+  }, [runOne]);
+
+  const runCalls = useCallback(
+    async (calls: FunctionCall[]) => {
+      const s = live.current; // results go to the session that asked, never to one started since
+      if (!s) return;
+      for (const c of calls) {
+        const out = await runOne(c);
+        if (out === null || live.current !== s) return;
+        s.rt.send({ type: "conversation.item.create", item: { type: "function_call_output", call_id: c.call_id, output: out } });
+      }
+      s.rt.send({ type: "response.create" });
+    },
+    [runOne],
   );
 
   useEffect(() => {

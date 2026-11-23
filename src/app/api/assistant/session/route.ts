@@ -8,19 +8,27 @@ import { buildInstructions, memoriesFor, MAX_MEMORIES, type MemoryFact } from "@
 import { berlinToday } from "@/lib/money";
 import { AI_NAME } from "@/lib/nav";
 import { authorize } from "@/lib/server-auth";
+import { agentSignedUrl, agentsEnabled } from "@/lib/agent-server";
 import { ttsEnabled } from "@/lib/tts-server";
 
 const MODEL = process.env.OPENAI_REALTIME_MODEL ?? "gpt-realtime-2.1";
 const fail = (code: string, status: number) => Response.json({ code }, { status });
 
 export async function POST(req: Request) {
-  if (!process.env.OPENAI_API_KEY) return fail("not_configured", 503);
+  const agentsOn = agentsEnabled();
+  if (!process.env.OPENAI_API_KEY && !agentsOn) return fail("not_configured", 503);
   const auth = await authorize(req);
   if (auth instanceof Response) return auth;
   const { sb, userId } = auth;
 
   const body = (await req.json().catch(() => null)) as { mode?: string; locale?: string } | null;
   const voice = body?.mode === "voice";
+  // Typed sessions only ever use OpenAI: without its key there is nothing to open, and no session row may be created for it.
+  if (!voice && !process.env.OPENAI_API_KEY) return fail("not_configured", 503);
+
+  // Asked for before the session row exists: a slow or failed ElevenLabs then never leaves an open row behind
+  // (an open voice row is later billed up to an hour), and the Realtime fallback below still answers in time.
+  const signedUrl = voice && agentsOn ? await agentSignedUrl() : null;
 
   const { data: opened, error } = await sb.rpc("ai_session_start", { p_mode: voice ? "voice" : "text" });
   if (error) {
@@ -57,6 +65,16 @@ export async function POST(req: Request) {
     memories,
     memoryOn,
   });
+
+  // ElevenAgents: ElevenLabs listens, thinks and speaks. The tools below still run on our server through /api/assistant/tool.
+  // If it cannot be opened, Realtime (when its key is set) takes the call instead of leaving the person without a voice.
+  if (voice && agentsOn) {
+    if (signedUrl) return Response.json({ engine: "elevenagents", token: "", signed_url: signedUrl, instructions, language: spokenLang, spoken: true, tts: false, ...info });
+    if (!process.env.OPENAI_API_KEY) {
+      await sb.rpc("ai_session_end", { p_session: info.session_id });
+      return fail("failed", 502);
+    }
+  }
 
   const spoken = voice || settings?.voice === "audio" || settings?.voice === "both";
   // Spike: the model writes the answer and ElevenLabs speaks it. Off unless VOICE_TTS=elevenlabs and its key and voice are set.
