@@ -67,7 +67,11 @@ export function createTtsPlayer(ctx: AudioContext, sessionId: string, on: { star
       const token = data.session?.access_token;
       if (!token) return null;
       const res = await fetch("/api/assistant/tts", { method: "POST", signal: ac.signal, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sessionId, text }) });
-      if (!res.ok || mine !== gen) return null;
+      if (!res.ok) {
+        if (mine === gen) console.warn("[tts] a sentence could not be spoken, status", res.status);
+        return null;
+      }
+      if (mine !== gen) return null;
       return await ctx.decodeAudioData(await res.arrayBuffer());
     } catch {
       return null; // a lost sentence is skipped; the caption still shows it
