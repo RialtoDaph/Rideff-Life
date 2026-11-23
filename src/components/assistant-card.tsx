@@ -30,13 +30,24 @@ export function ConfirmCard({ card }: { card: Card }) {
         ? t("card_event")
         : card.kind === "goal"
           ? t("card_goal")
-          : card.kind === "forget"
+          : card.kind === "cancel_subs"
+            ? t("card_cancel_subs")
+            : card.kind === "forget"
             ? t("card_forget")
             : a.scope === "shared"
               ? t("card_share")
               : t("card_remember");
+  const subs = (card.kind === "cancel_subs" && Array.isArray(card.args.subs) ? card.args.subs : []) as { name: string; monthly: number }[];
+  const goal = card.kind === "cancel_subs" ? (card.args.goal as { name: string; months_before: number | null; months_after: number | null } | null) : null;
+  const months = (n: number | null) => (n === null ? t("card_never") : String(n));
   const lines: [string, string][] =
-    card.kind === "transaction"
+    card.kind === "cancel_subs"
+      ? [
+          ...subs.map((s) => [s.name, eur(s.monthly)] as [string, string]),
+          [t("card_frees"), eur(Number(a.freed))],
+          ...(goal ? ([[goal.name, t("card_months", { from: months(goal.months_before), to: months(goal.months_after) })]] as [string, string][]) : []),
+        ]
+      : card.kind === "transaction"
       ? [[String(a.payee), eurSigned(Number(a.amount))], [t("f_date"), dates.short(String(a.date))], ...(a.category ? ([[t("f_category"), String(a.category)]] as [string, string][]) : [])]
       : card.kind === "event"
         ? [[String(a.title), `${dates.short(String(a.date))}${a.time ? ` ${a.time}` : ""}`]]
@@ -52,7 +63,7 @@ export function ConfirmCard({ card }: { card: Card }) {
   }
 
   const pill = "min-h-10 rounded-full px-4 text-[13px] font-bold disabled:opacity-50";
-  const hidden = a.visibility === "private" || (memory && a.scope !== "shared");
+  const hidden = a.visibility === "private" || subs.some((x) => (x as { private?: boolean }).private) || !!(goal as { private?: boolean } | null)?.private || (memory && a.scope !== "shared");
 
   return (
     <section data-screen-label="Confirm card" className="pointer-events-auto flex w-full max-w-[420px] flex-col gap-2.5 self-start rounded-[14px] border border-line bg-card p-3.5">
@@ -83,7 +94,7 @@ export function ConfirmCard({ card }: { card: Card }) {
             <button onClick={() => go("save")} disabled={busy} className={`${pill} border-0 bg-acc text-onacc`}>
               {t("save")}
             </button>
-            {card.kind !== "forget" && (
+            {card.kind !== "forget" && card.kind !== "cancel_subs" && (
               <button onClick={() => (memory ? setEditing((v) => !v) : editCard(card))} disabled={busy} className={`${pill} border border-line bg-card text-ink`}>
                 {t("edit")}
               </button>

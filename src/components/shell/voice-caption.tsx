@@ -24,11 +24,11 @@ function Step({ step }: { step: ToolStep }) {
   return (
     <li className="flex flex-col gap-1 rounded-[12px] border border-line bg-soft px-3 py-2.5">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="font-mono text-[13px] font-bold text-acc">{step.name}</span>
-        <span className="font-mono text-[11px] text-mut2">{step.ms} ms</span>
+        <span className="font-mono text-[calc(13px*var(--stage-label,1))] font-bold text-acc">{step.name}</span>
+        <span className="font-mono text-[calc(11px*var(--stage-label,1))] text-mut2">{step.ms} ms</span>
       </div>
-      {prettyArgs(step.args) && <code className="break-all font-mono text-[11.5px] text-mut">{prettyArgs(step.args)}</code>}
-      <code className="line-clamp-3 break-all font-mono text-[11.5px] text-mut2">{step.output}</code>
+      {prettyArgs(step.args) && <code className="break-all font-mono text-[calc(11.5px*var(--stage-label,1))] text-mut">{prettyArgs(step.args)}</code>}
+      <code className="line-clamp-3 break-all font-mono text-[calc(11.5px*var(--stage-label,1))] text-mut2">{step.output}</code>
     </li>
   );
 }
@@ -36,19 +36,19 @@ function Step({ step }: { step: ToolStep }) {
 /** How one answer was made, from what was heard to what was said. The real record, not a picture of it. */
 function TraceSheet({ traces, onClose }: { traces: TraceEntry[]; onClose: () => void }) {
   const t = useTranslations("assistant");
-  const label = { realtime: t("trace_realtime"), browser: t("trace_browser"), ask: t("trace_ask") };
+  const label = { realtime: t("trace_realtime"), browser: t("trace_browser"), ask: t("trace_ask"), recorded: t("trace_recorded"), prepared: t("trace_prepared") };
   return (
     <Sheet title={t("trace_title")} onClose={onClose}>
       <div className="flex flex-col gap-5">
         {[...traces].reverse().slice(0, 3).map((e) => (
           <section key={e.id} className="flex flex-col gap-2.5">
-            <span className="self-start rounded-full bg-tint px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[.12em] text-acct">{label[e.tier]}</span>
+            <span className="self-start rounded-full bg-tint px-2.5 py-1 font-mono text-[calc(11px*var(--stage-label,1))] font-bold uppercase tracking-[.12em] text-acct">{label[e.tier]}</span>
             <div>
-              <div className="font-mono text-[11px] font-bold uppercase tracking-[.14em] text-mut2">{t("trace_heard")}</div>
+              <div className="font-mono text-[calc(11px*var(--stage-label,1))] font-bold uppercase tracking-[.14em] text-mut2">{t("trace_heard")}</div>
               <p className="m-0 mt-1 text-[15px]">{e.heard || "—"}</p>
             </div>
             <div>
-              <div className="font-mono text-[11px] font-bold uppercase tracking-[.14em] text-mut2">{t("trace_called")}</div>
+              <div className="font-mono text-[calc(11px*var(--stage-label,1))] font-bold uppercase tracking-[.14em] text-mut2">{t("trace_called")}</div>
               {e.steps.length ? (
                 <ul className="m-0 mt-1.5 flex list-none flex-col gap-2 p-0">
                   {e.steps.map((s, i) => (
@@ -56,11 +56,11 @@ function TraceSheet({ traces, onClose }: { traces: TraceEntry[]; onClose: () => 
                   ))}
                 </ul>
               ) : (
-                <p className="m-0 mt-1 text-[13px] text-mut">{t("trace_none")}</p>
+                <p className="m-0 mt-1 text-[calc(13px*var(--stage-label,1))] text-mut">{t("trace_none")}</p>
               )}
             </div>
             <div>
-              <div className="font-mono text-[11px] font-bold uppercase tracking-[.14em] text-mut2">{t("trace_said")}</div>
+              <div className="font-mono text-[calc(11px*var(--stage-label,1))] font-bold uppercase tracking-[.14em] text-mut2">{t("trace_said")}</div>
               <p className="m-0 mt-1 text-[15px] leading-[1.45]">{e.answer}</p>
             </div>
           </section>
@@ -88,7 +88,7 @@ export function VoiceCaption() {
   const last = traces.at(-1);
   // While an answer is being made the tools appear as they finish; afterwards the last answer's tools stay with it.
   const cards = liveSteps.length ? liveSteps : talk.mode === "speak" ? (last?.steps ?? []) : [];
-  const active = voiceOn || busy || connecting || talk.mode !== "calm" || !!pendingCard;
+  const active = voiceOn || busy || connecting || talk.mode !== "calm" || !!pendingCard || tier === "recorded" || tier === "prepared";
   if (!active && !error && !typing) return null;
 
   const status = error ? "" : connecting ? t("connecting") : talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? t("listening") : talk.mode === "speak" ? aiName : "";
@@ -107,19 +107,20 @@ export function VoiceCaption() {
     setTyping(false);
     void send(q);
   };
-  const btn = "hit44 pointer-events-auto flex min-h-11 items-center rounded-full border border-line bg-card px-4 text-[13px] font-bold text-ink";
+  const btn = "hit44 pointer-events-auto flex min-h-11 items-center rounded-full border border-line bg-card px-4 text-[calc(13px*var(--stage-label,1))] font-bold text-ink";
 
   return (
     <>
       <div data-noprint data-stage-scale className="pointer-events-none fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-40 flex flex-col items-center gap-2 px-4 text-center">
-        <div role="status" aria-live="polite" className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[.16em] text-mut">
+        <div role="status" aria-live="polite" className="flex items-center gap-2 font-mono text-[calc(11px*var(--stage-label,1))] font-bold uppercase tracking-[.16em] text-mut">
           {status}
           {tier === "browser" && !error && <span className="rounded-full bg-tint px-2 py-0.5 text-acct">{t("trace_browser")}</span>}
+          {(tier === "recorded" || tier === "prepared") && <span className="rounded-full bg-tint px-2 py-0.5 text-acct">{t(tier === "recorded" ? "trace_recorded" : "trace_prepared")}</span>}
         </div>
         {cards.length > 0 && !error && (
           <ul data-testid="tool-cards" className="m-0 flex max-w-full list-none flex-wrap justify-center gap-2 p-0">
             {cards.slice(-3).map((c, i) => (
-              <li key={i} className="flex items-baseline gap-2 rounded-[12px] border border-line bg-card px-3 py-1.5 font-mono text-[12px]">
+              <li key={i} className="flex items-baseline gap-2 rounded-[12px] border border-line bg-card px-3 py-1.5 font-mono text-[calc(12px*var(--stage-label,1))]">
                 <span className="font-bold text-acc">{c.name}</span>
                 <span className="text-mut2">{c.ms} ms</span>
               </li>
@@ -166,7 +167,7 @@ export function VoiceCaption() {
           {!error && last && (
             <button className={btn} onClick={() => setTrace(true)}>
               {t("see_trace")}
-              {last.steps.length > 0 && <span className="ml-2 font-mono text-[11px] text-mut2">{last.steps.length}</span>}
+              {last.steps.length > 0 && <span className="ml-2 font-mono text-[calc(11px*var(--stage-label,1))] text-mut2">{last.steps.length}</span>}
             </button>
           )}
           {(voiceOn || typing) && (

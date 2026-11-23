@@ -51,7 +51,8 @@ export async function chat(sb: SupabaseClient, m: TgMember, question: string): P
     ...history,
     { role: "user", content: question.slice(0, 2000) },
   ];
-  const tools = TOOLS.map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool.InputSchema }));
+  // The cancel card has no Telegram form, so Telegram does not offer the tool.
+  const tools = TOOLS.filter((t) => t.name !== "propose_cancel_subscriptions").map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool.InputSchema }));
 
   const client = new Anthropic();
   const cards: Card[] = [];

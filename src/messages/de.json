@@ -2064,7 +2064,13 @@
     "sc_fix_power": "Im Akkubetrieb kann der Browser die Bildrate auf 30 pro Sekunde begrenzen. Schließ das Netzteil vor dem Auftritt an.",
     "sc_household": "Demo-Haushalt",
     "sc_fix_household": "Das ist nicht der Demo-Haushalt. Melde dich vor dem Auftritt als Lena oder Tom an: Die Tour läuft nicht mit echten Daten.",
-    "connecting": "Verbinde…"
+    "connecting": "Verbinde…",
+    "trace_recorded": "Früher aufgenommen",
+    "trace_prepared": "Vorbereitete Antwort",
+    "card_cancel_subs": "Diese Abos kündigen?",
+    "card_frees": "Spart pro Monat",
+    "card_months": "{from} → {to} Monate",
+    "card_never": "nie"
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

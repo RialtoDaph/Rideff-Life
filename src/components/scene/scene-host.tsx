@@ -1,13 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createLifeMapScene, type LifeMapScene } from "@/lib/life-map-scene";
 import type { MapGraph } from "@/lib/life-map";
 import type { LifeScore } from "@/lib/life-score";
 import { hrefOf, MODULE_ORDER } from "@/lib/nav";
 import { sceneModeFor } from "@/lib/scene-camera";
-import { parseShow, SHOW_EVENT } from "@/lib/show";
+import { hubForTool, isShowNode, parseShow, setShowIndex, SHOW_EVENT } from "@/lib/show";
+import { stageCues } from "@/lib/stage-cues";
 import { voiceLevel } from "@/lib/voice-level";
 import { Presenter } from "./presenter";
 import { StageHud } from "./stage-hud";
@@ -47,6 +48,8 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
 
   const stage = useRef<HTMLDivElement>(null);
   const labels = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const pointed = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onSelect = useRef<(id: string | null) => void>(() => {});
   const [scene, setScene] = useState<LifeMapScene | null>(null);
   const [failed, setFailed] = useState(false);
@@ -91,7 +94,11 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
         // The presenter's size: the page is drawn larger for a room (see globals.css).
         if (staged) document.documentElement.dataset.stage = "1";
         // A hook for the end-to-end tests and the stage readout; nothing in the app reads it.
-        (window as unknown as { __rideffScene?: LifeMapScene }).__rideffScene = s;
+        // Only in the presenter's mode or an end-to-end build: nothing else gets a handle on the scene.
+        if (staged || process.env.NEXT_PUBLIC_E2E === "1") {
+          (window as unknown as { __rideffScene?: LifeMapScene }).__rideffScene = s;
+          (window as unknown as { __rideffCue?: typeof stageCues }).__rideffCue = stageCues;
+        }
         setScene(s);
       })
       .catch(() => alive && setFailed(true));
@@ -103,6 +110,7 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
       watch.disconnect();
       made?.dispose();
       delete (window as unknown as { __rideffScene?: LifeMapScene }).__rideffScene;
+      delete (window as unknown as { __rideffCue?: unknown }).__rideffCue;
       delete document.documentElement.dataset.stage;
       setScene(null);
     };
@@ -110,18 +118,60 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
 
   // The scene draws the map on every live screen, so the host feeds it, not the map screen.
   useEffect(() => scene?.setGraph(life.graph), [scene, life.graph]);
+  useEffect(() => setShowIndex(life.graph.nodes), [life.graph]);
   // "Show me": the assistant points at an area (the camera flies there) or a screen (it opens).
+  // A tool at work lights up its streams until it answers.
+  useEffect(() => {
+    if (!scene) return;
+    const open = new Map<string, { end: () => void }>();
+    const off = stageCues.subscribe((c) => {
+      if (c.t === "clear" && pointed.current) {
+        clearTimeout(pointed.current);
+        pointed.current = null;
+        scene.setSelected(null);
+      } else if (c.t === "transfer") {
+        // Money moves: drop any pointing, show the whole picture for a moment, then send it.
+        if (pointed.current) {
+          clearTimeout(pointed.current);
+          pointed.current = null;
+        }
+        scene.setSelected(null);
+        void scene.flyTo("core", { ms: 700 }).then(() => scene.transfer(c.from, c.to));
+      } else if (c.t === "tool-start") {
+        const area = c.target ?? hubForTool(c.name);
+        if (area) open.set(c.id, scene.pulse(area));
+      } else if (c.t === "tool-end") {
+        open.get(c.id)?.end();
+        open.delete(c.id);
+      }
+    });
+    return () => {
+      off();
+      open.forEach((p) => p.end());
+    };
+  }, [scene]);
   useEffect(() => {
     const onShow = (e: Event) => {
       // Only a place that really is in the app: nothing the model says becomes an address.
-      const target = parseShow(JSON.stringify({ target: (e as CustomEvent<{ target?: string }>).detail?.target }));
+      const raw = (e as CustomEvent<{ target?: string }>).detail?.target;
+      if (raw && isShowNode(raw)) {
+        // One item on the map: select it, and let go of it after a while.
+        if (/\/map\/?$/.test(pathname)) onSelect.current(raw);
+        else {
+          scene?.setSelected(raw);
+          if (pointed.current) clearTimeout(pointed.current);
+          pointed.current = setTimeout(() => scene?.setSelected(null), 9000);
+        }
+        return;
+      }
+      const target = parseShow(JSON.stringify({ target: raw }));
       if (!target) return;
       if (target === "core" || (MODULE_ORDER as string[]).includes(target)) void scene?.flyTo(target, { ms: 900 });
       else router.push(hrefOf(target));
     };
     window.addEventListener(SHOW_EVENT, onShow);
     return () => window.removeEventListener(SHOW_EVENT, onShow);
-  }, [scene, router]);
+  }, [scene, router, pathname]);
   useEffect(() => {
     scene?.setMode(mode);
     // These screens keep the scene running for no one to see: let it rest.
@@ -157,7 +207,7 @@ export function SceneHost({ screen, children }: { screen: string; children: Reac
             screen === "home"
               ? "top-[64px] h-[42svh] wide:inset-y-0 wide:top-0 wide:left-[32%] wide:h-auto"
               : mode === "backdrop"
-                ? "inset-y-0 min-[1250px]:left-[calc(50%+460px)]" // beside the detail column, in the gutter on its right
+                ? "inset-y-0 min-[1250px]:left-[calc(50%+360px)] [mask-image:linear-gradient(to_right,transparent,#000_22%)]" // in the gutter on the column's right; its left edge fades out instead of cutting the sphere
                 : "inset-y-0 cursor-grab"
           }`}
         >

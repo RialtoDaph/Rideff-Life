@@ -2064,7 +2064,13 @@
     "sc_fix_power": "On battery the browser can cap the frame rate at 30 a second. Plug in the charger before you go on.",
     "sc_household": "Demo household",
     "sc_fix_household": "This is not the demo household. Sign in as Lena or Tom before the talk: the tour will not run on real data.",
-    "connecting": "Connecting…"
+    "connecting": "Connecting…",
+    "trace_recorded": "Recorded earlier",
+    "trace_prepared": "Prepared answer",
+    "card_cancel_subs": "Cancel these subscriptions?",
+    "card_frees": "Frees per month",
+    "card_months": "{from} → {to} months",
+    "card_never": "never"
   },
   "settings": {
     "eyebrow": "rideff Life · {plan}",

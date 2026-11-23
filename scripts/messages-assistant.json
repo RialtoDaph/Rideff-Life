@@ -523,5 +523,35 @@
   "Connecting…",
   "Verbinde…",
   "Menyambungkan…"
+ ],
+ "trace_recorded": [
+  "Recorded earlier",
+  "Früher aufgenommen",
+  "Direkam sebelumnya"
+ ],
+ "trace_prepared": [
+  "Prepared answer",
+  "Vorbereitete Antwort",
+  "Jawaban disiapkan"
+ ],
+ "card_cancel_subs": [
+  "Cancel these subscriptions?",
+  "Diese Abos kündigen?",
+  "Batalkan langganan ini?"
+ ],
+ "card_frees": [
+  "Frees per month",
+  "Spart pro Monat",
+  "Hemat per bulan"
+ ],
+ "card_months": [
+  "{from} → {to} months",
+  "{from} → {to} Monate",
+  "{from} → {to} bulan"
+ ],
+ "card_never": [
+  "never",
+  "nie",
+  "tidak pernah"
  ]
 }

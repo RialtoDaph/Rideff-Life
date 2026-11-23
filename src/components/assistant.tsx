@@ -13,7 +13,10 @@ import { authedPost, connectRealtime, isMicError, runAssistantTool, type Realtim
 import { firstSentence, functionCalls, TALK_START, talkStep, type FunctionCall, type Talk } from "@/lib/assistant-events";
 import type { Card, CardStatus } from "@/lib/assistant-tools";
 import { canListen, listenOnce, speak } from "@/lib/browser-voice";
-import { dispatchShow, hubForTool, parseShow } from "@/lib/show";
+import { cannedFor, type Canned } from "@/content/canned";
+import { nextCanned, planCanned } from "@/lib/canned-voice";
+import { stageCues } from "@/lib/stage-cues";
+import { dispatchShow, hubForTool, resolveShow, showLabel } from "@/lib/show";
 import { supabase } from "@/lib/supabase";
 import { voiceLevel } from "@/lib/voice-level";
 
@@ -29,7 +32,7 @@ export type Turn = {
 /** One thing the assistant did while answering: a tool it called, with what it was asked and how long it took. */
 export type ToolStep = { name: string; args: string; ms: number; output: string };
 /** What one answer was made of: what was heard, what was done, what was said. */
-export type TraceEntry = { id: string; heard: string; steps: ToolStep[]; answer: string; tier: "realtime" | "browser" | "ask" };
+export type TraceEntry = { id: string; heard: string; steps: ToolStep[]; answer: string; tier: "realtime" | "browser" | "ask" | "recorded" | "prepared" };
 export type AssistantError = "voice_quota" | "ai_quota" | "not_configured" | "mic" | "failed" | null;
 type Live = { rt: Realtime; info: SessionInfo & { spoken: boolean }; voice: boolean; turns: { role: string; text: string }[]; tools: string[]; timer?: ReturnType<typeof setTimeout> };
 
@@ -50,7 +53,7 @@ type Assistant = {
   error: AssistantError;
   quota: { voiceLeft: number | null; aiLeft: number | null };
   /** Which voice is in use: the realtime one, or the browser's own listening and speaking. */
-  tier: "realtime" | "browser" | null;
+  tier: "realtime" | "browser" | "recorded" | "prepared" | null;
   /** The latest answers, newest last, with the tools behind each. */
   traces: TraceEntry[];
   /** The tools called for the answer that is being made right now, as they finish. */
@@ -61,6 +64,8 @@ type Assistant = {
   send: (text: string, viaAsk?: boolean) => Promise<void>;
   startVoice: () => Promise<boolean>;
   stop: () => void;
+  /** Plays the next canned answer in the voice language (tier 3): no network, nothing written. `again` repeats the last. */
+  playCanned: (again?: boolean) => boolean;
   setMuted: (on: boolean) => void;
   answerCard: (card: Card, action: "save" | "undo", text?: string) => Promise<void>;
   editCard: (card: Card) => void;
@@ -108,6 +113,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     langRef.current = voiceLang;
   }, [voiceLang]);
   const dropRef = useRef<() => void>(() => {});
+  const canned = useRef<{ timers: ReturnType<typeof setTimeout>[]; last: string | null; stopSpeak: () => void; audio: HTMLAudioElement | null }>({ timers: [], last: null, stopSpeak: () => {}, audio: null });
   // Bumped by every stop(): a start that was still connecting when the person stopped must not come alive afterwards.
   const gen = useRef(0);
   const starting = useRef(false);
@@ -161,6 +167,12 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const stop = useCallback(() => {
     gen.current += 1;
     setConnecting(false);
+    canned.current.timers.forEach(clearTimeout);
+    canned.current.timers = [];
+    canned.current.stopSpeak();
+    canned.current.audio?.pause();
+    canned.current.audio = null;
+    setLiveSteps([]);
     const s = live.current;
     live.current = null;
     browser.current.on = false;
@@ -200,7 +212,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       const info = res.data;
       setQuota({ voiceLeft: info.voice_left, aiLeft: info.ai_left });
       try {
-        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current());
+        const rt = await connectRealtime(info.token, voice, (e) => handler.current(e), () => dropRef.current(), info.tts ? { sessionId: info.session_id } : undefined);
         rt.setMuted(mutedRef.current);
         rt.muteMic(micMutedRef.current);
         live.current = { rt, info, voice, turns: [], tools: [] };
@@ -225,10 +237,13 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         s.tools.push(c.name);
         const began = performance.now();
         // Pointing at a place is the app's own business; a reading tool also points at its area.
-        const hub = c.name === "show" ? parseShow(c.arguments) : hubForTool(c.name);
+        const hub = c.name === "show" ? resolveShow(c.arguments) : hubForTool(c.name);
         if (hub) dispatchShow(hub);
-        const res = c.name === "show" ? { data: { output: { shown: hub ?? null } } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
-        steps.current.push({ name: c.name, args: c.arguments, ms: Math.round(performance.now() - began), output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
+        stageCues.emit({ t: "tool-start", id: c.call_id, name: c.name, target: hub ?? undefined });
+        const res = c.name === "show" ? { data: { output: (hub ? { shown: showLabel(hub) ?? hub } : { error: "not on the map" }) as Record<string, unknown> } as { output: Record<string, unknown>; card?: Card } } : await runAssistantTool(s.info.session_id, c.name, c.arguments);
+        const took = Math.round(performance.now() - began);
+        stageCues.emit({ t: "tool-end", id: c.call_id, name: c.name, ms: took, ok: (() => { const out = res.data?.output; return !!out && typeof out === "object" && !("error" in out); })() });
+        steps.current.push({ name: c.name, args: c.arguments, ms: took, output: JSON.stringify(res.data?.output ?? { error: "Tool failed." }).slice(0, 600) });
         setLiveSteps([...steps.current]);
         if (res.data?.card) {
           addTurn({ role: "assistant", text: "", card: res.data.card });
@@ -256,6 +271,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       }
       // Any sign of life from the session ends an earlier error card.
       if (event.type === "input_audio_buffer.speech_started" || event.type === "response.created") setError(null);
+      if (event.type === "input_audio_buffer.speech_started") stageCues.emit({ t: "clear" });
       if (event.type === "error") {
         // A stray error event while Clopar listens or speaks is not worth a sticky card. Only a lost answer is.
         setBusy(false);
@@ -368,6 +384,55 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     }
   }, [afterOpen, open, stop]);
 
+  const playCanned = useCallback(
+    (again = false) => {
+      const list = cannedFor(langRef.current);
+      const c: Canned | null = again && canned.current.last ? (list.find((x) => x.id === canned.current.last) ?? null) : nextCanned(list, canned.current.last);
+      if (!c) return false;
+      stop(); // any live session or earlier playback ends first
+      canned.current.last = c.id;
+      const kind = c.source === "recorded" ? "recorded" : "prepared";
+      const mine = gen.current;
+      const played: ToolStep[] = [];
+      setError(null);
+      setTier(kind);
+      for (const cue of planCanned(c)) {
+        canned.current.timers.push(
+          setTimeout(() => {
+            if (gen.current !== mine) return;
+            if (cue.kind === "listen") setTalk({ ...TALK_START, mode: "listen", heard: cue.text, live: false });
+            else if (cue.kind === "think") setTalk({ ...TALK_START, mode: "think", live: false });
+            else if (cue.kind === "show") dispatchShow(cue.target);
+            else if (cue.kind === "step") {
+              played.push(cue.step);
+              setLiveSteps([...played]);
+            } else {
+              setTalk({ ...TALK_START, mode: "speak", reply: cue.text, live: false });
+              const done = () => {
+                if (gen.current !== mine) return;
+                setTraces((x) => [...x.slice(-9), { id: newId(), heard: c.heard, steps: played, answer: c.answer, tier: kind }]);
+                setLiveSteps([]);
+                setTalk(TALK_START);
+                setTier(null);
+              };
+              if (c.audio) {
+                const au = new Audio(c.audio);
+                canned.current.audio = au;
+                au.onended = done;
+                au.onerror = () => {
+                  canned.current.stopSpeak = speak(cue.text, c.lang, done); // no recording on disk: the browser reads it
+                };
+                void au.play().catch(() => au.onerror?.(new Event("error")));
+              } else canned.current.stopSpeak = speak(cue.text, c.lang, done);
+            }
+          }, cue.at),
+        );
+      }
+      return true;
+    },
+    [setTalk, stop],
+  );
+
   const send = useCallback(
     async (raw: string, viaAsk = false) => {
       const q = raw.trim();
@@ -468,6 +533,12 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       if (!res.ok) return toast(t("card_failed"));
       setCard(card.id, verb === "save" ? "saved" : verb === "skip" ? "skipped" : "undone");
       if (verb === "skip") return tell("The person dismissed the card; nothing was saved.");
+      if (verb === "save" && card.kind === "cancel_subs") {
+        // The freed money visibly flows to the goal that gets it.
+        const subs = (Array.isArray(card.args.subs) ? card.args.subs : []) as { id: string }[];
+        const goal = card.args.goal as { id: string } | null;
+        if (goal) stageCues.emit({ t: "transfer", from: subs.map((x) => `s-${x.id}`), to: `g-${goal.id}` });
+      }
       await Promise.all([money.reload(), time.reload()]);
       if (verb === "undo") return tell("The person undid the saved card.");
       tell("The person saved the card.");
@@ -548,8 +619,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     talk.mode === "think" ? t("thinking") : talk.mode === "listen" ? talk.heard || t("listening") : firstSentence(talk.reply);
 
   const value = useMemo<Assistant>(
-    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, micMuted, setMicMuted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear }),
-    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, micMuted, setMicMuted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceChoice, send, startVoice, stop, setMuted, answerCard, editCard, clear],
+    () => ({ turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, micMuted, setMicMuted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceLang: setVoiceChoice, send, startVoice, stop, playCanned, setMuted, answerCard, editCard, clear }),
+    [turns, pendingCard, talk, caption, busy, connecting, voiceOn, muted, micMuted, setMicMuted, error, quota, tier, traces, liveSteps, voiceLang, setVoiceChoice, send, startVoice, stop, playCanned, setMuted, answerCard, editCard, clear],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

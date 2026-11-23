@@ -25,10 +25,11 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
     appleWebApp: { capable: true, title: "rideff Life", statusBarStyle: "black-translucent" },
     icons: {
       icon: [
-        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-        { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+        { url: "/favicon.ico?v=2", sizes: "any" },
+        { url: "/icons/icon-192.png?v=2", sizes: "192x192", type: "image/png" },
+        { url: "/icons/icon-512.png?v=2", sizes: "512x512", type: "image/png" },
       ],
-      apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+      apple: [{ url: "/icons/apple-touch-icon.png?v=2", sizes: "180x180" }],
     },
     robots: { index: false, follow: false },
   };

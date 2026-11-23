@@ -8,6 +8,7 @@ import { buildInstructions, memoriesFor, MAX_MEMORIES, type MemoryFact } from "@
 import { berlinToday } from "@/lib/money";
 import { AI_NAME } from "@/lib/nav";
 import { authorize } from "@/lib/server-auth";
+import { ttsEnabled } from "@/lib/tts-server";
 
 const MODEL = process.env.OPENAI_REALTIME_MODEL ?? "gpt-realtime-2.1";
 const fail = (code: string, status: number) => Response.json({ code }, { status });
@@ -46,8 +47,9 @@ export async function POST(req: Request) {
   // Tells the transcriber which language is spoken: Indonesian and German are otherwise guessed from the first words.
   const spokenLang = ((l) => (l === "de" || l === "id" || l === "en" ? l : "en"))(body?.locale ?? settings?.lang);
 
+  const aiName = settings?.ai_name || AI_NAME;
   const instructions = buildInstructions({
-    aiName: settings?.ai_name || AI_NAME,
+    aiName,
     speaker: members.find((x) => x.id === userId)?.display_name ?? "the person",
     members: members.map((x) => x.display_name),
     locale: body?.locale ?? settings?.lang ?? "en",
@@ -57,6 +59,8 @@ export async function POST(req: Request) {
   });
 
   const spoken = voice || settings?.voice === "audio" || settings?.voice === "both";
+  // Spike: the model writes the answer and ElevenLabs speaks it. Off unless VOICE_TTS=elevenlabs and its key and voice are set.
+  const tts = voice && ttsEnabled(); // typed sessions with a spoken setting keep the OpenAI voice
   const res = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
     method: "POST",
     headers: {
@@ -71,10 +75,10 @@ export async function POST(req: Request) {
         instructions,
         tools: [...TOOLS, SHOW_TOOL],
         tool_choice: "auto",
-        output_modalities: [spoken ? "audio" : "text"],
+        output_modalities: [spoken && !tts ? "audio" : "text"],
         audio: {
-          input: voice ? { transcription: { model: "gpt-4o-mini-transcribe", language: spokenLang }, turn_detection: { type: "semantic_vad" } } : { turn_detection: null },
-          output: { voice: "marin" },
+          input: voice ? { transcription: { model: "gpt-4o-mini-transcribe", language: spokenLang, ...(tts ? { prompt: `Names: ${aiName}, ${members.map((x) => x.display_name).join(", ")}. Topics: budget, jadwal, tabungan, rideff.` } : {}) }, turn_detection: { type: "semantic_vad" } } : { turn_detection: null },
+          ...(tts ? {} : { output: { voice: "marin" } }),
         },
       },
     }),
@@ -86,5 +90,5 @@ export async function POST(req: Request) {
     await sb.rpc("ai_session_end", { p_session: info.session_id });
     return fail("failed", 502);
   }
-  return Response.json({ token: secret.value, spoken, ...info });
+  return Response.json({ token: secret.value, spoken, tts, ...info });
 }

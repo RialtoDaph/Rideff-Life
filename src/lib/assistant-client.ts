@@ -5,10 +5,11 @@
 import { supabase } from "@/lib/supabase";
 import type { Card } from "@/lib/assistant-tools";
 import { bandsOf, type Bands } from "@/lib/voice-level";
+import { createTtsPlayer, type TtsPlayer } from "@/lib/tts-player";
 
 const CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 
-export type SessionInfo = { token: string; session_id: string; plan: string; voice_left: number; ai_left: number | null };
+export type SessionInfo = { token: string; session_id: string; plan: string; voice_left: number; ai_left: number | null; /** The reply comes as text and is spoken by /api/assistant/tts. */ tts?: boolean };
 export type SessionFail = { code: "not_configured" | "voice_quota" | "ai_quota" | "failed" };
 
 export async function authedPost<T>(path: string, body: unknown, keepalive = false, timeoutMs?: number): Promise<{ ok: boolean; status: number; data: T | null }> {
@@ -56,7 +57,7 @@ function listenTo(ctx: AudioContext | null, stream: MediaStream): () => Bands {
 
 const CONNECT_MS = 5000;
 
-export async function connectRealtime(token: string, voice: boolean, onEvent: (e: { type: string }) => void, onDrop: () => void): Promise<Realtime> {
+export async function connectRealtime(token: string, voice: boolean, onEvent: (e: { type: string }) => void, onDrop: () => void, tts?: { sessionId: string }): Promise<Realtime> {
   const pc = new RTCPeerConnection();
   const audio = new Audio();
   audio.autoplay = true;
@@ -64,11 +65,26 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
   try {
     ctx = new AudioContext();
   } catch {}
+  // An outside voice needs the audio context: without it the reply would stay silent. Fail like any lost connection.
+  if (tts && !ctx) {
+    pc.close();
+    throw new Error("no audio context");
+  }
   let out: () => Bands = () => SILENT;
   pc.ontrack = (e) => {
     audio.srcObject = e.streams[0];
     out = listenTo(ctx, e.streams[0]);
   };
+
+  // With an outside voice the model sends text only: this player speaks it and stands in for the audio events.
+  let player: TtsPlayer | null = null;
+  if (tts && ctx) {
+    player = createTtsPlayer(ctx, tts.sessionId, {
+      start: () => onEvent({ type: "output_audio_buffer.started" }),
+      stop: () => onEvent({ type: "output_audio_buffer.stopped" }),
+      metric: (ms) => console.info(`[tts] first sound ${Math.round(ms)} ms after the first word`),
+    });
+  }
 
   let mic: MediaStream | null = null;
   let heard: () => Bands = () => SILENT;
@@ -82,7 +98,17 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
     const channel = pc.createDataChannel("oai-events");
     channel.onmessage = (m) => {
       try {
-        onEvent(JSON.parse(m.data as string));
+        const e = JSON.parse(m.data as string) as { type: string; delta?: string; response_id?: string; response?: { id?: string } };
+        if (player) {
+          if (e.type === "input_audio_buffer.speech_started") player.cancel(); // barge-in: the person speaks over Clopar
+          else if (e.type === "response.created") player.begin(e.response?.id);
+          else if (e.type === "response.output_text.delta" && e.delta) {
+            if (player.isDead(e.response_id)) return; // late text from a reply the person cut off
+            player.push(e.response_id, e.delta);
+          }
+          else if (e.type === "response.done") player.finish(e.response?.id);
+        }
+        onEvent(e);
       } catch {}
     };
     const opened = new Promise<void>((resolve, reject) => {
@@ -123,16 +149,18 @@ export async function connectRealtime(token: string, voice: boolean, onEvent: (e
       if (!closed) onDrop();
     });
     return {
-      levels: () => ({ mic: heard(), out: out() }),
+      levels: () => ({ mic: heard(), out: player ? player.levels() : out() }),
       send: (event) => channel.readyState === "open" && channel.send(JSON.stringify(event)),
       setMuted: (on) => {
         audio.muted = on;
+        player?.setMuted(on);
       },
       muteMic: (on) => {
         mic?.getAudioTracks().forEach((t) => (t.enabled = !on));
       },
       close: () => {
         closed = true;
+        player?.close();
         clearTimeout(wait);
         mic?.getTracks().forEach((t) => t.stop());
         channel.close();

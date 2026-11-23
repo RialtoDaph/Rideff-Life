@@ -6,8 +6,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { visibleTo } from "./ask-context";
 import { assetEur, DEFAULT_IDR_PER_EUR, type Asset, type Debt } from "./finance";
-import { berlinToday, budgetSummary, type Category, type Goal, type Income, type Transaction } from "./money";
-import { goalChanges, unplannedPerMonth } from "./plan";
+import { berlinToday, budgetSummary, type Category, type Goal, type Income, type Recurring, type Transaction } from "./money";
+import { goalChanges, monthsTo, unplannedPerMonth } from "./plan";
+import { cancellable, subscriptionSummary, uniqueMatch, type SubRow } from "./subscriptions";
 import { addDays, type CalEvent } from "./time";
 
 const fn = (name: string, description: string, properties: Record<string, unknown> = {}, required: string[] = []) => ({
@@ -24,6 +25,7 @@ export const TOOLS = [
   fn("get_goals", "Shared goals, plus the caller's own private goals.", { scope: { type: "string", enum: ["all", "shared", "mine"] } }),
   fn("get_week", "Events and shifts the caller may see.", { from: iso("First day."), to: iso("Last day.") }),
   fn("get_net_worth", "Accounts and debts: the shared ones plus the caller's private ones."),
+  fn("get_subscriptions", "Subscriptions with their monthly cost and days since last use, and what the unused ones cost per month."),
   fn(
     "simulate",
     "What if the monthly money changes: the result on goal dates.",
@@ -55,6 +57,12 @@ export const TOOLS = [
     ["name", "target", "visibility"],
   ),
   fn(
+    "propose_cancel_subscriptions",
+    "Suggest cancelling subscriptions the person no longer uses, and optionally moving the freed money into a goal. Saves nothing: the person gets one card with Save and Undo. Call once with all the names.",
+    { names: { type: "array", items: { type: "string" }, description: "Subscription names, at most five." }, move_to_goal: { type: "string", description: "A goal, by name, that gets the freed money each month." } },
+    ["names"],
+  ),
+  fn(
     "remember",
     "Suggest one short durable fact to keep. Saves nothing until the person agrees on the card. Use scope shared only when it concerns shared money or goals and the person asked for it.",
     { text: { type: "string" }, scope: { type: "string", enum: ["private", "shared"] } },
@@ -64,7 +72,7 @@ export const TOOLS = [
 ];
 
 // "shifts" comes from Telegram only: a roster read from a photo, saved together.
-export type CardKind = "transaction" | "event" | "goal" | "remember" | "forget" | "shifts";
+export type CardKind = "transaction" | "event" | "goal" | "remember" | "forget" | "shifts" | "cancel_subs";
 export type CardStatus = "pending" | "saved" | "undone" | "skipped";
 export type Card = { id: string; kind: CardKind; status: CardStatus; args: Record<string, unknown> };
 
@@ -72,6 +80,7 @@ const PROPOSALS: Record<string, CardKind> = {
   propose_transaction: "transaction",
   propose_event: "event",
   propose_goal: "goal",
+  propose_cancel_subscriptions: "cancel_subs",
   remember: "remember",
   forget: "forget",
 };
@@ -112,6 +121,30 @@ async function cleanProposal(sb: SupabaseClient, userId: string, kind: CardKind,
     }
     case "shifts":
       return { error: "Shifts come from a roster photo." };
+    case "cancel_subs": {
+      const names = (Array.isArray(a.names) ? a.names : []).map((n) => text(n, 80)).filter(Boolean).slice(0, 5);
+      if (!names.length) return { error: "Need the names of the subscriptions." };
+      const { data } = await sb.from("recurring").select("*");
+      const pool = cancellable(visibleTo((data ?? []) as Recurring[], userId));
+      const subs: (SubRow & { visibility: string })[] = [];
+      for (const n of names) {
+        const hit = uniqueMatch(pool, n, (r) => r.name);
+        if (!hit) return { error: `No single active subscription matches "${n}".` };
+        if (!subs.some((s) => s.id === hit.id)) subs.push(hit as SubRow & { visibility: string });
+      }
+      const freed = Math.round(subs.reduce((s, r) => s - r.amount, 0) * 100) / 100;
+      let goal: Out | null = null;
+      const wanted = text(a.move_to_goal);
+      if (wanted) {
+        const { data: g } = await sb.from("goals").select("*");
+        const pick = uniqueMatch(visibleTo((g ?? []) as Goal[], userId).filter((x) => x.target > 0), wanted, (x) => x.name);
+        if (!pick) return { error: `No single goal matches "${wanted}".` };
+        const before = pick.monthly || 0;
+        const after = Math.round((before + freed) * 100) / 100;
+        goal = { id: pick.id, name: pick.name, private: pick.visibility === "private", monthly_before: before, monthly_after: after, months_before: monthsTo(pick, before), months_after: monthsTo(pick, after) };
+      }
+      return { subs: subs.map((r) => ({ id: r.id, name: r.name, monthly: Math.round(-r.amount * 100) / 100, private: r.visibility === "private" })), freed, goal };
+    }
     case "forget": {
       const { data } = await sb.from("ai_memories").select("id,text,scope,kind").eq("id", text(a.memory_id, 40)).eq("owner_id", userId).maybeSingle();
       return data ? { memory_id: data.id, text: data.text, scope: data.scope, kind: data.kind } : { error: "No such memory of this person." };
@@ -177,6 +210,10 @@ export async function runTool(sb: SupabaseClient, userId: string, name: string, 
       const total = assets.reduce((s, x) => s + x.eur, 0) - debts.reduce((s, x) => s + x.balance, 0);
       return { output: { net_worth: total, assets, debts } };
     }
+    case "get_subscriptions": {
+      const { data } = await sb.from("recurring").select("*");
+      return { output: subscriptionSummary(visibleTo((data ?? []) as Recurring[], userId), today.iso) };
+    }
     case "simulate": {
       const [g, i, c] = await Promise.all([sb.from("goals").select("*"), sb.from("incomes").select("*"), sb.from("categories").select("*")]);
       const goals = visibleTo((g.data ?? []) as Goal[], userId).filter((x) => x.target > 0);
@@ -196,7 +233,7 @@ export async function runTool(sb: SupabaseClient, userId: string, name: string, 
   return { output: { error: "Unknown tool." } };
 }
 
-type Pending = { id: string; tool: CardKind; args: Out; status: CardStatus; result: { table: string; id: string; ids?: string[]; row?: Out } | null };
+type Pending = { id: string; tool: CardKind; args: Out; status: CardStatus; result: { table: string; id: string; ids?: string[]; row?: Out; goal?: { id: string } } | null };
 
 /** The person tapped Save. This is the only place the assistant's suggestions become data. */
 export async function saveCard(sb: SupabaseClient, userId: string, id: string, edited?: string, extra?: Out) {
@@ -207,7 +244,39 @@ export async function saveCard(sb: SupabaseClient, userId: string, id: string, e
   const a = { ...p.args, ...extra };
   let result: Pending["result"];
 
-  if (p.tool === "forget") {
+  if (p.tool === "cancel_subs") {
+    // Ids and amounts come from the stored card, never from the request. The client can write that row too,
+    // so this is safe only because every update below runs as the person under RLS and column grants.
+    const subs = (Array.isArray(p.args.subs) ? p.args.subs : []) as { id: string }[];
+    const ids = subs.map((x) => String(x.id));
+    const goal = p.args.goal as { id: string; monthly_before: number; monthly_after: number } | null;
+    if (!ids.length) return { error: "failed" };
+    const { data: done, error } = await sb
+      .from("recurring")
+      .update({ active: false, cancelled_on: berlinToday().iso })
+      .in("id", ids)
+      .eq("active", true)
+      .eq("is_subscription", true)
+      .select("id");
+    const changed = ((done ?? []) as { id: string }[]).map((r) => r.id);
+    const putBack = async () => {
+      if (!changed.length) return;
+      const { error: be } = await sb.from("recurring").update({ active: true, cancelled_on: null }).in("id", changed);
+      if (be) console.error("cancel_subs: could not put subscriptions back", be.message);
+    };
+    if (error || changed.length !== ids.length) {
+      await putBack();
+      return { error: "failed" };
+    }
+    if (goal) {
+      const { data: g, error: ge } = await sb.from("goals").update({ monthly: goal.monthly_after }).eq("id", goal.id).eq("monthly", goal.monthly_before).select("id");
+      if (ge || !g?.length) {
+        await putBack();
+        return { error: "failed" };
+      }
+    }
+    result = { table: "recurring", id: ids[0], ids, ...(goal ? { goal: { id: goal.id } } : {}) };
+  } else if (p.tool === "forget") {
     const { data: row } = await sb.from("ai_memories").select("scope,kind,text,source").eq("id", a.memory_id).eq("owner_id", userId).maybeSingle();
     if (!row) return { error: "gone" };
     const { error } = await sb.from("ai_memories").delete().eq("id", a.memory_id).eq("owner_id", userId);
@@ -252,7 +321,8 @@ export async function saveCard(sb: SupabaseClient, userId: string, id: string, e
     if (error) return { error: "failed" };
     result = { table: insert[0], id: row.id };
   }
-  await sb.from("ai_pending_actions").update({ status: "saved", result }).eq("id", id);
+  const { error: se } = await sb.from("ai_pending_actions").update({ status: "saved", result }).eq("id", id);
+  if (se) console.error("card saved but its status was not recorded", se.message);
   return { ok: true };
 }
 
@@ -263,7 +333,21 @@ export async function undoCard(sb: SupabaseClient, id: string) {
   const { data } = await sb.from("ai_pending_actions").select("id,tool,args,status,result").eq("id", id).maybeSingle();
   const p = data as Pending | null;
   if (!p) return { error: "gone" };
-  if (p.status === "saved" && p.result && UNDOABLE.includes(p.result.table)) {
+  if (p.status === "saved" && p.tool === "cancel_subs" && p.result) {
+    // result is writable by the client: trust only ids and amounts on the stored card (which the client can also write, so RLS is the real guard).
+    const onCard = new Set(((Array.isArray(p.args.subs) ? p.args.subs : []) as { id: string }[]).map((x) => String(x.id)));
+    const ids = (p.result.ids ?? []).filter((x) => onCard.has(x));
+    if (ids.length) {
+      const { data: back, error } = await sb.from("recurring").update({ active: true, cancelled_on: null }).in("id", ids).select("id");
+      if (error || (back?.length ?? 0) !== ids.length) return { error: "failed" };
+    }
+    const goal = p.args.goal as { id: string; monthly_before: number; monthly_after: number } | null;
+    if (goal && p.result.goal?.id === goal.id) {
+      // Only if nobody changed the goal since: a newer value is not ours to overwrite.
+      const { error } = await sb.from("goals").update({ monthly: goal.monthly_before }).eq("id", goal.id).eq("monthly", goal.monthly_after);
+      if (error) return { error: "failed" };
+    }
+  } else if (p.status === "saved" && p.result && UNDOABLE.includes(p.result.table)) {
     const { error } = p.result.row
       ? await sb.from(p.result.table).insert(p.result.row)
       : p.result.ids
