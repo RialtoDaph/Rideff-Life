@@ -140,9 +140,18 @@ export type LifeMapScene = {
 };
 
 const WIDE = 700;
-/** The backdrop is drawn only beside a detail screen on a wide window (the host is transparent below 1700px: the gutter beside the sidebar and the 1040px column is too narrow for the map before that) and not for reduced motion. */
-const backdropShown = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !window.matchMedia("(max-width: 1699px)").matches;
+/** The backdrop is drawn only beside a detail screen on a desktop window (the host is transparent below 1280px, where the column takes the whole width) and not for reduced motion. */
+const backdropShown = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !window.matchMedia("(max-width: 1279px)").matches;
 const clampZoom = (r: number) => Math.max(90, Math.min(640, r));
+/**
+ * How far the camera stands from the map behind a detail screen. From 1700px the map sits in the narrow gutter beside the
+ * column, so it pulls back. Below that it has a free band in the column's upper right, about half as tall as Home's
+ * stage: the camera comes closer (to 175 from Home's 250) so the map fills that band as it fills Home's stage, and stays
+ * above 150, where every item's label would show. A band that is not much wider than tall keeps it further back, so the
+ * turning map is not cut at the band's sides.
+ */
+const backdropZoom = (fit: number, aspect: number) =>
+  clampZoom(window.matchMedia("(max-width: 1699px)").matches ? Math.max(175, 270 / Math.max(0.1, aspect)) : fit * 1.45);
 
 let liveScenes = 0;
 
@@ -498,6 +507,8 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
     camera.updateProjectionMatrix();
     renderer.setSize(r.width, r.height);
     rescale();
+    // The backdrop's box changes with the window (and setMode may run before the new box is measured): keep the resting map fitted to it.
+    if (mode === "backdrop" && !anchor && !flight) zoom = backdropZoom(fitZoom(), camera.aspect);
     // A frozen canvas would stretch or go blank after a resize: draw it once more.
     if (paused) frame(performance.now());
   });
@@ -839,7 +850,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
       mode = m;
       // The gutter beside a detail screen is narrow: pull the camera back so the whole map fits in it, and restore on leaving.
       if (m === "backdrop" !== (was === "backdrop")) {
-        zoom = m === "backdrop" ? clampZoom(fitZoom() * 1.45) : fitZoom();
+        zoom = m === "backdrop" ? backdropZoom(fitZoom(), camera.aspect) : fitZoom();
         if (flight) flight.to = { ...flight.to, r: zoom }; // a flight in progress lands on it
       }
       if (m === "hero" || m === "backdrop") spin = !reduced;
@@ -918,7 +929,7 @@ export async function createLifeMapScene(host: HTMLElement, labels: HTMLElement,
         let to: Flight["to"];
         if (node.kind === "core") {
           anchor = null;
-          to = { th: orbit.th, ph: 1.15, r: mode === "backdrop" ? clampZoom(fitZoom() * 1.45) : fitZoom() };
+          to = { th: orbit.th, ph: 1.15, r: mode === "backdrop" ? backdropZoom(fitZoom(), camera.aspect) : fitZoom() };
         } else {
           const at = meshes[node.id].position;
           anchor = at.clone();
