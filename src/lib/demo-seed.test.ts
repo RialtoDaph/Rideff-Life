@@ -38,6 +38,12 @@ describe("demo seed is consistent with the screens Clopar reads", () => {
     expect(due.length).toBeGreaterThan(0);
   });
 
+  it("does not mark a row as posted this month before its day has come", () => {
+    const early = seed.recurring.filter((r) => r.day_of_month > 24);
+    expect(early.length).toBeGreaterThan(0);
+    for (const r of early) expect(r.last_posted_month).toBe("2026-10");
+  });
+
   it("books nothing that is not yet due", () => {
     expect(seed.transactions.some((t) => t.payee.startsWith("LVB · salary"))).toBe(false); // day 28
   });

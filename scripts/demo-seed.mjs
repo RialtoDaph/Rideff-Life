@@ -33,6 +33,14 @@ const monthKey = (d, ago) => iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCM
 /** The cron compares against the household's own (Berlin) month, so the seed must too. */
 const berlinDay = (d) => Number(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", day: "2-digit" }).format(d));
 const berlinMonth = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit" }).format(d).slice(0, 7);
+// A row counts as posted this month only once its day has come: Recurring must not say "Added" for a salary due on the 28th
+// when it is the 24th. The cron then books it on its day, as it would in the real app.
+const postedMonth = (d, dayOfMonth) => {
+  const ym = berlinMonth(d);
+  if (dayOfMonth <= berlinDay(d)) return ym;
+  const [y, m] = ym.split("-").map(Number);
+  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+};
 
 /** The whole persona, as rows per table. `ids` carries what must be known first (categories, businesses, members). */
 export function build(today, ids = {}) {
@@ -51,17 +59,17 @@ export function build(today, ids = {}) {
       ["Telekom · internet & phones", "smartphone", -92, "Rent & utilities", 1], ["Techniker Krankenkasse", "shield", -265, "Insurance & health", 1],
       ["HUK · liability & home", "shield", -38, "Insurance & health", 1], ["Deutschlandticket ×2", "train-front", -98, "Transport", 1],
       ["Figma + Adobe · studio", "laptop", -79, "Business tools", 12], ["LVB · salary (Tom)", "banknote", 2480, null, 28],
-    ].map(([name, icon, amount, c, day_of_month]) => ({ name, icon, amount, category_id: c ? cat(c) : null, day_of_month, is_subscription: false, last_used_at: null, last_posted_month: berlinMonth(today) }))
+    ].map(([name, icon, amount, c, day_of_month]) => ({ name, icon, amount, category_id: c ? cat(c) : null, day_of_month, is_subscription: false, last_used_at: null, last_posted_month: postedMonth(today, day_of_month) }))
       // Storyline 2: three subscriptions nobody uses, about 38 a month. Clopar offers to cancel them.
       // The separate `subscriptions` table is gone (migration 20261105): they are recurring rows with is_subscription.
-      // last_posted_month = this month, so the hourly cron never books them while the demo runs.
+      // last_posted_month = this month once their day has come, so the hourly cron does not book them a second time.
       .concat(
         [
           ["Netflix", -13.99, 3, 2], ["Spotify Family", -17.99, 8, 1], ["Disney+", -9.99, 20, 52],
           ["Fitness app (unused)", -13.99, 11, 74], ["Cloud storage 2 TB (unused)", -13.99, 14, 96],
         ].map(([name, amount, day_of_month, ago]) => ({
           name, icon: "tv", amount, category_id: cat("Streaming & apps"), day_of_month,
-          is_subscription: true, last_used_at: addDays(today, -ago).toISOString(), last_posted_month: berlinMonth(today),
+          is_subscription: true, last_used_at: addDays(today, -ago).toISOString(), last_posted_month: postedMonth(today, day_of_month),
         })),
       );
   // Marked as posted this month, so they must also be booked this month: otherwise Recurring says "Added" while
