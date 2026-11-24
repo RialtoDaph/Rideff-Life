@@ -8,8 +8,10 @@ import {
   eur,
   goalEta,
   inScope,
+  nextMonthStart,
   recurringState,
   spentByCategory,
+  todayInMonth,
   type Category,
   type Goal,
   type Recurring,
@@ -192,5 +194,20 @@ describe("inScope (Private / Family)", () => {
     expect(inScope(row("private", "a", "a"), "a", "a")).toBe(true);
     expect(inScope(row("private", "a", "a"), "a", "b")).toBe(false);
     expect(inScope(row("private", "b", "b"), "b", "a")).toBe(false);
+  });
+});
+
+describe("month bounds", () => {
+  it("nextMonthStart gives a real date for every month", () => {
+    expect(nextMonthStart("2026-11")).toBe("2026-12-01");
+    expect(nextMonthStart("2026-02")).toBe("2026-03-01");
+    expect(nextMonthStart("2026-12")).toBe("2027-01-01");
+  });
+
+  it("todayInMonth: this month unchanged, a past month at its last day, a future month at its first", () => {
+    const now = berlinToday(new Date("2026-11-24T12:00:00Z"));
+    expect(todayInMonth(now, "2026-11")).toBe(now);
+    expect(todayInMonth(now, "2026-02")).toMatchObject({ d: 28, daysInMonth: 28, ym: "2026-02", iso: "2026-02-28" });
+    expect(todayInMonth(now, "2027-01")).toMatchObject({ d: 1, daysInMonth: 31, iso: "2027-01-01" });
   });
 });

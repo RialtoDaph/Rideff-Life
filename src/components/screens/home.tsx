@@ -3,7 +3,7 @@
 import { Check, List, Lock, Network, Pause, Play } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAppData, type Member, useAiName } from "@/components/app-data";
 import { HeroNumber } from "@/components/ds/hero-number";
 import { useMoney } from "@/components/money-data";
@@ -15,7 +15,7 @@ import { AddButton, EmptyNote, PrivateMark, ProgressBar } from "@/components/ui"
 import { QuickStart } from "@/components/quick-start";
 import { SampleDataButton } from "@/components/sample-data";
 import { ScreenSkeleton } from "@/components/skeleton";
-import { fetchBriefing, loadBriefing, saveBriefing } from "@/lib/ask";
+import { REWRITE_AFTER_MS, fetchBriefing, loadBriefing, saveBriefing } from "@/lib/ask";
 import type { Answer } from "@/lib/ask-schema";
 import { AppIcon } from "@/lib/icons";
 import { eur, goalEta, type Alert, type Goal } from "@/lib/money";
@@ -319,6 +319,9 @@ function useTyped(text: string, on: boolean) {
   return text.slice(0, at.text === text ? at.n : 0);
 }
 
+// Briefing requests made in this tab, by person and view: a remount or a switch back must not send a second charged request.
+const briefingAttempts = new Map<string, number>();
+
 function Briefing({ scope }: { scope: string }) {
   const aiName = useAiName();
   const t = useTranslations("home");
@@ -330,37 +333,50 @@ function Briefing({ scope }: { scope: string }) {
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [ai, setAi] = useState<{ key: string; answer: Answer; fresh?: boolean } | null>(null);
-  const [loading, setLoading] = useState(false);
+  // The view whose briefing is being written, not a yes/no: the person filter switches views without remounting.
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
+  const keyRef = useRef("");
   const hasData = money.transactions.length > 0 || money.incomes.length > 0;
   const day = money.today.iso;
   const slot = `${scope}-${locale}`;
+  // The briefing quotes money left and alerts. When they move a lot it is written again (at most about once an hour),
+  // and the saved one stays on screen meanwhile: the hero stays the source of truth for the exact numbers.
+  const flexLeft = Math.round(money.budget.flexLeft);
+  const alertCount = money.alerts.length;
   const key = `${slot}-${day}`;
+
+  useEffect(() => {
+    keyRef.current = key;
+  }, [key]);
 
   // Clopar writes the briefing once a day per view and language; it is kept on this phone.
   useEffect(() => {
     if (!userId || !hasData || money.today.y < 2026) return;
-    const cached = loadBriefing(userId, slot, day);
+    const facts = { flexLeft, alerts: alertCount };
+    const cached = loadBriefing(userId, slot, day, facts);
     if (cached) {
       // Today's briefing saved on this phone.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setAi({ key, answer: cached });
-      return;
+      setAi((cur) => (cur?.key === key && cur.fresh ? cur : { key, answer: cached.answer }));
+      if (!cached.stale) return;
     }
     if (!online) return;
-    let alive = true;
-    setLoading(true);
+    // One request per view and day in any hour, whether it is still running, failed or was answered: the server counts
+    // each request against the daily limit when it arrives, and the data under the effect keeps moving while it runs.
+    const tried = `${userId}|${key}`;
+    const last = briefingAttempts.get(tried);
+    if (last && Date.now() - last < REWRITE_AFTER_MS) return;
+    briefingAttempts.set(tried, Date.now());
+    setLoadingKey(key);
+    // Not cancelled when the numbers move meanwhile: the answer is still saved. It is shown only if this view is
+    // still the one on screen (the person filter changes the view without remounting).
     fetchBriefing(scope, locale).then(({ answer }) => {
-      if (!alive) return;
-      setLoading(false);
-      if (answer) {
-        saveBriefing(userId, slot, day, answer);
-        setAi({ key, answer, fresh: true });
-      }
+      if (answer) saveBriefing(userId, slot, day, facts, answer);
+      setLoadingKey((c) => (c === key ? null : c));
+      if (keyRef.current !== key) return;
+      if (answer) setAi({ key, answer, fresh: true });
     });
-    return () => {
-      alive = false;
-    };
-  }, [userId, scope, slot, day, key, locale, hasData, online, money.today.y]);
+  }, [userId, scope, slot, day, key, locale, hasData, online, money.today.y, flexLeft, alertCount]);
 
   const aiAnswer = ai?.key === key ? ai.answer : null;
   const { budget, alerts } = money;
@@ -403,7 +419,7 @@ function Briefing({ scope }: { scope: string }) {
       <div className="flex min-w-0 items-center gap-3">
         <span className="flex-none font-mono text-[11px] font-bold uppercase tracking-[.12em] text-mut">{aiName}</span>
         <span aria-label={text} className={`min-w-0 flex-1 text-sm font-medium leading-normal text-ink ${open ? "" : "line-clamp-2"}`}>
-          <span aria-hidden className={loading && !aiAnswer ? "text-mut" : undefined}>
+          <span aria-hidden className={loadingKey === key && !aiAnswer ? "text-mut" : undefined}>
             {typed}
           </span>
         </span>
