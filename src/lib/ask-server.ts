@@ -10,7 +10,9 @@ import { DEFAULT_IDR_PER_EUR, asSubscription } from "@/lib/finance";
 import { berlinToday, type Recurring } from "@/lib/money";
 import { addDays } from "@/lib/time";
 
-export const MODEL = "claude-opus-5-5";
+// Haiku 5.5: the cheap model is plenty for questions and briefings over a few thousand rows of the person's own data.
+// It has no server-side refusal fallback, so the request below sends none.
+export const MODEL = "claude-haiku-5-5";
 const BRIEFING_LANGUAGE: Record<string, string> = { en: "English", de: "German", id: "Indonesian" };
 
 export type Turn = { role: "user" | "assistant"; text: string };
@@ -97,11 +99,9 @@ export async function askAnswer(
 
   const client = new Anthropic();
   try {
-    const stream = client.beta.messages.stream({
+    const stream = client.messages.stream({
       model: MODEL,
-      max_tokens: 8000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      max_tokens: 4000,
       thinking: { type: "adaptive" },
       output_config: { effort: mode === "briefing" ? "low" : "medium", format: { type: "json_schema", schema: answerSchema() } },
       system: mode === "briefing" ? BRIEFING_PROMPT.replace("in English", `in ${BRIEFING_LANGUAGE[input.locale ?? "en"] ?? "English"}`) : ASK_PROMPT,
@@ -117,7 +117,7 @@ export async function askAnswer(
     });
     const msg = await stream.finalMessage();
     if (msg.stop_reason === "refusal") return { error: "Clopar can't help with that one.", status: 422 };
-    const text = msg.content.find((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text")?.text;
+    const text = msg.content.find((b): b is Anthropic.TextBlock => b.type === "text")?.text;
     if (!text) return { error: "Clopar gave no answer. Try again.", status: 502 };
     const a = JSON.parse(text) as { text: string; nums: { label: string; value: string }[]; next: string | null; action: string };
     return {
@@ -132,6 +132,8 @@ export async function askAnswer(
     console.error("ask failed", e instanceof Anthropic.APIError ? `${e.status} ${e.message}` : String(e));
     if (e instanceof Anthropic.RateLimitError) return { error: "Clopar is busy. Try again in a minute.", status: 429 };
     if (e instanceof Anthropic.AuthenticationError) return { error: "The AI key is not valid. Check it in Vercel.", status: 503 };
+    // Anthropic answers an empty balance with a 400, not a 402: say so, so it is not mistaken for a bad request.
+    if (e instanceof Anthropic.BadRequestError && /credit balance/i.test(e.message)) return { error: "Clopar is paused: the AI balance is empty. Top it up at console.anthropic.com.", status: 503 };
     return { error: "Clopar is not reachable right now. Try again.", status: 502 };
   }
 }
