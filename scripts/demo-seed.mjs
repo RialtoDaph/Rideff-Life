@@ -31,6 +31,7 @@ const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
 const monthKey = (d, ago) => iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - ago, 1))).slice(0, 7);
 
 /** The cron compares against the household's own (Berlin) month, so the seed must too. */
+const berlinDay = (d) => Number(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", day: "2-digit" }).format(d));
 const berlinMonth = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit" }).format(d).slice(0, 7);
 
 /** The whole persona, as rows per table. `ids` carries what must be known first (categories, businesses, members). */
@@ -45,13 +46,7 @@ export function build(today, ids = {}) {
     ["Online shopping", "package", 220, false], ["Eating out", "utensils", 240, false], ["Coffee & drinks", "coffee", 90, false],
     ["Personal & gifts", "gift", 140, false],
   ].map(([name, icon, monthly_limit, is_fixed], i) => ({ name, icon, monthly_limit, is_fixed, sort: i + 1 }));
-  return {
-    categories,
-    incomes: [
-      { name: "Leipzig Verkehrsbetriebe · salary (Tom)", member_id: tom, kind: "Salary", monthly_amount: 2480 },
-      { name: "Lena Brandt Design", member_id: ids.me ?? null, kind: "Business", monthly_amount: 2900 },
-    ],
-    recurring: [
+  const recurring = [
       ["Rent · LWB Leipzig", "house", -920, "Rent & utilities", 1], ["Stadtwerke Leipzig · power", "house", -96, "Rent & utilities", 1],
       ["Telekom · internet & phones", "smartphone", -92, "Rent & utilities", 1], ["Techniker Krankenkasse", "shield", -265, "Insurance & health", 1],
       ["HUK · liability & home", "shield", -38, "Insurance & health", 1], ["Deutschlandticket ×2", "train-front", -98, "Transport", 1],
@@ -68,11 +63,24 @@ export function build(today, ids = {}) {
           name, icon: "tv", amount, category_id: cat("Streaming & apps"), day_of_month,
           is_subscription: true, last_used_at: addDays(today, -ago).toISOString(), last_posted_month: berlinMonth(today),
         })),
-      ),
+      );
+  // Marked as posted this month, so they must also be booked this month: otherwise Recurring says "Added" while
+  // Budget (and Clopar, which reads the same transactions) shows the fixed categories as unpaid.
+  const booked = recurring
+    .filter((r) => r.day_of_month <= berlinDay(today))
+    .map((r) => ({ date: `${berlinMonth(today)}-${String(r.day_of_month).padStart(2, "0")}`, amount: r.amount, payee: r.name, category_id: r.category_id, source: "recurring" }));
+  return {
+    categories,
+    incomes: [
+      { name: "Leipzig Verkehrsbetriebe · salary (Tom)", member_id: tom, kind: "Salary", monthly_amount: 2480 },
+      { name: "Lena Brandt Design", member_id: ids.me ?? null, kind: "Business", monthly_amount: 2900 },
+    ],
+    recurring,
     transactions: [
       [0, -52.3, "REWE Leipzig", "Groceries"], [-1, -24.99, "Amazon.de", "Online shopping"], [-1, -4.8, "Café Cantona", "Coffee & drinks"],
       [-2, -61.4, "Zalando", "Online shopping"], [-3, 540, "Client payment · Weber Verlag", null], [-4, -46.5, "Trattoria Da Marco", "Eating out"],
-    ].map(([off, amount, payee, c]) => ({ date: iso(addDays(today, Math.max(off, -today.getUTCDate() + 1))), amount, payee, category_id: c ? cat(c) : null })),
+    ].map(([off, amount, payee, c]) => ({ date: iso(addDays(today, Math.max(off, -today.getUTCDate() + 1))), amount, payee, category_id: c ? cat(c) : null, source: "manual" }))
+      .concat(booked),
     // Storyline 1: the emergency fund, 9 800 of 15 000, +450 a month.
     goals: [
       { name: "Emergency fund · 6 months", icon: "life-buoy", target: 15000, current: 9800, monthly: 450, is_emergency_fund: true, visibility: "family" },

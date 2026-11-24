@@ -5,6 +5,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildContext } from "@/lib/ask-context";
+import { DATA_GUIDE } from "@/lib/ask-schema";
 import { loadAskRows, MODEL } from "@/lib/ask-server";
 import { buildInstructions, memoriesFor, MAX_MEMORIES, type MemoryFact } from "@/lib/assistant-prompt";
 import { runTool, TOOLS, type Card } from "@/lib/assistant-tools";
@@ -40,6 +41,7 @@ export async function chat(sb: SupabaseClient, m: TgMember, question: string): P
       memoryOn: m.memory_on,
     }),
     TELEGRAM_NOTE,
+    DATA_GUIDE,
   ].join("\n\n");
 
   const history = ((past.data ?? []) as { role: "user" | "assistant"; text: string }[])

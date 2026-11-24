@@ -110,6 +110,24 @@ export function berlinToday(now = new Date()): Today {
   return { y, m, d, iso: parts, ym: parts.slice(0, 7), daysInMonth: new Date(y, m, 0).getDate() };
 }
 
+/** First day of the month after `ym` (YYYY-MM), for an exclusive upper bound: "2026-11" → "2026-12-01". */
+export function nextMonthStart(ym: string) {
+  const [y, m] = ym.split("-").map(Number);
+  return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+}
+
+/**
+ * `today` seen from inside the month `ym`: itself for this month, the last day of a past
+ * month, the first day of a future one. So days left and per day stay right for any month.
+ */
+export function todayInMonth(today: Today, ym: string): Today {
+  if (ym === today.ym) return today;
+  const [y, m] = ym.split("-").map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const d = ym < today.ym ? daysInMonth : 1;
+  return { y, m, d, iso: `${ym}-${String(d).padStart(2, "0")}`, ym, daysInMonth };
+}
+
 export function shortDate(iso: string) {
   const [, m, d] = iso.split("-").map(Number);
   return `${d} ${MONTHS[m - 1]}`;

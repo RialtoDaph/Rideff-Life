@@ -5,8 +5,8 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { visibleTo } from "./ask-context";
-import { assetEur, DEFAULT_IDR_PER_EUR, type Asset, type Debt } from "./finance";
-import { berlinToday, budgetSummary, type Category, type Goal, type Income, type Recurring, type Transaction } from "./money";
+import { assetEur, DEFAULT_IDR_PER_EUR, netWorth, type Asset, type Debt } from "./finance";
+import { berlinToday, budgetSummary, nextMonthStart, todayInMonth, type Category, type Goal, type Income, type Recurring, type Transaction } from "./money";
 import { goalChanges, monthsTo, unplannedPerMonth } from "./plan";
 import { cancellable, subscriptionSummary, uniqueMatch, type SubRow } from "./subscriptions";
 import { addDays, type CalEvent } from "./time";
@@ -24,7 +24,7 @@ export const TOOLS = [
   fn("get_budget", "Categories, spent and left for a month of shared money.", { month: { type: "string", description: "YYYY-MM. Leave out for this month." } }),
   fn("get_goals", "Shared goals, plus the caller's own private goals.", { scope: { type: "string", enum: ["all", "shared", "mine"] } }),
   fn("get_week", "Events and shifts the caller may see.", { from: iso("First day."), to: iso("Last day.") }),
-  fn("get_net_worth", "Accounts and debts: the shared ones plus the caller's private ones."),
+  fn("get_net_worth", "Family net worth (the number Home shows), plus each account and debt; the caller's private ones are marked private and totalled apart in private_net."),
   fn("get_subscriptions", "Subscriptions with their monthly cost and days since last use, and what the unused ones cost per month."),
   fn(
     "simulate",
@@ -88,6 +88,7 @@ const PROPOSALS: Record<string, CardKind> = {
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
 const text = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const vis = (v: unknown) => (v === "private" ? "private" : "family");
+const r2 = (n: number) => Math.round(n * 100) / 100;
 type Out = Record<string, unknown>;
 
 /** Checks a proposal and returns what the card shows, or a reason for the model. */
@@ -152,6 +153,25 @@ async function cleanProposal(sb: SupabaseClient, userId: string, kind: CardKind,
   }
 }
 
+/**
+ * get_net_worth's answer. The headline is the family net worth, the same number Home shows
+ * (netWorth over family rows); the caller's private items are listed and totalled apart.
+ */
+export function netWorthOutput(assets: Asset[], debts: Debt[], rate: number) {
+  const fam = <T extends { visibility: string }>(xs: T[]) => xs.filter((x) => x.visibility === "family");
+  const mine = <T extends { visibility: string }>(xs: T[]) => xs.filter((x) => x.visibility === "private");
+  const shared = netWorth(fam(assets), fam(debts), rate);
+  const own = netWorth(mine(assets), mine(debts), rate);
+  return {
+    net_worth: Math.round(shared.net),
+    owned: Math.round(shared.assets),
+    owed: Math.round(shared.debts),
+    private_net: mine(assets).length || mine(debts).length ? Math.round(own.net) : null,
+    assets: assets.map((x) => ({ name: x.name, eur: Math.round(assetEur(x, rate)), private: x.visibility === "private" })),
+    debts: debts.map((x) => ({ name: x.name, balance: x.balance, private: x.visibility === "private" })),
+  };
+}
+
 export async function runTool(sb: SupabaseClient, userId: string, name: string, args: Out): Promise<{ output: Out; card?: Card }> {
   const today = berlinToday();
 
@@ -170,18 +190,25 @@ export async function runTool(sb: SupabaseClient, userId: string, name: string, 
   switch (name) {
     case "get_budget": {
       const month = typeof args.month === "string" && /^\d{4}-\d{2}$/.test(args.month) ? args.month : today.ym;
-      const [c, t] = await Promise.all([
+      // An exclusive bound on the next month's 1st: "2026-11-31" is not a date, and Postgres rejects the whole query.
+      const [c, t, s] = await Promise.all([
         sb.from("categories").select("*").order("sort"),
-        sb.from("transactions").select("*").gte("date", `${month}-01`).lte("date", `${month}-31`).eq("visibility", "family"),
+        sb.from("transactions").select("*").gte("date", `${month}-01`).lt("date", nextMonthStart(month)).eq("visibility", "family").limit(5000),
+        sb.from("member_settings").select("warn_pct").eq("member_id", userId).maybeSingle(),
       ]);
-      const b = budgetSummary((c.data ?? []) as Category[], (t.data ?? []) as Transaction[], { ...today, ym: month }, 80);
+      // Never report "nothing spent" because a read failed.
+      if (c.error || t.error) return { output: { error: "Could not read the budget." } };
+      const warnPct = (s.data as { warn_pct: number } | null)?.warn_pct ?? 80;
+      const b = budgetSummary((c.data ?? []) as Category[], (t.data ?? []) as Transaction[], todayInMonth(today, month), warnPct);
       return {
         output: {
           month,
-          flexible_left: b.flexLeft,
-          per_day: b.perDay,
+          flexible_limit: r2(b.flexLimit),
+          flexible_spent: r2(b.flexSpent),
+          flexible_left: r2(b.flexLeft),
+          per_day: r2(b.perDay),
           days_left: b.daysLeft,
-          categories: b.rows.map((r) => ({ name: r.cat.name, limit: r.cat.monthly_limit, spent: r.spent, left: r.cat.monthly_limit - r.spent, fixed: r.cat.is_fixed })),
+          categories: b.rows.map((r) => ({ name: r.cat.name, limit: r.cat.monthly_limit, spent: r2(r.spent), left: r2(r.cat.monthly_limit - r.spent), status: r.status, fixed: r.cat.is_fixed })),
         },
       };
     }
@@ -205,10 +232,10 @@ export async function runTool(sb: SupabaseClient, userId: string, name: string, 
         sb.from("fx_rates").select("idr_per_eur").order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       const rate = (fx.data as { idr_per_eur: number } | null)?.idr_per_eur ?? DEFAULT_IDR_PER_EUR;
-      const assets = visibleTo((a.data ?? []) as Asset[], userId).map((x) => ({ name: x.name, eur: Math.round(assetEur(x, rate)) }));
-      const debts = visibleTo((d.data ?? []) as Debt[], userId).map((x) => ({ name: x.name, balance: x.balance }));
-      const total = assets.reduce((s, x) => s + x.eur, 0) - debts.reduce((s, x) => s + x.balance, 0);
-      return { output: { net_worth: total, assets, debts } };
+      if (a.error || d.error) return { output: { error: "Could not read accounts and debts." } };
+      const assets = visibleTo((a.data ?? []) as Asset[], userId);
+      const debts = visibleTo((d.data ?? []) as Debt[], userId);
+      return { output: netWorthOutput(assets, debts, rate) };
     }
     case "get_subscriptions": {
       const { data } = await sb.from("recurring").select("*");

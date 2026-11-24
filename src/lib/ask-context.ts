@@ -3,10 +3,11 @@
 // private items never reach the AI (README → Privacy: "Ask Clopar only uses
 // data the asking person can see").
 
-import { assetEur, payoffPlan, subscriptionTotals, type Asset, type BusinessMonth, type Debt, type Remittance, type Subscription, type TaxDeadline } from "./finance";
+import { netWorth, payoffPlan, subscriptionTotals, type Asset, type BusinessMonth, type Debt, type DebtSettings, type Remittance, type Subscription, type TaxDeadline } from "./finance";
+import { lifeScore } from "./life-score";
 import { budgetSummary, emergencyFund, goalEta, recurringDate, type Category, type Goal, type Income, type Recurring, type Today, type Transaction } from "./money";
 import { unplannedPerMonth } from "./plan";
-import { addDays, goalStatus, monthShifts, shiftHours, type CalEvent, type YearlyGoal } from "./time";
+import { addDays, goalStatus, monthShifts, shiftHours, type CalEvent, type GymSession, type LearningMinute, type WeekPriority, type YearlyGoal } from "./time";
 
 type Owned = { owner_id: string; visibility: "family" | "private" };
 
@@ -29,6 +30,13 @@ export type AskRows = {
   fxRate: number;
   warnPct: number;
   efMonths: number;
+  /** The household's payoff plan settings, as on the Debts screen. */
+  debtSettings: DebtSettings;
+  /** For the Life Score, loaded over the same windows as the Life Map (components/time-data.tsx). */
+  priorities: WeekPriority[];
+  learningMinutes: LearningMinute[];
+  gym: GymSession[];
+  gymGoal: number;
 };
 
 /** Only rows the viewer may see: family rows and the viewer's own private rows. */
@@ -55,13 +63,32 @@ export function buildContext(raw: AskRows, viewerId: string, today: Today, scope
   const goals = inScope(v(raw.goals));
   const ef = emergencyFund(goals.filter((g) => g.visibility === "family"), raw.categories, raw.efMonths);
   const debts = inScope(v(raw.debts));
-  const plan = payoffPlan(debts, "avalanche", 0);
+  // Headline numbers as the Debts screen and Home show them: family rows, the household's own strategy and extra.
+  const familyDebts = debts.filter((d) => d.visibility === "family");
+  const plan = payoffPlan(familyDebts, raw.debtSettings.strategy, raw.debtSettings.extra_per_month);
   const subs = inScope(v(raw.subscriptions));
   const assets = inScope(v(raw.assets));
-  const owned = assets.reduce((a, x) => a + assetEur(x, raw.fxRate), 0);
-  const owedTotal = debts.reduce((a, d) => a + d.balance, 0);
+  const worth = netWorth(assets.filter((a) => a.visibility === "family"), familyDebts, raw.fxRate);
+  const ownAssets = assets.filter((a) => a.visibility === "private");
+  const ownDebts = debts.filter((d) => d.visibility === "private");
+  const ownWorth = netWorth(ownAssets, ownDebts, raw.fxRate);
   const events = inScope(v(raw.events));
   const soon = addDays(today.iso, 14);
+  // The Life Map's score, from the same inputs the map uses: everything this person may see, no person filter.
+  const score = lifeScore({
+    today,
+    budget,
+    ef,
+    goals: v(raw.goals),
+    yearlyGoals: v(raw.yearlyGoals),
+    events: v(raw.events),
+    people: raw.members.map((m) => m.id),
+    viewerId,
+    priorities: v(raw.priorities),
+    learningMinutes: v(raw.learningMinutes),
+    gym: v(raw.gym),
+    gymGoal: raw.gymGoal,
+  });
   const monthSpentPrivate = txs.filter((t) => t.visibility === "private" && t.date.startsWith(today.ym) && t.amount < 0).reduce((a, t) => a - t.amount, 0);
 
   return {
@@ -92,13 +119,26 @@ export function buildContext(raw: AskRows, viewerId: string, today: Today, scope
       return { name: g.name, target: g.target, saved: g.current, monthly: g.monthly, months_to_go: Number.isFinite(eta) ? eta : null, emergency_fund: g.is_emergency_fund, ...priv(g) };
     }),
     emergency_fund: ef.goal ? { months_covered: r2(ef.months), target_months: ef.target } : null,
+    life_score: {
+      of: name(viewerId),
+      total: score.total,
+      pillars: score.pillars.map((p) => ({ area: p.k, score: p.score, lines: p.lines })),
+    },
     debts: {
-      total: r2(owedTotal),
-      debt_free_in_months: debts.length ? plan.months : 0,
+      total: r2(worth.debts),
+      debt_free_in_months: familyDebts.length ? (Number.isFinite(plan.months) ? plan.months : null) : 0,
+      strategy: raw.debtSettings.strategy,
+      extra_per_month: raw.debtSettings.extra_per_month,
+      private_total: ownDebts.length ? r2(ownWorth.debts) : null,
       items: debts.map((d) => ({ name: d.name, balance: d.balance, rate_pct: d.rate_pct, monthly: d.monthly_payment, ...priv(d) })),
     },
     subscriptions: { monthly_total: r2(subscriptionTotals(subs).monthly), active: subs.filter((s) => s.status === "active").map((s) => ({ name: s.name, monthly: s.monthly_price, ...priv(s) })) },
-    net_worth: { owned: Math.round(owned), owed: Math.round(owedTotal), net: Math.round(owned - owedTotal) },
+    net_worth: {
+      owned: Math.round(worth.assets),
+      owed: Math.round(worth.debts),
+      net: Math.round(worth.net),
+      private_net: ownAssets.length || ownDebts.length ? Math.round(ownWorth.net) : null,
+    },
     transfers_home_this_year: r2(inScope(v(raw.remittances)).filter((x) => x.date.startsWith(String(today.y))).reduce((a, x) => a + x.eur, 0)),
     business_last_months: raw.businesses.map((b) => ({
       name: b.name,
@@ -120,7 +160,11 @@ export function buildContext(raw: AskRows, viewerId: string, today: Today, scope
       const s = monthShifts(events.filter((e) => e.owner_id === m.id), today.ym);
       return { who: m.display_name, count: s.count, hours: Math.round(s.hours) };
     }).filter((s) => s.count > 0),
-    next_shift_hours: events.filter((e) => e.kind === "shift" && e.date >= today.iso).slice(0, 1).map((e) => shiftHours(e.start_time, e.end_time))[0] ?? null,
+    next_shift: events
+      .filter((e) => e.kind === "shift" && e.date >= today.iso)
+      .sort((a, b) => a.date.localeCompare(b.date) || (a.start_time ?? "").localeCompare(b.start_time ?? ""))
+      .slice(0, 1)
+      .map((e) => ({ date: e.date, who: name(e.owner_id), hours: shiftHours(e.start_time, e.end_time) }))[0] ?? null,
     yearly_goals: inScope(v(raw.yearlyGoals))
       .filter((g) => g.year === today.y)
       .map((g) => {

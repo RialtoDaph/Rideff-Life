@@ -24,3 +24,21 @@ describe("demo seed", () => {
     expect(monthsTo(fund, fund.monthly + freed)).toBe(11);
   });
 });
+
+describe("demo seed is consistent with the screens Clopar reads", () => {
+  type Row = { name: string; amount: number; day_of_month: number; last_posted_month: string; category_id: string | null };
+  type Tx = { payee: string; amount: number; date: string; source: string };
+  const seed = build(today, {}) as unknown as { recurring: Row[]; transactions: Tx[] };
+
+  it("every recurring row marked as posted this month and already due is booked this month", () => {
+    const due = seed.recurring.filter((r) => r.last_posted_month === "2026-11" && r.day_of_month <= 24);
+    for (const r of due) {
+      expect(seed.transactions.some((t) => t.payee === r.name && t.amount === r.amount && t.date === `2026-11-${String(r.day_of_month).padStart(2, "0")}`)).toBe(true);
+    }
+    expect(due.length).toBeGreaterThan(0);
+  });
+
+  it("books nothing that is not yet due", () => {
+    expect(seed.transactions.some((t) => t.payee.startsWith("LVB · salary"))).toBe(false); // day 28
+  });
+});

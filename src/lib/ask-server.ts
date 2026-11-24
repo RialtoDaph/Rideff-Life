@@ -6,7 +6,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ACTIONS, ASK_PROMPT, BRIEFING_PROMPT, answerSchema, type Answer, type AskAction } from "@/lib/ask-schema";
 import { buildContext, type AskRows } from "@/lib/ask-context";
-import { DEFAULT_IDR_PER_EUR, asSubscription } from "@/lib/finance";
+import { DEFAULT_IDR_PER_EUR, asSubscription, type DebtSettings } from "@/lib/finance";
 import { berlinToday, type Recurring } from "@/lib/money";
 import { addDays } from "@/lib/time";
 
@@ -36,10 +36,16 @@ export async function loadAskRows(sb: SupabaseClient, userId: string): Promise<A
     sb.from("businesses").select("id,name"),
     sb.from("business_months").select("*").order("month", { ascending: false }).limit(36),
     sb.from("tax_deadlines").select("*"),
-    sb.from("events").select("*").gte("date", `${today.ym}-01`).lte("date", addDays(today.iso, 31)),
-    sb.from("yearly_goals").select("*").eq("year", today.y),
+    // Events, yearly goals, priorities, learning and gym use the same windows as the app (components/time-data.tsx),
+    // so the Life Score below comes out as the Life Map shows it.
+    sb.from("events").select("*").gte("date", since).order("date").order("start_time").limit(2000),
+    sb.from("yearly_goals").select("*").gte("year", today.y - 1),
     sb.from("fx_rates").select("idr_per_eur").order("created_at", { ascending: false }).limit(1).maybeSingle(),
-    sb.from("member_settings").select("warn_pct,ef_months").eq("member_id", userId).maybeSingle(),
+    sb.from("member_settings").select("warn_pct,ef_months,gym_week_goal").eq("member_id", userId).maybeSingle(),
+    sb.from("debt_settings").select("strategy,extra_per_month").maybeSingle(),
+    sb.from("week_priorities").select("*").gte("week_start", since),
+    sb.from("learning_minutes").select("*").gte("date", addDays(today.iso, -120)),
+    sb.from("gym_sessions").select("*").gte("date", `${today.y}-01-01`),
   ]);
   if (q.some((r) => r.error)) return null;
   const d = q.map((r) => r.data);
@@ -62,6 +68,11 @@ export async function loadAskRows(sb: SupabaseClient, userId: string): Promise<A
     fxRate: (d[15] as { idr_per_eur: number } | null)?.idr_per_eur ?? DEFAULT_IDR_PER_EUR,
     warnPct: (d[16] as { warn_pct: number } | null)?.warn_pct ?? 80,
     efMonths: (d[16] as { ef_months: number } | null)?.ef_months ?? 6,
+    debtSettings: (d[17] as DebtSettings | null) ?? { strategy: "avalanche", extra_per_month: 0 },
+    priorities: d[18] as AskRows["priorities"],
+    learningMinutes: d[19] as AskRows["learningMinutes"],
+    gym: d[20] as AskRows["gym"],
+    gymGoal: (d[16] as { gym_week_goal: number | null } | null)?.gym_week_goal ?? 3,
   };
 }
 
