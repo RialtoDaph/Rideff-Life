@@ -9,9 +9,15 @@ const spent = new Map<string, { t0: number; chars: number }>();
 const MODEL = process.env.ELEVENLABS_MODEL ?? "eleven_flash_v2_5";
 
 export async function POST(req: Request) {
-  const key = process.env.ELEVENLABS_API_KEY?.trim();
-  const voice = process.env.ELEVENLABS_VOICE_ID;
-  if (!key?.startsWith("sk_") || !voice) return Response.json({ code: "not_configured" }, { status: 503 });
+  // Secrets pasted into a dashboard often carry quotes or a newline: strip them.
+  const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, "").trim();
+  const key = clean(process.env.ELEVENLABS_API_KEY);
+  const voice = clean(process.env.ELEVENLABS_VOICE_ID);
+  const why = !key ? "no_key" : !key.startsWith("sk_") ? "key_not_sk" : !voice ? "no_voice" : null;
+  if (why) {
+    console.error("brief-tts not configured:", why); // the reason stays in the server log, never in the response
+    return Response.json({ code: "not_configured" }, { status: 503 });
+  }
   const auth = await authorize(req);
   if (auth instanceof Response) return auth;
   const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
@@ -25,9 +31,9 @@ export async function POST(req: Request) {
   slot.chars += text.length;
   spent.set(auth.userId, slot);
 
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_128`, {
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice!)}?output_format=mp3_44100_128`, {
     method: "POST",
-    headers: { "xi-api-key": key, "Content-Type": "application/json", Accept: "audio/mpeg" },
+    headers: { "xi-api-key": key!, "Content-Type": "application/json", Accept: "audio/mpeg" },
     body: JSON.stringify({ text, model_id: MODEL }),
     signal: AbortSignal.timeout(15000),
   }).catch(() => null);
