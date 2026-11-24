@@ -4,6 +4,7 @@ import { Check, List, Lock, Network, Pause, Play } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { supabase } from "@/lib/supabase";
 import { useAppData, type Member, useAiName } from "@/components/app-data";
 import { HeroNumber } from "@/components/ds/hero-number";
 import { useMoney } from "@/components/money-data";
@@ -395,23 +396,61 @@ function Briefing({ scope }: { scope: string }) {
   // A briefing Clopar has just written is typed out; one already on this phone is simply there.
   const typed = useTyped(text, !!aiAnswer && !!ai?.fresh);
 
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCache = useRef(new Map<string, string>()); // text -> blob URL, so replaying costs no second request
+  const stopAll = () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    window.speechSynthesis?.cancel();
+    setPlaying(false);
+  };
+  useEffect(() => {
+    const cache = audioCache.current;
+    return () => {
+      audioRef.current?.pause();
+      window.speechSynthesis?.cancel();
+      cache.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, []);
 
-  function togglePlay() {
+  function browserSpeak() {
     const synth = window.speechSynthesis;
-    if (!synth) return;
-    if (playing) {
-      synth.cancel();
-      setPlaying(false);
-      return;
-    }
+    if (!synth) return setPlaying(false);
     const u = new SpeechSynthesisUtterance(text);
     u.lang = SPEECH[locale] ?? "en-GB";
     u.onend = () => setPlaying(false);
     u.onerror = () => setPlaying(false);
     synth.cancel();
     synth.speak(u);
+  }
+
+  async function togglePlay() {
+    if (playing) return stopAll();
     setPlaying(true);
+    try {
+      let url = audioCache.current.get(text);
+      if (!url) {
+        const { data } = await supabase().auth.getSession();
+        const token = data.session?.access_token;
+        if (!token) throw new Error("no session");
+        const res = await fetch("/api/assistant/brief-tts", { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+        if (!res.ok) throw new Error(String(res.status));
+        url = URL.createObjectURL(await res.blob());
+        audioCache.current.set(text, url);
+      }
+      const a = new Audio(url);
+      audioRef.current = a;
+      a.onended = () => setPlaying(false);
+      a.onerror = () => {
+        audioRef.current = null;
+        browserSpeak();
+      };
+      await a.play();
+    } catch {
+      // ElevenLabs not set up, over the limit or offline: the browser's own voice still reads it.
+      audioRef.current = null;
+      browserSpeak();
+    }
   }
 
   return (
